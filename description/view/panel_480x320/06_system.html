@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=480, height=320, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Меркурий — Системные настройки</title>
+<style>
+:root{--bg-dark:#121212;--bg-panel:#1e1e1e;--bg-panel-light:#2a2a2a;--text-primary:#e0e0e0;--text-secondary:#888;--accent-green:#4caf50;--accent-red:#f44336;--accent-orange:#ff9800;--accent-blue:#2196f3;--border-color:#333;--font-main:'Segoe UI',Roboto,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0;user-select:none;-webkit-tap-highlight-color:transparent}
+html,body{width:480px;height:320px;overflow:hidden;background:var(--bg-dark);color:var(--text-primary);font-family:var(--font-main)}
+.screen{width:480px;height:320px;display:grid;grid-template-columns:200px 1fr 30px;grid-template-rows:30px 1fr 22px}
+.header{grid-column:1/-1;grid-row:1;display:flex;justify-content:space-between;align-items:center;padding:0 10px;background:var(--bg-panel);border-bottom:1px solid var(--border-color);font-size:12px}
+.logo{font-weight:bold;color:var(--accent-blue);font-size:13px}
+.back-btn{background:none;border:none;color:var(--text-secondary);font-size:14px;cursor:pointer;padding:2px 6px}
+.left-panel{grid-column:1;grid-row:2;background:var(--bg-panel);border-right:1px solid var(--border-color);padding:8px;display:flex;flex-direction:column;gap:6px;overflow:hidden}
+.right-panel-wrapper{grid-column:2;grid-row:2;position:relative;overflow:hidden}
+.right-panel{width:100%;height:100%;overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:8px;scroll-behavior:smooth}
+.right-panel::-webkit-scrollbar{display:none}
+.scroll-bar{grid-column:3;grid-row:2;background:var(--bg-panel);border-left:1px solid var(--border-color);display:flex;flex-direction:column;justify-content:center;align-items:center;gap:6px}
+.scroll-btn{width:24px;height:40px;background:var(--bg-panel-light);border:1px solid var(--border-color);border-radius:4px;color:var(--text-secondary);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.scroll-btn:active{background:var(--accent-blue);color:white}
+.footer{grid-column:1/-1;grid-row:3;display:flex;justify-content:space-between;align-items:center;padding:0 10px;background:var(--bg-panel);border-top:1px solid var(--border-color);font-size:10px;color:var(--text-secondary)}
+.section-label{font-size:10px;color:var(--text-secondary);text-transform:uppercase;margin-bottom:4px}
+.btn{padding:8px;border:none;border-radius:6px;font-size:11px;font-weight:bold;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;width:100%}
+.btn-outline{background:transparent;border:1px solid var(--border-color);color:var(--text-primary)}
+.btn-green{background:var(--accent-green);color:white}
+.btn-red{background:var(--accent-red);color:white}
+.btn-orange{background:var(--accent-orange);color:white}
+.info-row{display:flex;justify-content:space-between;padding:5px 0;font-size:10px;border-bottom:1px solid #2a2a2a}
+.info-row:last-child{border-bottom:none}
+.info-label{color:var(--text-secondary)}
+.info-value{font-weight:500}
+.settings-group{background:var(--bg-panel-light);border-radius:6px;padding:8px}
+.field-group{margin-bottom:8px}
+.field-label{font-size:10px;color:var(--text-secondary);margin-bottom:3px;display:block}
+.field-input{width:100%;background:var(--bg-dark);border:1px solid var(--border-color);color:white;padding:6px;border-radius:4px;font-size:11px}
+.toggle-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:11px;border-bottom:1px solid #2a2a2a}
+.toggle-row:last-child{border-bottom:none}
+.toggle-sm{width:32px;height:18px;background:#444;border-radius:9px;position:relative;cursor:pointer;flex-shrink:0}
+.toggle-sm.active{background:var(--accent-green)}
+.toggle-sm::after{content:'';position:absolute;top:2px;left:2px;width:14px;height:14px;background:white;border-radius:50%;transition:transform 0.2s}
+.toggle-sm.active::after{transform:translateX(14px)}
+</style>
+</head>
+<body>
+<div class="screen">
+<div class="header">
+<div style="display:flex;align-items:center;gap:6px;">
+<button class="back-btn">←</button>
+<span class="logo">Системные настройки</span>
+</div>
+<div class="header-status"><span>v3.02</span></div>
+</div>
+
+<div class="left-panel">
+<button class="btn btn-outline">🌐 Сеть</button>
+<button class="btn btn-blue">💻 Система</button>
+<button class="btn btn-outline">🔔 Оповещения</button>
+<button class="btn btn-outline">🌡 Калибровка</button>
+<button class="btn btn-outline">🔄 Обновление ПО</button>
+
+<div style="margin-top:auto;display:flex;flex-direction:column;gap:4px;">
+<button class="btn btn-green">💾 СОХРАНИТЬ</button>
+<button class="btn btn-red">↺ СБРОС</button>
+</div>
+</div>
+
+<div class="right-panel-wrapper">
+<div class="right-panel" id="rightPanel">
+<div>
+<div class="section-label">Информация о системе</div>
+<div class="settings-group">
+<div class="info-row"><span class="info-label">Модель печи</span><span class="info-value">Меркурий-301</span></div>
+<div class="info-row"><span class="info-label">Серийный номер</span><span class="info-value">АМСГ.421415.110</span></div>
+<div class="info-row"><span class="info-label">Версия ПО</span><span class="info-value">3.02 от 15.01.2026</span></div>
+<div class="info-row"><span class="info-label">Дата сборки</span><span class="info-value">2026 г.</span></div>
+</div>
+</div>
+
+<div>
+<div class="section-label">Тип сети</div>
+<div class="settings-group">
+<div style="display:flex;gap:6px;">
+<button class="btn btn-blue" style="font-size:10px;">Однофазная 220В</button>
+<button class="btn btn-outline" style="font-size:10px;">Трехфазная 380В</button>
+</div>
+<div style="font-size:9px;color:var(--text-secondary);margin-top:6px;">
+⚠ Для трехфазной сети необходимо снять перемычку J10 на плате управления
+</div>
+</div>
+</div>
+
+<div>
+<div class="section-label">Параметры</div>
+<div class="settings-group">
+<div class="field-group">
+<label class="field-label">Эталонная частота (Гц)</label>
+<input class="field-input" type="number" value="50">
+</div>
+<div class="toggle-row"><span>Звуковые сигналы</span><div class="toggle-sm active"></div></div>
+<div class="toggle-row"><span>Реакция на ошибку оборотов</span><div class="toggle-sm active"></div></div>
+<div class="toggle-row"><span>Автосохранение логов</span><div class="toggle-sm active"></div></div>
+</div>
+</div>
+
+<div>
+<div class="section-label">Датчики</div>
+<div class="settings-group">
+<div class="info-row"><span class="info-label">Основной датчик</span><span class="info-value">У дальней стенки</span></div>
+<div class="info-row"><span class="info-label">Доп. датчик (на плате)</span><span class="info-value">Сверху камеры</span></div>
+<div class="toggle-row"><span>Использовать доп. датчик</span><div class="toggle-sm"></div></div>
+</div>
+</div>
+
+<div>
+<div class="section-label">Служебные действия</div>
+<div style="display:flex;flex-direction:column;gap:4px;">
+<button class="btn btn-outline" style="font-size:10px;">📥 Экспорт логов</button>
+<button class="btn btn-outline" style="font-size:10px;">🗑 Очистить кэш</button>
+<button class="btn btn-orange" style="font-size:10px;">🔄 Проверить обновления</button>
+</div>
+</div>
+</div>
+</div>
+
+<div class="scroll-bar">
+<button class="scroll-btn" onclick="document.getElementById('rightPanel').scrollBy({top:-60,behavior:'smooth'})">▲</button>
+<button class="scroll-btn" onclick="document.getElementById('rightPanel').scrollBy({top:60,behavior:'smooth'})">▼</button>
+</div>
+
+<div class="footer">
+<span>Меркурий-301</span>
+<span>Системные настройки</span>
+</div>
+</div>
+</body>
+</html>

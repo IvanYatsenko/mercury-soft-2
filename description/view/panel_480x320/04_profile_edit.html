@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=480, height=320, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Меркурий — Редактирование профиля</title>
+<style>
+:root{--bg-dark:#121212;--bg-panel:#1e1e1e;--bg-panel-light:#2a2a2a;--text-primary:#e0e0e0;--text-secondary:#888;--accent-green:#4caf50;--accent-red:#f44336;--accent-orange:#ff9800;--accent-blue:#2196f3;--border-color:#333;--font-main:'Segoe UI',Roboto,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0;user-select:none;-webkit-tap-highlight-color:transparent}
+html,body{width:480px;height:320px;overflow:hidden;background:var(--bg-dark);color:var(--text-primary);font-family:var(--font-main)}
+.screen{width:480px;height:320px;display:grid;grid-template-columns:200px 1fr 30px;grid-template-rows:30px 1fr 22px}
+.header{grid-column:1/-1;grid-row:1;display:flex;justify-content:space-between;align-items:center;padding:0 10px;background:var(--bg-panel);border-bottom:1px solid var(--border-color);font-size:12px}
+.logo{font-weight:bold;color:var(--accent-blue);font-size:13px}
+.back-btn{background:none;border:none;color:var(--text-secondary);font-size:14px;cursor:pointer;padding:2px 6px}
+.left-panel{grid-column:1;grid-row:2;background:var(--bg-panel);border-right:1px solid var(--border-color);padding:8px;display:flex;flex-direction:column;gap:6px;overflow:hidden}
+.right-panel-wrapper{grid-column:2;grid-row:2;position:relative;overflow:hidden}
+.right-panel{width:100%;height:100%;overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:8px;scroll-behavior:smooth}
+.right-panel::-webkit-scrollbar{display:none}
+.scroll-bar{grid-column:3;grid-row:2;background:var(--bg-panel);border-left:1px solid var(--border-color);display:flex;flex-direction:column;justify-content:center;align-items:center;gap:6px}
+.scroll-btn{width:24px;height:40px;background:var(--bg-panel-light);border:1px solid var(--border-color);border-radius:4px;color:var(--text-secondary);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.scroll-btn:active{background:var(--accent-blue);color:white}
+.footer{grid-column:1/-1;grid-row:3;display:flex;justify-content:space-between;align-items:center;padding:0 10px;background:var(--bg-panel);border-top:1px solid var(--border-color);font-size:10px;color:var(--text-secondary)}
+.section-label{font-size:10px;color:var(--text-secondary);text-transform:uppercase;margin-bottom:4px}
+.btn{padding:8px;border:none;border-radius:6px;font-size:11px;font-weight:bold;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;width:100%}
+.btn-outline{background:transparent;border:1px solid var(--border-color);color:var(--text-primary)}
+.btn-green{background:var(--accent-green);color:white}
+.btn-red{background:var(--accent-red);color:white}
+.btn-blue{background:var(--accent-blue);color:white}
+.field-group{margin-bottom:8px}
+.field-label{font-size:10px;color:var(--text-secondary);margin-bottom:3px;display:block}
+.field-input{width:100%;background:var(--bg-dark);border:1px solid var(--border-color);color:white;padding:6px;border-radius:4px;font-size:11px}
+.mode-selector{display:flex;gap:4px;margin-bottom:8px}
+.mode-btn{flex:1;padding:6px;background:var(--bg-panel-light);border:1px solid var(--border-color);border-radius:4px;color:var(--text-secondary);font-size:10px;cursor:pointer}
+.mode-btn.active{background:var(--accent-blue);color:white;border-color:var(--accent-blue)}
+.stage-table{width:100%;border-collapse:collapse;font-size:10px}
+.stage-table th{text-align:left;padding:4px 2px;color:var(--text-secondary);border-bottom:1px solid var(--border-color);font-weight:normal}
+.stage-table td{padding:4px 2px;border-bottom:1px solid #2a2a2a}
+.stage-table input{width:100%;background:var(--bg-dark);border:1px solid var(--border-color);color:white;padding:3px;border-radius:3px;text-align:center;font-size:10px}
+.stage-actions{display:flex;gap:2px;justify-content:flex-end}
+.stage-actions button{background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:10px}
+.checkbox-row{display:flex;align-items:center;gap:6px;font-size:10px;margin-top:6px}
+.checkbox-row input{width:14px;height:14px}
+.validation-warning{background:rgba(244,67,54,0.15);border:1px solid var(--accent-red);border-radius:4px;padding:6px;font-size:9px;color:#ff8a80;margin-top:6px}
+</style>
+</head>
+<body>
+<div class="screen">
+<div class="header">
+<div style="display:flex;align-items:center;gap:6px;">
+<button class="back-btn">←</button>
+<span class="logo">Редактирование</span>
+</div>
+<div class="header-status"><span>Свинцовая паста</span></div>
+</div>
+
+<div class="left-panel">
+<div class="field-group">
+<label class="field-label">Название профиля</label>
+<input class="field-input" type="text" value="Свинцовая паста">
+</div>
+
+<div class="field-group">
+<label class="field-label">Режим редактирования</label>
+<div class="mode-selector">
+<button class="mode-btn active">Детальный</button>
+<button class="mode-btn">Упрощенный</button>
+</div>
+</div>
+
+<div class="checkbox-row">
+<input type="checkbox" id="sensor-e">
+<label for="sensor-e">Датчик на плате</label>
+</div>
+
+<div style="margin-top:auto;display:flex;flex-direction:column;gap:4px;">
+<button class="btn btn-green">💾 СОХРАНИТЬ</button>
+<button class="btn btn-outline">📋 КОПИРОВАТЬ</button>
+<button class="btn btn-red">🗑 УДАЛИТЬ</button>
+</div>
+</div>
+
+<div class="right-panel-wrapper">
+<div class="right-panel" id="rightPanel">
+<div>
+<div class="section-label">Стадии термопрофиля</div>
+<table class="stage-table">
+<thead><tr><th>Время (с)</th><th>Темп-ра (°C)</th><th></th></tr></thead>
+<tbody>
+<tr><td><input type="number" value="0"></td><td><input type="number" value="30"></td><td class="stage-actions"><button>⬆</button><button>⬇</button><button>🗑</button></td></tr>
+<tr><td><input type="number" value="150"></td><td><input type="number" value="150"></td><td class="stage-actions"><button>⬆</button><button>⬇</button><button>🗑</button></td></tr>
+<tr><td><input type="number" value="110"></td><td><input type="number" value="150"></td><td class="stage-actions"><button>⬆</button><button>⬇</button><button>🗑</button></td></tr>
+<tr><td><input type="number" value="100"></td><td><input type="number" value="230"></td><td class="stage-actions"><button>⬆</button><button>⬇</button><button>🗑</button></td></tr>
+<tr><td><input type="number" value="20"></td><td><input type="number" value="230"></td><td class="stage-actions"><button>⬆</button><button>⬇</button><button>🗑</button></td></tr>
+<tr><td><input type="number" value="75"></td><td><input type="number" value="200"></td><td class="stage-actions"><button>⬆</button><button>⬇</button><button>🗑</button></td></tr>
+<tr><td><input type="number" value="167"></td><td><input type="number" value="150"></td><td class="stage-actions"><button>⬆</button><button>⬇</button><button>🗑</button></td></tr>
+<tr><td><input type="number" value="250"></td><td><input type="number" value="100"></td><td class="stage-actions"><button>⬆</button><button>⬇</button><button>🗑</button></td></tr>
+</tbody>
+</table>
+<button class="btn btn-outline" style="margin-top:6px;">＋ ДОБАВИТЬ СТРОКУ</button>
+</div>
+
+<div class="validation-warning">
+⚠ Скорость нагрева 1.2 °C/с превышает допустимую (0.7 °C/с) для Меркурий-301. Профиль не может быть выполнен.
+</div>
+
+<div>
+<div class="section-label">Итого</div>
+<div style="background:var(--bg-panel-light);border-radius:4px;padding:6px;font-size:10px;">
+<div style="display:flex;justify-content:space-between;padding:2px 0;"><span>Общее время:</span><span>872 с</span></div>
+<div style="display:flex;justify-content:space-between;padding:2px 0;"><span>Стадий:</span><span>8</span></div>
+<div style="display:flex;justify-content:space-between;padding:2px 0;"><span>Макс. температура:</span><span>230°C</span></div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="scroll-bar">
+<button class="scroll-btn" onclick="document.getElementById('rightPanel').scrollBy({top:-60,behavior:'smooth'})">▲</button>
+<button class="scroll-btn" onclick="document.getElementById('rightPanel').scrollBy({top:60,behavior:'smooth'})">▼</button>
+</div>
+
+<div class="footer">
+<span>Профиль: Свинцовая паста</span>
+<span>Детальный режим</span>
+</div>
+</div>
+</body>
+</html>

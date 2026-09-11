@@ -1,0 +1,145 @@
+import React, { ReactNode } from 'react';
+import { Box, IconButton, useMediaQuery } from '@mui/material';
+import { ArrowUpward, ArrowDownward } from '@mui/icons-material';
+
+interface PanelLayoutProps {
+  header?: ReactNode;
+  leftPanel: ReactNode;
+  rightPanel: ReactNode;
+  footer?: ReactNode;
+}
+
+const PanelLayout: React.FC<PanelLayoutProps> = ({ header, leftPanel, rightPanel, footer }) => {
+  const rightPanelRef = React.useRef<HTMLDivElement>(null);
+  const isMobile = useMediaQuery('(max-width:600px)');
+  const isTablet = useMediaQuery('(max-width:960px)');
+
+  const scrollToTop = () => {
+    rightPanelRef.current?.scrollBy({ top: -60, behavior: 'smooth' });
+  };
+
+  const scrollToBottom = () => {
+    rightPanelRef.current?.scrollBy({ top: 60, behavior: 'smooth' });
+  };
+
+  // Mobile: single column
+  // Tablet: two columns
+  // Desktop: three columns (like electron)
+  const gridTemplateColumns = isMobile ? '1fr' : isTablet ? '250px 1fr' : '250px 1fr 30px';
+
+  return (
+    <Box
+      sx={{
+        width: '100%',
+        height: '100vh',
+        display: 'grid',
+        gridTemplateColumns: gridTemplateColumns,
+        gridTemplateRows: 'auto 1fr auto',
+        bgcolor: 'background.default',
+        color: 'text.primary',
+        overflow: 'hidden',
+      }}
+    >
+      {/* Header */}
+      <Box
+        sx={{
+          gridColumn: '1/-1',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          px: { xs: 1, sm: 2 },
+          py: 1,
+          bgcolor: 'background.paper',
+          borderBottom: 1,
+          borderColor: 'divider',
+        }}
+      >
+        {header}
+      </Box>
+
+      {/* Left Panel */}
+      <Box
+        sx={{
+          bgcolor: 'background.paper',
+          borderRight: { xs: 'none', md: 1 },
+          borderColor: 'divider',
+          p: { xs: 1, sm: 2 },
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 1,
+          overflow: { xs: 'auto', md: 'hidden' },
+        }}
+      >
+        {leftPanel}
+      </Box>
+
+      {/* Right Panel */}
+      <Box
+        sx={{
+          position: 'relative',
+          overflow: 'hidden',
+        }}
+      >
+        <Box
+          ref={rightPanelRef}
+          sx={{
+            width: '100%',
+            height: '100%',
+            overflowY: 'auto',
+            p: { xs: 1, sm: 2 },
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 1.5,
+            '&::-webkit-scrollbar': { display: 'none' },
+          }}
+        >
+          {rightPanel}
+        </Box>
+      </Box>
+
+      {/* Scroll Bar - only on desktop */}
+      {!isMobile && !isTablet && (
+        <Box
+          sx={{
+            bgcolor: 'background.paper',
+            borderLeft: 1,
+            borderColor: 'divider',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            gap: 1,
+          }}
+        >
+          <IconButton size="small" onClick={scrollToTop}>
+            <ArrowUpward fontSize="small" />
+          </IconButton>
+          <IconButton size="small" onClick={scrollToBottom}>
+            <ArrowDownward fontSize="small" />
+          </IconButton>
+        </Box>
+      )}
+
+      {/* Footer */}
+      <Box
+        sx={{
+          gridColumn: '1/-1',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          px: { xs: 1, sm: 2 },
+          py: 0.75,
+          bgcolor: 'background.paper',
+          borderTop: 1,
+          borderColor: 'divider',
+          fontSize: '12px',
+          color: 'text.secondary',
+        }}
+      >
+        {footer}
+      </Box>
+    </Box>
+  );
+};
+
+export default PanelLayout;

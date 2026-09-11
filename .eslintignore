@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+*.js
+*.d.ts
+
+# Generated files
+*.gen.ts
+*.gen.tsx
+
+# Environment files
+.env
+.env.local
+
+# Data files
+data/*.db
+
+# Logs
+*.log
+npm-debug.log*

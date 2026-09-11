@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Меркурий — Десктоп (Web-управление)</title>
+  <style>
+    :root {
+        --bg-dark: #1e1e1e;
+        --bg-panel: #2d2d2d;
+        --bg-panel-light: #3a3a3a;
+        --text-primary: #e0e0e0;
+        --text-secondary: #a0a0a0;
+        --accent-green: #4caf50;
+        --accent-green-dark: #388e3c;
+        --accent-red: #f44336;
+        --accent-orange: #ff9800;
+        --accent-blue: #2196f3;
+        --border-color: #444;
+        --radius: 10px;
+        --font-main: 'Segoe UI', Roboto, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+        background: var(--bg-dark);
+        color: var(--text-primary);
+        font-family: var(--font-main);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+    }
+    /* Шапка */
+    .header {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 12px 24px;
+        background: var(--bg-panel);
+        border-bottom: 1px solid var(--border-color);
+    }
+    .logo { font-weight: bold; color: var(--accent-blue); font-size: 20px; }
+    .header-right { display: flex; gap: 16px; align-items: center; }
+    .status-badge {
+        font-size: 12px; padding: 4px 10px; border-radius: 12px;
+        background: var(--accent-green-dark); color: white;
+    }
+    .icon { width: 22px; height: 22px; fill: var(--text-secondary); }
+    .icon.active { fill: var(--accent-green); }
+
+    /* Основная сетка */
+    .layout {
+        flex: 1;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        padding: 20px 24px;
+        max-width: 1600px;
+        margin: 0 auto;
+        width: 100%;
+    }
+    @media (max-width: 900px) {
+        .layout { grid-template-columns: 1fr; }
+    }
+
+    /* Левая колонка */
+    .col-left { display: flex; flex-direction: column; gap: 16px; }
+    .col-right { display: flex; flex-direction: column; gap: 16px; }
+
+    /* Карточки */
+    .card {
+        background: var(--bg-panel); border-radius: var(--radius);
+        padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
+    .card-title { font-size: 14px; color: var(--text-secondary); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+    /* Температура */
+    .temp-display { display: flex; align-items: baseline; gap: 12px; }
+    .temp-value { font-size: 64px; font-weight: bold; color: var(--accent-orange); line-height: 1; }
+    .temp-unit { font-size: 24px; color: var(--text-secondary); }
+    .temp-status-row { display: flex; gap: 20px; margin-top: 16px; }
+    .status-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-secondary); }
+    .status-dot { width: 10px; height: 10px; border-radius: 50%; background: #555; }
+    .status-dot.active { background: var(--accent-green); }
+
+    /* График (имитация) */
+    .chart-placeholder {
+        height: 180px; background: linear-gradient(180deg, #1a1a1a, #252525);
+        border-radius: 8px; border: 1px solid var(--border-color);
+        display: flex; align-items: flex-end; padding: 10px; gap: 4px;
+        position: relative; overflow: hidden;
+    }
+    .chart-bar { flex: 1; background: var(--accent-blue); border-radius: 2px 2px 0 0; opacity: 0.7; }
+    .chart-bar:nth-child(1) { height: 20%; }
+    .chart-bar:nth-child(2) { height: 40%; }
+    .chart-bar:nth-child(3) { height: 60%; }
+    .chart-bar:nth-child(4) { height: 80%; }
+    .chart-bar:nth-child(5) { height: 90%; }
+    .chart-bar:nth-child(6) { height: 70%; }
+    .chart-bar:nth-child(7) { height: 50%; }
+    .chart-bar:nth-child(8) { height: 30%; }
+
+    /* Кнопки */
+    .btn-row { display: flex; gap: 12px; margin-top: 16px; }
+    .btn {
+        flex: 1; padding: 14px; border: none; border-radius: var(--radius);
+        font-size: 15px; font-weight: bold; cursor: pointer;
+        display: flex; align-items: center; justify-content: center; gap: 8px;
+        transition: transform 0.1s, background 0.2s;
+    }
+    .btn:active { transform: scale(0.98); }
+    .btn-green { background: var(--accent-green); color: white; }
+    .btn-green:hover { background: var(--accent-green-dark); }
+    .btn-red { background: var(--accent-red); color: white; }
+    .btn-red:hover { background: #d32f2f; }
+    .btn-blue { background: var(--accent-blue); color: white; }
+    .btn-blue:hover { background: #1976d2; }
+    .btn-outline { background: transparent; border: 1px solid var(--border-color); color: var(--text-primary); }
+    .btn-outline:hover { background: var(--bg-panel-light); }
+
+    /* Список профилей */
+    .profile-list { display: flex; flex-direction: column; gap: 10px; }
+    .profile-item {
+        background: var(--bg-panel-light); border-radius: 8px;
+        padding: 12px 16px; display: flex; justify-content: space-between; align-items: center;
+        border-left: 4px solid var(--accent-blue); cursor: pointer;
+    }
+    .profile-item.selected { border-left-color: var(--accent-green); }
+    .profile-name { font-size: 15px; font-weight: 500; }
+    .profile-desc { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+    .profile-actions { display: flex; gap: 8px; }
+    .icon-btn { background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 16px; padding: 4px; }
+    .icon-btn:hover { color: white; }
+
+    /* Настройки */
+    .settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .settings-row {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 8px 0; border-bottom: 1px solid #333; font-size: 13px;
+    }
+    .toggle {
+        width: 40px; height: 22px; background: #555; border-radius: 11px;
+        position: relative; cursor: pointer; transition: background 0.3s;
+    }
+    .toggle.active { background: var(--accent-green); }
+    .toggle::after {
+        content: ''; position: absolute; top: 2px; left: 2px;
+        width: 18px; height: 18px; background: white; border-radius: 50%;
+        transition: transform 0.3s;
+    }
+    .toggle.active::after { transform: translateX(18px); }
+
+    /* Футер */
+    .footer {
+        padding: 12px 24px; background: var(--bg-panel);
+        border-top: 1px solid var(--border-color);
+        display: flex; justify-content: space-between;
+        font-size: 12px; color: var(--text-secondary);
+    }
+
+    /* Таблица стадий */
+    .stage-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    .stage-table th { text-align: left; padding: 8px 6px; color: var(--text-secondary); border-bottom: 1px solid var(--border-color); font-weight: normal; }
+    .stage-table td { padding: 8px 6px; border-bottom: 1px solid #333; }
+    .stage-table input {
+        width: 100%; background: var(--bg-dark); border: 1px solid var(--border-color);
+        color: white; padding: 6px; border-radius: 4px; text-align: center;
+    }
+    .stage-actions { display: flex; gap: 6px; justify-content: flex-end; }
+    .stage-actions button { background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 16px; }
+  </style>
+</head>
+<body>
+<div class="header">
+  <span class="logo">Меркурий — Web-управление</span>
+  <div class="header-right">
+    <span class="status-badge">Подключено</span>
+    <svg class="icon active" viewBox="0 0 24 24"><path d="M12 21L15.6 16.2C14.6 15.4 13.3 15 12 15C10.7 15 9.4 15.4 8.4 16.2L12 21ZM12 3C7.95 3 4.21 4.34 1.2 6.6L3 9C5.5 7.12 8.62 6 12 6C15.38 6 18.5 7.12 21 9L22.8 6.6C19.79 4.34 16.05 3 12 3ZM12 9C9.3 9 6.81 9.89 4.8 11.4L6.6 13.8C8.1 12.67 9.97 12 12 12C14.03 12 15.9 12.67 17.4 13.8L19.2 11.4C17.19 9.89 14.7 9 12 9Z"/></svg>
+    <svg class="icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM13 17H11V11H13V17ZM13 9H11V7H13V9Z"/></svg>
+  </div>
+</div>
+
+<div class="layout">
+  <!-- ЛЕВАЯ КОЛОНКА: Мониторинг -->
+  <div class="col-left">
+    <div class="card">
+      <div class="card-title">Текущее состояние</div>
+      <div class="temp-display">
+        <span class="temp-value">193</span>
+        <span class="temp-unit">°C</span>
+      </div>
+      <div class="temp-status-row">
+        <div class="status-item"><span class="status-dot active"></span> ТЭНы</div>
+        <div class="status-item"><span class="status-dot active"></span> Вентилятор</div>
+        <div class="status-item"><span class="status-dot"></span> ИК-лампы</div>
+        <div class="status-item"><span class="status-dot active"></span> Охлаждение</div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-green">▶ ПУСК</button>
+        <button class="btn btn-red">⏹ СТОП</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">График термопрофиля</div>
+      <div class="chart-placeholder">
+        <div class="chart-bar"></div><div class="chart-bar"></div><div class="chart-bar"></div>
+        <div class="chart-bar"></div><div class="chart-bar"></div><div class="chart-bar"></div>
+        <div class="chart-bar"></div><div class="chart-bar"></div>
+      </div>
+      <div style="display: flex; justify-content: space-between; margin-top: 8px; font-size: 12px; color: var(--text-secondary);">
+        <span>0 с</span><span>200</span><span>400</span><span>600</span><span>800</span><span>1000</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Настройки компонентов</div>
+      <div class="settings-grid">
+        <div class="settings-row"><span>Верхний нагреватель</span><div class="toggle active"></div></div>
+        <div class="settings-row"><span>Нижний нагреватель</span><div class="toggle active"></div></div>
+        <div class="settings-row"><span>Конвекц. вентилятор</span><div class="toggle active"></div></div>
+        <div class="settings-row"><span>ИК лампа №1</span><div class="toggle"></div></div>
+        <div class="settings-row"><span>Вентилятор охлажд.</span><div class="toggle active"></div></div>
+        <div class="settings-row"><span>Звук ошибок</span><div class="toggle active"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ПРАВАЯ КОЛОНКА: Управление -->
+  <div class="col-right">
+    <div class="card">
+      <div class="card-title">Термопрофили</div>
+      <div class="profile-list">
+        <div class="profile-item selected">
+          <div>
+            <div class="profile-name">Свинцовая паста</div>
+            <div class="profile-desc">Детальный режим • 6 стадий</div>
+          </div>
+          <div class="profile-actions">
+            <button class="icon-btn">✏️</button>
+            <button class="icon-btn">📋</button>
+            <button class="icon-btn">🗑️</button>
+          </div>
+        </div>
+        <div class="profile-item">
+          <div>
+            <div class="profile-name">Бессвинцовая паста</div>
+            <div class="profile-desc">Упрощенный режим • 3 стадии</div>
+          </div>
+          <div class="profile-actions">
+            <button class="icon-btn">✏️</button>
+            <button class="icon-btn">📋</button>
+            <button class="icon-btn">🗑️</button>
+          </div>
+        </div>
+        <div class="profile-item">
+          <div>
+            <div class="profile-name">Пустой шаблон</div>
+            <div class="profile-desc">Новый профиль</div>
+          </div>
+          <div class="profile-actions">
+            <button class="icon-btn">✏️</button>
+            <button class="icon-btn">📋</button>
+            <button class="icon-btn">🗑️</button>
+          </div>
+        </div>
+      </div>
+      <button class="btn btn-outline" style="margin-top: 12px; width: 100%;">＋ ДОБАВИТЬ ПРОФИЛЬ</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Редактор стадий (демо)</div>
+      <table class="stage-table">
+        <thead><tr><th>Время (с)</th><th>Темп-ра (°C)</th><th></th></tr></thead>
+        <tbody>
+        <tr><td><input type="number" value="0"></td><td><input type="number" value="30"></td><td class="stage-actions"><button>⬆️</button><button>⬇️</button><button>🗑️</button></td></tr>
+        <tr><td><input type="number" value="150"></td><td><input type="number" value="150"></td><td class="stage-actions"><button>⬆️</button><button>⬇️</button><button>🗑️</button></td></tr>
+        <tr><td><input type="number" value="110"></td><td><input type="number" value="150"></td><td class="stage-actions"><button>⬆️</button><button>⬇️</button><button>🗑️</button></td></tr>
+        <tr><td><input type="number" value="100"></td><td><input type="number" value="230"></td><td class="stage-actions"><button>⬆️</button><button>⬇️</button><button>🗑️</button></td></tr>
+        </tbody>
+      </table>
+      <button class="btn btn-outline" style="margin-top: 12px; width: 100%;">＋ ДОБАВИТЬ СТРОКУ</button>
+      <div style="display: flex; align-items: center; gap: 10px; margin-top: 14px; font-size: 14px;">
+        <input type="checkbox" id="sensor-d" style="width: 18px; height: 18px;">
+        <label for="sensor-d">Использовать датчик на плате</label>
+      </div>
+      <div class="btn-row" style="margin-top: 16px;">
+        <button class="btn btn-outline">УДАЛИТЬ</button>
+        <button class="btn btn-green">СОХРАНИТЬ</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  <span>IP: 10.10.1.82:8075</span>
+  <span>Осталось: 06:41</span>
+  <span>Меркурий-401 • 380В</span>
+</div>
+</body>

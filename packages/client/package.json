@@ -1,0 +1,34 @@
+{
+  "name": "@mercury-soft-2/client",
+  "version": "3.0.0",
+  "main": "dist-electron/main.js",
+  "scripts": {
+    "build": "vite build && tsc --project tsconfig.electron.json",
+    "dev": "vite --port 5173",
+    "electron:dev": "concurrently \"npm run dev\" \"wait-on http://localhost:5173 && tsc --project tsconfig.electron.json && electron .\"",
+    "electron:start": "NODE_ENV=development tsc --project tsconfig.electron.json && electron ."
+  },
+  "dependencies": {
+    "@mercury-soft-2/shared": "3.0.0",
+    "@emotion/react": "^11.11.3",
+    "@emotion/styled": "^11.11.0",
+    "@mui/icons-material": "^5.15.3",
+    "@mui/material": "^5.15.3",
+    "mobx": "^6.12.0",
+    "mobx-react-lite": "^4.0.5",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.21.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.43",
+    "@types/react-dom": "^18.2.17",
+    "@vitejs/plugin-react": "^4.2.1",
+    "concurrently": "^8.2.2",
+    "electron": "^28.1.4",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.8",
+    "vite-plugin-electron": "^0.28.1",
+    "wait-on": "^7.2.0"
+  }
+}
