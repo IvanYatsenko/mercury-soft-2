@@ -1,0 +1,240 @@
+* {
+  font-family: 'Roboto';
+  /* overflow: hidden; */
+  box-sizing: border-box;
+}
+
+.--none_cursore {
+  cursor: none !important;
+}
+
+.--none_cursore#root>* {
+  cursor: none !important;
+}
+
+#root {
+  height: 100vh;
+  position: relative;
+  overflow: visible;
+}
+
+::-webkit-scrollbar {
+  width: 0;
+  /* for vertical scrollbars */
+  height: 0;
+  /* for horizontal scrollbars */
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+/* .error {
+  animation: pulse_error 3s infinite;
+} */
+
+/* @keyframes pulse_error {
+
+  0%,
+  100% {
+    background-color: rgba(211, 47, 47, 1);
+  }
+
+  50% {
+    background-color: rgba(211, 47, 47, 0.1);
+  }
+} */
+
+/* .warning {
+  animation: pulse_warning 3s infinite;
+}
+
+@keyframes pulse_warning {
+
+  0%,
+  100% {
+    background-color: rgba(237, 108, 2, 1);
+  }
+
+  50% {
+    background-color: rgba(237, 108, 2, 0.1);
+  }
+} */
+
+.error {
+  cursor: pointer;
+  box-shadow: inset 0 0 90px rgba(204, 44, 44, 0.98);
+  /*animation: pulse 2s infinite;*/
+  -webkit-animation: Pulse_error 2s infinite ease-in-out;
+  -o-animation: Pulse_error 2s infinite ease-in-out;
+  -ms-animation: Pulse_error 2s infinite ease-in-out;
+  -moz-animation: Pulse_error 2s infinite ease-in-out;
+  animation: Pulse_error 2s infinite ease-in-out;
+}
+
+@-webkit-keyframes Pulse_error {
+  0% {
+    -webkit-box-shadow: 0 0 0 90px rgba(204, 44, 44, 0.2);
+  }
+
+  70% {
+    -webkit-box-shadow: 0 0 0 90px rgba(204, 44, 44, 0.9);
+  }
+
+  100% {
+    -webkit-box-shadow: 0 0 0 90px rgba(204, 44, 44, 0.2);
+  }
+}
+
+@keyframes Pulse_error {
+  0% {
+    -moz-box-shadow: inset 0 0 90px rgba(204, 44, 44, 0.2);
+    box-shadow: inset 0 0 90px rgba(204, 44, 44, 0.2);
+  }
+
+  70% {
+    -moz-box-shadow: inset 0 0 90px rgba(204, 44, 44, 0.98);
+    box-shadow: inset 0 0 90px rgba(204, 44, 44, 0.98);
+  }
+
+  100% {
+    -moz-box-shadow: inset 0 0 90px rgba(204, 44, 44, 0.2);
+    box-shadow: inset 0 0 90px rgba(204, 44, 44, 0.2);
+  }
+}
+
+.warning {
+  cursor: pointer;
+  box-shadow: inset 0 0 90px rgba(237, 108, 2, 0.98);
+  /*animation: pulse 2s infinite;*/
+  -webkit-animation: Pulse_warning 2s infinite ease-in-out;
+  -o-animation: Pulse_warning 2s infinite ease-in-out;
+  -ms-animation: Pulse_warning 2s infinite ease-in-out;
+  -moz-animation: Pulse_warning 2s infinite ease-in-out;
+  animation: Pulse_warning 2s infinite ease-in-out;
+}
+
+@-webkit-keyframes Pulse_warning {
+  0% {
+    -webkit-box-shadow: 0 0 0 90px rgba(237, 108, 2, 0.2);
+  }
+
+  70% {
+    -webkit-box-shadow: 0 0 0 90px rgba(237, 108, 2, 0.9);
+  }
+
+  100% {
+    -webkit-box-shadow: 0 0 0 90px rgba(237, 108, 2, 0.2);
+  }
+}
+
+@keyframes Pulse_warning {
+  0% {
+    -moz-box-shadow: inset 0 0 90px rgba(237, 108, 2, 0.2);
+    box-shadow: inset 0 0 90px rgba(237, 108, 2, 0.2);
+  }
+
+  70% {
+    -moz-box-shadow: inset 0 0 90px rgba(237, 108, 2, 0.98);
+    box-shadow: inset 0 0 90px rgba(237, 108, 2, 0.98);
+  }
+
+  100% {
+    -moz-box-shadow: inset 0 0 90px rgba(237, 108, 2, 0.2);
+    box-shadow: inset 0 0 90px rgba(237, 108, 2, 0.2);
+  }
+}
+
+.succes {
+  cursor: pointer;
+  box-shadow: inset 0 0 90px rgba(2, 237, 14, 0.98);
+  /*animation: pulse 2s infinite;*/
+  -webkit-animation: Pulse_succes 2s infinite ease-in-out;
+  -o-animation: Pulse_succes 2s infinite ease-in-out;
+  -ms-animation: Pulse_succes 2s infinite ease-in-out;
+  -moz-animation: Pulse_succes 2s infinite ease-in-out;
+  animation: Pulse_succes 2s infinite ease-in-out;
+}
+
+@-webkit-keyframes Pulse_succes {
+  0% {
+    -webkit-box-shadow: 0 0 0 90px rgba(2, 237, 14, 0.2);
+    ;
+  }
+
+  70% {
+    -webkit-box-shadow: 0 0 0 90px rgba(2, 237, 14, 0.98);
+  }
+
+  100% {
+    -webkit-box-shadow: 0 0 0 90px rgba(2, 237, 14, 0.2);
+    ;
+  }
+}
+
+@keyframes Pulse_succes {
+  0% {
+    -moz-box-shadow: inset 0 0 90px rgba(2, 237, 14, 0.2);
+    ;
+    box-shadow: inset 0 0 90px rgba(2, 237, 14, 0.2);
+    ;
+  }
+
+  70% {
+    -moz-box-shadow: inset 0 0 90px rgba(2, 237, 14, 0.98);
+    box-shadow: inset 0 0 90px rgba(2, 237, 14, 0.98);
+  }
+
+  100% {
+    -moz-box-shadow: inset 0 0 90px rgba(2, 237, 14, 0.2);
+    box-shadow: inset 0 0 90px rgba(2, 237, 14, 0.2);
+  }
+}
+
+.SettingsView,
+.ProfilesView,
+.StatusView,
+.prifiles-head-btns {
+  display: none;
+}
+.SettingsView.SettingsView--active,
+.ProfilesView.ProfilesView--active,
+.StatusView.StatusView--active {
+  display: block;
+  margin-bottom: 60px;
+}
+
+.prifiles-btns {
+  display: flex;
+}
+
+@media screen and (min-width: 900px) {
+  .prifiles-btns,
+  .NavigationBar {
+    display: none;
+  }
+  
+
+  .SettingsView,
+  .ProfilesView,
+  .StatusView,
+  .prifiles-head-btns {
+    display: block;
+    margin-bottom: 0;
+  }
+
+  .SettingsView.SettingsView--active,
+  .ProfilesView.ProfilesView--active,
+  .StatusView.StatusView--active {
+    margin-bottom: 0;
+  }
+}
+
+.ProfileItem:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+}

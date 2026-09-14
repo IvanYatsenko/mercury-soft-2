@@ -8,6 +8,7 @@ import {
   ThermalProfile,
   Furnace,
   FurnaceStatus,
+  FurnaceErrorType,
   Sensor,
   SensorType,
   Heater,
@@ -15,6 +16,7 @@ import {
   User,
   UserRole,
 } from '@mercury-soft-2/shared';
+import MockBoardService from './services/MockBoardService';
 
 const PORT = process.env.API_PORT || 3001;
 const DB_PATH = process.env.DB_PATH || './data/mercury.db';
@@ -27,6 +29,9 @@ app.use(express.json());
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let db: any = null;
+
+// Mock Board Service
+const mockBoard = new MockBoardService();
 
 // ==================== Database ====================
 
@@ -343,6 +348,8 @@ app.delete('/api/thermal-profiles/:id', (req: Request, res: Response) => {
 
 // Get furnace status (simulated)
 app.get('/api/furnace', (_req: Request, res: Response) => {
+  const boardState = mockBoard.getState();
+
   const furnace: Furnace = {
     licenseNumber: 'MRK-301-2026-001',
     ip: '192.168.1.100',
@@ -350,13 +357,171 @@ app.get('/api/furnace', (_req: Request, res: Response) => {
     softwareVersion: '3.02.0',
     name: 'Меркурий-301 #1',
     description: 'Печь оплавления на линии SMD',
-    status: FurnaceStatus.IDLE,
-    temperature: 25,
+    status: boardState.isRunning ? boardState.status : FurnaceStatus.IDLE,
+    temperature: Math.round(boardState.temperature),
     currentProfileId: null,
-    error: null,
+    error: boardState.error
+      ? {
+          type: FurnaceErrorType.FAILURE,
+          code: 500,
+          message: boardState.error,
+        }
+      : null,
   };
 
   res.json(furnace);
+});
+
+// ==================== Mock Board Simulation ====================
+
+// Get simulation state
+app.get('/api/simulation', (_req: Request, res: Response) => {
+  const state = mockBoard.getState();
+  const config = mockBoard.getConfig();
+
+  res.json({
+    state: {
+      temperature: state.temperature,
+      targetTemperature: state.targetTemperature,
+      status: state.status,
+      isRunning: state.isRunning,
+      currentStage: state.currentStage,
+      totalStages: state.totalStages,
+      error: state.error,
+    },
+    config: {
+      ambientTemperature: config.ambientTemperature,
+      heatingRate: config.heatingRate,
+      coolingRate: config.coolingRate,
+      temperatureTolerance: config.temperatureTolerance,
+      errorChance: config.errorChance,
+    },
+  });
+});
+
+// Start simulation
+app.post('/api/simulation/start', (req: Request, res: Response) => {
+  const { targetTemperature, stages } = req.body;
+
+  if (!targetTemperature || targetTemperature < 0) {
+    res.status(400).json({ error: 'targetTemperature is required' });
+    return;
+  }
+
+  mockBoard.start(targetTemperature, stages);
+
+  res.json({
+    success: true,
+    state: mockBoard.getState(),
+  });
+});
+
+// Stop simulation
+app.post('/api/simulation/stop', (_req: Request, res: Response) => {
+  mockBoard.stop();
+
+  res.json({
+    success: true,
+    state: mockBoard.getState(),
+  });
+});
+
+// Reset simulation
+app.post('/api/simulation/reset', (_req: Request, res: Response) => {
+  mockBoard.reset();
+
+  res.json({
+    success: true,
+    state: mockBoard.getState(),
+  });
+});
+
+// Update simulation config
+app.put('/api/simulation/config', (req: Request, res: Response) => {
+  const { config } = req.body;
+
+  if (config) {
+    mockBoard.updateConfig(config);
+  }
+
+  res.json({
+    success: true,
+    config: mockBoard.getConfig(),
+  });
+});
+
+// Get sensors with simulated temperatures
+app.get('/api/sensors', (_req: Request, res: Response) => {
+  const boardState = mockBoard.getState();
+
+  const sensors: Sensor[] = [
+    {
+      id: 'sensor-primary-001',
+      name: 'Основная термопара',
+      type: SensorType.PRIMARY,
+      currentTemperature: Math.round(boardState.temperature),
+      maxTemperature: 300,
+      isActive: boardState.isRunning,
+    },
+    {
+      id: 'sensor-secondary-001',
+      name: 'Дополнительная термопара',
+      type: SensorType.SECONDARY,
+      currentTemperature: Math.round(boardState.temperature - 1),
+      maxTemperature: 300,
+      isActive: boardState.isRunning,
+    },
+  ];
+
+  res.json(sensors);
+});
+
+// Get heaters with simulated states
+app.get('/api/heaters', (_req: Request, res: Response) => {
+  const boardState = mockBoard.getState();
+
+  const heaters: Heater[] = [
+    {
+      id: 'heater-top-001',
+      name: 'Верхний ТЭН',
+      type: HeaterType.HEATING_ELEMENT,
+      isActive: boardState.isRunning && boardState.status === FurnaceStatus.WORK,
+      power: 1500,
+      temperature: boardState.isRunning ? Math.round(boardState.temperature * 1.2) : 25,
+    },
+    {
+      id: 'heater-bottom-001',
+      name: 'Нижний ТЭН',
+      type: HeaterType.HEATING_ELEMENT,
+      isActive: boardState.isRunning && boardState.status === FurnaceStatus.WORK,
+      power: 1500,
+      temperature: boardState.isRunning ? Math.round(boardState.temperature * 1.1) : 25,
+    },
+    {
+      id: 'heater-ir-001',
+      name: 'ИК-лампы',
+      type: HeaterType.INFRARED_LAMP,
+      isActive: boardState.isRunning && boardState.status === FurnaceStatus.WORK,
+      power: 800,
+      temperature: boardState.isRunning ? Math.round(boardState.temperature * 1.5) : 25,
+    },
+    {
+      id: 'fan-convection-001',
+      name: 'Вентилятор конвекции',
+      type: HeaterType.CONVECTION_FAN,
+      isActive: boardState.isRunning,
+      power: 200,
+    },
+    {
+      id: 'fan-cooling-001',
+      name: 'Вентилятор охлаждения',
+      type: HeaterType.COOLING_FAN,
+      isActive: boardState.isRunning && boardState.status === FurnaceStatus.BUSY,
+      power: 150,
+    },
+  ];
+
+  res.json(heaters);
 });
 
 // ==================== Sensors ====================

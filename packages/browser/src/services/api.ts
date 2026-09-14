@@ -29,7 +29,7 @@ class ApiService {
     return this.request<ThermalProfile[]>('/api/thermal-profiles');
   }
 
-  async getThermalProfile(id: number): Promise<ThermalProfile> {
+  async getThermalProfile(id: string): Promise<ThermalProfile> {
     return this.request<ThermalProfile>(`/api/thermal-profiles/${id}`);
   }
 
@@ -41,7 +41,7 @@ class ApiService {
   }
 
   async updateThermalProfile(
-    id: number,
+    id: string,
     profile: Partial<ThermalProfile>,
   ): Promise<ThermalProfile> {
     return this.request<ThermalProfile>(`/api/thermal-profiles/${id}`, {
@@ -50,7 +50,7 @@ class ApiService {
     });
   }
 
-  async deleteThermalProfile(id: number): Promise<void> {
+  async deleteThermalProfile(id: string): Promise<void> {
     return this.request(`/api/thermal-profiles/${id}`, {
       method: 'DELETE',
     });

@@ -1,0 +1,21 @@
+.settings_item {
+    .name {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex: 1 1 auto;
+        .lock_btn {
+            position: absolute;
+            right: 2.5rem;
+            z-index: 1;
+            pointer-events: all;
+        }
+    }
+    :global(.MuiAccordionSummary-content.Mui-expanded) {
+        margin: 0;
+    }
+    :global(.MuiAccordionSummary-content) {
+        margin: 0;
+    }
+
+}

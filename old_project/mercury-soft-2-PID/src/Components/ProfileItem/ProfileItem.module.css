@@ -1,0 +1,15 @@
+.profile_item {
+    .name {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex: 1 1 auto;
+    }
+    :global(.MuiAccordionSummary-content.Mui-expanded) {
+        margin: 0;
+    }
+    :global(.MuiAccordionSummary-content) {
+        margin: 0;
+    }
+
+}

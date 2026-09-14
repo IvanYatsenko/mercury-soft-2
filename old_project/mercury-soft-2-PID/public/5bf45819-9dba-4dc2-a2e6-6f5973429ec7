@@ -1,0 +1,54 @@
+{
+  "points": [
+    {
+      "second": 0,
+      "temperature": 30
+    },
+    {
+      "second": 150,
+      "temperature": 150
+    },
+    {
+      "second": 110,
+      "temperature": 150
+    },
+    {
+      "second": 88,
+      "temperature": 220
+    },
+    {
+      "second": 50,
+      "temperature": 220
+    },
+    {
+      "second": 50,
+      "temperature": 200
+    },
+    {
+      "second": 167,
+      "temperature": 150
+    },
+    {
+      "second": 250,
+      "temperature": 100
+    }
+  ],
+  "name": "Профиль",
+  "mode": "easy",
+  "shelves": [
+    {
+      "second": 110,
+      "temperature": 150
+    },
+    {
+      "second": 50,
+      "temperature": 220
+    },
+    {
+      "second": 0,
+      "temperature": 100
+    }
+  ],
+  "board": false,
+  "repeat": 1
+}

@@ -10,6 +10,8 @@ import {
   ListItem,
   ListItemText,
   ListItemButton,
+  Alert,
+  CircularProgress,
 } from '@mui/material';
 import {
   Wifi,
@@ -29,16 +31,49 @@ import {
   Edit,
   DarkMode,
   LightMode,
+  CheckCircle,
+  Error as ErrorIcon,
 } from '@mui/icons-material';
 import { useThemeContext } from '../context/ThemeContext';
+import { apiService } from '../services/api.service';
+import { ThermalProfile } from '@mercury-soft-2/shared';
 
 const HomePage: React.FC = () => {
+  const { themeMode, toggleTheme } = useThemeContext();
   const [isRunning, setIsRunning] = useState(false);
   const [temperature, setTemperature] = useState(25);
   const [timer, setTimer] = useState(401);
   const [progress] = useState(45);
   const [currentStage] = useState(3);
   const [stageTimeLeft] = useState(45);
+
+  // API states
+  const [profiles, setProfiles] = useState<ThermalProfile[]>([]);
+  const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
+  const [apiStatus, setApiStatus] = useState<'loading' | 'online' | 'offline'>('loading');
+  const [apiError, setApiError] = useState<string | null>(null);
+
+  // Загрузка профилей из API
+  useEffect(() => {
+    loadProfiles();
+  }, []);
+
+  const loadProfiles = async () => {
+    try {
+      setApiStatus('loading');
+      setApiError(null);
+      const data = await apiService.getProfiles();
+      setProfiles(data);
+      if (data.length > 0) {
+        setSelectedProfileId(data[0].id);
+      }
+      setApiStatus('online');
+    } catch (error) {
+      console.error('Failed to load profiles:', error);
+      setApiStatus('offline');
+      setApiError('Не удалось подключиться к API');
+    }
+  };
 
   // Симуляция работы печи
   useEffect(() => {
@@ -80,17 +115,20 @@ const HomePage: React.FC = () => {
     { icon: <AcUnit fontSize="small" />, active: isRunning, label: 'Охлажд.' },
   ];
 
-  const { themeMode, toggleTheme } = useThemeContext();
+  const selectedProfile = profiles.find((p) => p.id === selectedProfileId);
 
   return (
     <PanelLayout
       header={
-        <>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
             <Button onClick={toggleTheme} sx={{ minWidth: 'auto', p: 0.5 }}>
               {themeMode === 'dark' ? <LightMode /> : <DarkMode />}
             </Button>
-            <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
+            <Typography
+              variant="subtitle2"
+              sx={{ fontWeight: 'bold', color: 'primary.main', fontSize: '13px' }}
+            >
               Меркурий-301
             </Typography>
           </Box>
@@ -103,7 +141,7 @@ const HomePage: React.FC = () => {
               sx={{ width: 8, height: 8, minWidth: 0 }}
             />
           </Box>
-        </>
+        </Box>
       }
       leftPanel={
         <>
@@ -120,7 +158,7 @@ const HomePage: React.FC = () => {
           >
             <Typography
               variant="h4"
-              sx={{ fontWeight: 'bold', color: 'warning.main', lineHeight: 1 }}
+              sx={{ fontWeight: 'bold', color: 'warning.main', lineHeight: 1, fontSize: '2rem' }}
             >
               {temperature}°
             </Typography>
@@ -128,7 +166,13 @@ const HomePage: React.FC = () => {
               {isRunning ? 'Текущая температура' : 'Температура камеры'}
             </Typography>
             <Box
-              sx={{ display: 'flex', justifyContent: 'center', gap: 1, mt: 0.75, fontSize: '10px' }}
+              sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                gap: 0.75,
+                mt: 0.75,
+                fontSize: '10px',
+              }}
             >
               {heaters.map((h, i) => (
                 <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 0.25 }}>
@@ -151,18 +195,22 @@ const HomePage: React.FC = () => {
             <Button
               variant="contained"
               fullWidth
-              color={isRunning ? 'error' : 'success'}
               startIcon={isRunning ? <Stop /> : <PlayArrow />}
-              sx={{ py: 1.5 }}
+              sx={{ py: 1.5, fontSize: '12px' }}
               onClick={() => setIsRunning(!isRunning)}
             >
               {isRunning ? 'СТОП' : 'ПУСК'}
             </Button>
-            <Button variant="outlined" fullWidth startIcon={<Settings />}>
+            <Button variant="outlined" fullWidth startIcon={<Settings />} sx={{ fontSize: '11px' }}>
               НАСТРОЙКИ
             </Button>
             {!isRunning && (
-              <Button variant="outlined" fullWidth startIcon={<FolderOpen />}>
+              <Button
+                variant="outlined"
+                fullWidth
+                startIcon={<FolderOpen />}
+                sx={{ fontSize: '11px' }}
+              >
                 ПРОФИЛИ
               </Button>
             )}
@@ -189,7 +237,13 @@ const HomePage: React.FC = () => {
             >
               <Typography
                 variant="h6"
-                sx={{ color: 'warning.main', fontWeight: 'bold', display: 'block', mb: 0.5 }}
+                sx={{
+                  color: 'warning.main',
+                  fontWeight: 'bold',
+                  display: 'block',
+                  mb: 0.5,
+                  fontSize: '14px',
+                }}
               >
                 <Timer fontSize="small" sx={{ verticalAlign: 'middle', mr: 0.5 }} />
                 {formatTime(timer)}
@@ -203,7 +257,7 @@ const HomePage: React.FC = () => {
         <>
           {!isRunning ? (
             <>
-              {/* Profile Selection (Idle) */}
+              {/* API Status */}
               <Box>
                 <Typography
                   variant="caption"
@@ -214,44 +268,97 @@ const HomePage: React.FC = () => {
                 >
                   Выберите термопрофиль
                 </Typography>
-                <List dense>
-                  {[
-                    {
-                      name: 'Свинцовая паста',
-                      desc: 'Детальный • 6 стадий • 460 с',
-                      selected: true,
-                    },
-                    {
-                      name: 'Бессвинцовая',
-                      desc: 'Упрощенный • 3 стадии • 250 с',
-                      selected: false,
-                    },
-                    { name: 'Пустой шаблон', desc: 'Новый профиль', selected: false },
-                  ].map((profile, i) => (
-                    <ListItem key={i} disablePadding disableGutters sx={{ mb: 0.5 }}>
-                      <ListItemButton
-                        selected={profile.selected}
-                        sx={{
-                          bgcolor: 'background.paper',
-                          borderLeft: 3,
-                          borderColor: profile.selected ? 'success.main' : 'primary.main',
-                          borderRadius: 0.5,
-                        }}
-                      >
-                        <ListItemText
-                          primary={profile.name}
-                          secondary={profile.desc}
-                          primaryTypographyProps={{ variant: 'body2', fontSize: '11px' }}
-                          secondaryTypographyProps={{ variant: 'caption', color: 'text.secondary' }}
-                        />
-                        <ListItemButton sx={{ minWidth: 0, padding: 0.25 }}>
-                          <Edit fontSize="small" color="inherit" />
+
+                {apiStatus === 'loading' && (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
+                    <CircularProgress size={20} />
+                  </Box>
+                )}
+
+                {apiStatus === 'offline' && apiError && (
+                  <Alert severity="error" sx={{ mb: 0.5, fontSize: '9px' }}>
+                    <ErrorIcon sx={{ mr: 0.5, verticalAlign: 'middle', fontSize: 'inherit' }} />
+                    {apiError}
+                  </Alert>
+                )}
+
+                {apiStatus === 'online' && profiles.length === 0 && (
+                  <Alert severity="info" sx={{ mb: 0.5, fontSize: '9px' }}>
+                    <CheckCircle sx={{ mr: 0.5, verticalAlign: 'middle', fontSize: 'inherit' }} />
+                    Нет сохранённых профилей
+                  </Alert>
+                )}
+
+                {apiStatus === 'online' && profiles.length > 0 && (
+                  <List dense>
+                    {profiles.map((profile) => (
+                      <ListItem key={profile.id} disablePadding disableGutters sx={{ mb: 0.5 }}>
+                        <ListItemButton
+                          selected={profile.id === selectedProfileId}
+                          onClick={() => setSelectedProfileId(profile.id)}
+                          sx={{
+                            bgcolor: 'background.paper',
+                            borderLeft: 3,
+                            borderColor:
+                              profile.id === selectedProfileId ? 'success.main' : 'primary.main',
+                            borderRadius: 0.5,
+                          }}
+                        >
+                          <ListItemText
+                            primary={profile.name}
+                            secondary={`${profile.mode === 'manual' ? 'Детальный' : 'Упрощенный'} • ${profile.stages.length} стадий`}
+                            primaryTypographyProps={{ variant: 'body2', fontSize: '11px' }}
+                            secondaryTypographyProps={{
+                              variant: 'caption',
+                              color: 'text.secondary',
+                            }}
+                          />
+                          <ListItemButton sx={{ minWidth: 0, padding: 0.25 }}>
+                            <Edit fontSize="small" color="inherit" />
+                          </ListItemButton>
                         </ListItemButton>
-                      </ListItemButton>
-                    </ListItem>
-                  ))}
-                </List>
+                      </ListItem>
+                    ))}
+                  </List>
+                )}
               </Box>
+
+              {/* Selected Profile Info */}
+              {selectedProfile && (
+                <Box>
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    textTransform="uppercase"
+                    display="block"
+                    mb={0.5}
+                  >
+                    Информация
+                  </Typography>
+                  <Box
+                    sx={{
+                      bgcolor: 'background.paper',
+                      borderRadius: 0.5,
+                      p: 1,
+                      textAlign: 'center',
+                      border: 1,
+                      borderColor: 'divider',
+                      borderStyle: 'dashed',
+                    }}
+                  >
+                    <Typography variant="caption" color="text.secondary">
+                      <CheckCircle fontSize="small" sx={{ verticalAlign: 'middle', mr: 0.5 }} />
+                      Выбран: {selectedProfile.name}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary" display="block" mt={0.5}>
+                      Стадий: {selectedProfile.stages.length} • Макс. temp:{' '}
+                      {Math.max(...selectedProfile.stages.map((s) => s.temperature))}°C
+                    </Typography>
+                  </Box>
+                </Box>
+              )}
+
+              {/* Quick Actions */}
               <Box>
                 <Typography
                   variant="caption"
@@ -264,16 +371,16 @@ const HomePage: React.FC = () => {
                 </Typography>
                 <List dense>
                   {[
-                    { icon: <Add fontSize="small" />, text: 'СОЗДАТЬ ПРОФИЛЬ' },
-                    { icon: <FileDownload fontSize="small" />, text: 'ИМПОРТ ПРОФИЛЯ' },
-                    { icon: <Build fontSize="small" />, text: 'КАЛИБРОВКА' },
+                    { icon: <Add />, text: 'СОЗДАТЬ ПРОФИЛЬ' },
+                    { icon: <FileDownload />, text: 'ИМПОРТ ПРОФИЛЯ' },
+                    { icon: <Build />, text: 'КАЛИБРОВКА' },
                   ].map((item, i) => (
                     <ListItem key={i} disablePadding disableGutters sx={{ mb: 0.5 }}>
                       <Button
                         variant="outlined"
                         fullWidth
                         startIcon={item.icon}
-                        sx={{ justifyContent: 'flex-start' }}
+                        sx={{ justifyContent: 'flex-start', fontSize: '10px', py: 0.75 }}
                       >
                         {item.text}
                       </Button>
@@ -301,6 +408,7 @@ const HomePage: React.FC = () => {
                     borderRadius: 0.5,
                     p: 0.75,
                     fontSize: '10px',
+                    boxShadow: 1,
                     borderColor: 'divider',
                     borderLeft: '3px solid warning.main',
                     border: '1px solid',
@@ -308,7 +416,7 @@ const HomePage: React.FC = () => {
                 >
                   <Typography
                     variant="body2"
-                    sx={{ fontWeight: 'bold', color: 'warning.main', mb: 0.25 }}
+                    sx={{ fontWeight: 'bold', color: 'warning.main', mb: 0.25, fontSize: '11px' }}
                   >
                     <PlayArrow fontSize="small" sx={{ verticalAlign: 'middle', mr: 0.5 }} />
                     Стадия {currentStage}: Плавление
@@ -339,7 +447,9 @@ const HomePage: React.FC = () => {
                     mb: 0.5,
                   }}
                 >
-                  <Typography variant="caption">Свинцовая паста</Typography>
+                  <Typography variant="caption">
+                    {selectedProfile?.name || 'Свинцовая паста'}
+                  </Typography>
                   <Typography variant="caption">{progress}%</Typography>
                 </Box>
                 <LinearProgress
@@ -381,6 +491,7 @@ const HomePage: React.FC = () => {
                     gap: 0.25,
                     position: 'relative',
                     overflow: 'hidden',
+                    boxShadow: 1,
                   }}
                 >
                   {[15, 30, 50, 70, 85, 95, 75, 60, 45, 30].map((height, i) => (
@@ -432,6 +543,7 @@ const HomePage: React.FC = () => {
                     fontSize: '10px',
                     border: 1,
                     borderColor: 'divider',
+                    boxShadow: 1,
                   }}
                 >
                   {[

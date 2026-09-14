@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import PanelLayout from '../components/PanelLayout';
 import {
   Box,
@@ -10,6 +11,8 @@ import {
   ListItem,
   ListItemText,
   ListItemButton,
+  Alert,
+  CircularProgress,
 } from '@mui/material';
 import {
   Wifi,
@@ -29,10 +32,15 @@ import {
   Edit,
   DarkMode,
   LightMode,
+  CheckCircle,
+  Error as ErrorIcon,
 } from '@mui/icons-material';
 import { useThemeContext } from '../context/ThemeContext';
+import { apiService } from '../services/api';
+import { ThermalProfile } from '@mercury-soft-2/shared';
 
 const HomePage: React.FC = () => {
+  const navigate = useNavigate();
   const { themeMode, toggleTheme } = useThemeContext();
   const [isRunning, setIsRunning] = useState(false);
   const [temperature, setTemperature] = useState(25);
@@ -40,6 +48,34 @@ const HomePage: React.FC = () => {
   const [progress] = useState(45);
   const [currentStage] = useState(3);
   const [stageTimeLeft] = useState(45);
+
+  // API states
+  const [profiles, setProfiles] = useState<ThermalProfile[]>([]);
+  const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
+  const [apiStatus, setApiStatus] = useState<'loading' | 'online' | 'offline'>('loading');
+  const [apiError, setApiError] = useState<string | null>(null);
+
+  // Загрузка профилей из API
+  useEffect(() => {
+    loadProfiles();
+  }, []);
+
+  const loadProfiles = async () => {
+    try {
+      setApiStatus('loading');
+      setApiError(null);
+      const data = await apiService.getThermalProfiles();
+      setProfiles(data);
+      if (data.length > 0) {
+        setSelectedProfileId(data[0].id);
+      }
+      setApiStatus('online');
+    } catch (error) {
+      console.error('Failed to load profiles:', error);
+      setApiStatus('offline');
+      setApiError('Не удалось подключиться к API');
+    }
+  };
 
   // Симуляция работы печи
   useEffect(() => {
@@ -80,6 +116,8 @@ const HomePage: React.FC = () => {
     { icon: <Lightbulb fontSize="small" />, active: false, label: 'ИК' },
     { icon: <AcUnit fontSize="small" />, active: isRunning, label: 'Охлажд.' },
   ];
+
+  const selectedProfile = profiles.find((p) => p.id === selectedProfileId);
 
   return (
     <PanelLayout
@@ -156,11 +194,25 @@ const HomePage: React.FC = () => {
             >
               {isRunning ? 'СТОП' : 'ПУСК'}
             </Button>
-            <Button variant="outlined" fullWidth size="large" startIcon={<Settings />}>
+            <Button
+              variant="outlined"
+              fullWidth
+              size="large"
+              startIcon={<Settings />}
+              onClick={() => navigate('/settings')}
+            >
               НАСТРОЙКИ
             </Button>
             {!isRunning && (
-              <Button variant="outlined" fullWidth size="large" startIcon={<FolderOpen />}>
+              <Button
+                variant="outlined"
+                fullWidth
+                size="large"
+                startIcon={<FolderOpen />}
+                onClick={() => {
+                  loadProfiles();
+                }}
+              >
                 ПРОФИЛИ
               </Button>
             )}
@@ -189,7 +241,7 @@ const HomePage: React.FC = () => {
         <>
           {!isRunning ? (
             <>
-              {/* Profile Selection (Idle) */}
+              {/* API Status */}
               <Box>
                 <Typography
                   variant="h6"
@@ -200,72 +252,97 @@ const HomePage: React.FC = () => {
                 >
                   Выберите термопрофиль
                 </Typography>
-                <List dense>
-                  {[
-                    {
-                      name: 'Свинцовая паста',
-                      desc: 'Детальный • 6 стадий • 460 с',
-                      selected: true,
-                    },
-                    {
-                      name: 'Бессвинцовая',
-                      desc: 'Упрощенный • 3 стадии • 250 с',
-                      selected: false,
-                    },
-                    { name: 'Пустой шаблон', desc: 'Новый профиль', selected: false },
-                  ].map((profile, i) => (
-                    <ListItem key={i} disablePadding disableGutters sx={{ mb: 0.5 }}>
-                      <ListItemButton
-                        selected={profile.selected}
-                        sx={{
-                          bgcolor: 'background.paper',
-                          borderLeft: 3,
-                          borderColor: profile.selected ? 'success.main' : 'primary.main',
-                          borderRadius: 1,
-                          boxShadow: 1,
-                        }}
-                      >
-                        <ListItemText primary={profile.name} secondary={profile.desc} />
-                        <ListItemButton sx={{ minWidth: 0, padding: 0.5 }}>
-                          <Edit fontSize="medium" color="inherit" />
+
+                {apiStatus === 'loading' && (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                    <CircularProgress size={24} />
+                  </Box>
+                )}
+
+                {apiStatus === 'offline' && apiError && (
+                  <Alert severity="error" sx={{ mb: 1 }}>
+                    <ErrorIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
+                    {apiError}
+                  </Alert>
+                )}
+
+                {apiStatus === 'online' && profiles.length === 0 && (
+                  <Alert severity="info" sx={{ mb: 1 }}>
+                    <CheckCircle sx={{ mr: 1, verticalAlign: 'middle' }} />
+                    Нет сохранённых профилей
+                  </Alert>
+                )}
+
+                {apiStatus === 'online' && profiles.length > 0 && (
+                  <List dense>
+                    {profiles.map((profile) => (
+                      <ListItem key={profile.id} disablePadding disableGutters sx={{ mb: 0.5 }}>
+                        <ListItemButton
+                          selected={profile.id === selectedProfileId}
+                          onClick={() => setSelectedProfileId(profile.id)}
+                          sx={{
+                            bgcolor: 'background.paper',
+                            borderLeft: 3,
+                            borderColor:
+                              profile.id === selectedProfileId ? 'success.main' : 'primary.main',
+                            borderRadius: 1,
+                            boxShadow: 1,
+                          }}
+                        >
+                          <ListItemText
+                            primary={profile.name}
+                            secondary={`${profile.mode === 'manual' ? 'Детальный' : 'Упрощенный'} • ${profile.stages.length} стадий • ${profile.stages.reduce((acc, s) => acc + s.second, 0)} с`}
+                          />
+                          <ListItemButton
+                            sx={{ minWidth: 0, padding: 0.5 }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/profile/edit/${profile.id}`);
+                            }}
+                          >
+                            <Edit fontSize="medium" color="inherit" />
+                          </ListItemButton>
                         </ListItemButton>
-                      </ListItemButton>
-                    </ListItem>
-                  ))}
-                </List>
+                      </ListItem>
+                    ))}
+                  </List>
+                )}
               </Box>
 
-              {/* Status Banner */}
-              <Box>
-                <Typography
-                  variant="h6"
-                  color="text.secondary"
-                  textTransform="uppercase"
-                  display="block"
-                  mb={1}
-                >
-                  Информация
-                </Typography>
-                <Box
-                  sx={{
-                    bgcolor: 'background.paper',
-                    borderRadius: 2,
-                    p: 2,
-                    textAlign: 'center',
-                    border: 1,
-                    borderColor: 'divider',
-                    borderStyle: 'dashed',
-                  }}
-                >
-                  <Typography variant="body1" color="text.secondary">
-                    <Info fontSize="small" sx={{ verticalAlign: 'middle', mr: 0.5 }} />
-                    Печь в режиме ожидания
+              {/* Selected Profile Info */}
+              {selectedProfile && (
+                <Box>
+                  <Typography
+                    variant="h6"
+                    color="text.secondary"
+                    textTransform="uppercase"
+                    display="block"
+                    mb={1}
+                  >
+                    Информация
                   </Typography>
-                  <Typography variant="body2" color="text.secondary" display="block" mt={1}>
-                    Проверьте профиль и нажмите ПУСК
-                  </Typography>
+                  <Box
+                    sx={{
+                      bgcolor: 'background.paper',
+                      borderRadius: 2,
+                      p: 2,
+                      textAlign: 'center',
+                      border: 1,
+                      borderColor: 'divider',
+                      borderStyle: 'dashed',
+                    }}
+                  >
+                    <Typography variant="body1" color="text.secondary">
+                      <CheckCircle fontSize="small" sx={{ verticalAlign: 'middle', mr: 0.5 }} />
+                      Выбран: {selectedProfile.name}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" display="block" mt={1}>
+                      Стадий: {selectedProfile.stages.length} • Макс. temp:{' '}
+                      {Math.max(...selectedProfile.stages.map((s) => s.temperature))}°C
+                    </Typography>
+                  </Box>
                 </Box>
-              </Box>
+              )}
 
               {/* Quick Actions */}
               <Box>
@@ -279,23 +356,40 @@ const HomePage: React.FC = () => {
                   Быстрые действия
                 </Typography>
                 <List dense>
-                  {[
-                    { icon: <Add />, text: 'СОЗДАТЬ ПРОФИЛЬ' },
-                    { icon: <FileDownload />, text: 'ИМПОРТ ПРОФИЛЯ' },
-                    { icon: <Build />, text: 'КАЛИБРОВКА' },
-                  ].map((item, i) => (
-                    <ListItem key={i} disablePadding disableGutters sx={{ mb: 0.5 }}>
-                      <Button
-                        variant="outlined"
-                        fullWidth
-                        startIcon={item.icon}
-                        size="large"
-                        sx={{ justifyContent: 'flex-start' }}
-                      >
-                        {item.text}
-                      </Button>
-                    </ListItem>
-                  ))}
+                  <ListItem disablePadding disableGutters sx={{ mb: 0.5 }}>
+                    <Button
+                      variant="outlined"
+                      fullWidth
+                      startIcon={<Add />}
+                      size="large"
+                      sx={{ justifyContent: 'flex-start' }}
+                      onClick={() => navigate('/profile/create')}
+                    >
+                      СОЗДАТЬ ПРОФИЛЬ
+                    </Button>
+                  </ListItem>
+                  <ListItem disablePadding disableGutters sx={{ mb: 0.5 }}>
+                    <Button
+                      variant="outlined"
+                      fullWidth
+                      startIcon={<FileDownload />}
+                      size="large"
+                      sx={{ justifyContent: 'flex-start' }}
+                    >
+                      ИМПОРТ ПРОФИЛЯ
+                    </Button>
+                  </ListItem>
+                  <ListItem disablePadding disableGutters sx={{ mb: 0.5 }}>
+                    <Button
+                      variant="outlined"
+                      fullWidth
+                      startIcon={<Build />}
+                      size="large"
+                      sx={{ justifyContent: 'flex-start' }}
+                    >
+                      КАЛИБРОВКА
+                    </Button>
+                  </ListItem>
                 </List>
               </Box>
             </>
@@ -348,7 +442,9 @@ const HomePage: React.FC = () => {
                   Прогресс
                 </Typography>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                  <Typography variant="body2">Свинцовая паста</Typography>
+                  <Typography variant="body2">
+                    {selectedProfile?.name || 'Свинцовая паста'}
+                  </Typography>
                   <Typography variant="body2">{progress}%</Typography>
                 </Box>
                 <LinearProgress
