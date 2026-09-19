@@ -5,6 +5,7 @@ import ComingSoonPage from './pages/ComingSoonPage';
 const App: React.FC = () => {
   return (
     <ThemeProvider>
+      <style>{`body { margin: 0; }`}</style>
       <ComingSoonPage />
     </ThemeProvider>
   );
