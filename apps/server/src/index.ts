@@ -1,16 +1,20 @@
-import { createServer } from 'node:http';
+import { fileURLToPath } from 'node:url';
+import express from 'express';
 
-const server = createServer((request, response) => {
-  response.setHeader('Content-Type', 'application/json; charset=utf-8');
+const server = express();
+server.disable('x-powered-by');
 
-  if (request.method === 'GET' && request.url === '/api/health') {
-    response.writeHead(200);
-    response.end(JSON.stringify({ status: 'ok', service: 'mercury' }));
-    return;
-  }
+server.get('/api/health', (_request, response) => {
+  response.json({ status: 'ok', service: 'mercury' });
+});
 
-  response.writeHead(404);
-  response.end(JSON.stringify({ error: 'Not found' }));
+// After building, the browser and Electron use the same UI and API origin.
+server.use(
+  express.static(fileURLToPath(new URL('../../web/dist/', import.meta.url))),
+);
+
+server.use((_request, response) => {
+  response.status(404).json({ error: 'Not found' });
 });
 
 server.listen(3001, '127.0.0.1', () => {
