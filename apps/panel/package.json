@@ -1,9 +1,12 @@
 {
-  "name": "@mercury/desktop",
+  "name": "@mercury/panel",
   "version": "0.1.0",
   "private": true,
   "type": "module",
   "main": "dist/main.js",
+  "dependencies": {
+    "@mercury/shared": "workspace:*"
+  },
   "scripts": {
     "dev": "tsc && wait-on --timeout 60000 http-get://127.0.0.1:5173 http-get://127.0.0.1:3001/api/health && electron . --dev",
     "build": "tsc",

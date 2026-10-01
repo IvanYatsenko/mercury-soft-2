@@ -1,18 +1,31 @@
-import { StrictMode } from 'react';
+import { StrictMode, useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { CssBaseline, ThemeProvider, createTheme } from '@mui/material';
 import { App } from './App';
 
-const theme = createTheme({ palette: { mode: 'dark' } });
 const root = document.getElementById('root');
 
 if (!root) throw new Error('Root element is missing');
 
-createRoot(root).render(
-  <StrictMode>
+function Root() {
+  const [mode, setMode] = useState<'light' | 'dark'>('dark');
+  const theme = useMemo(() => createTheme({ palette: { mode } }), [mode]);
+
+  return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <App />
+      <App
+        mode={mode}
+        onToggleMode={() =>
+          setMode((current) => (current === 'dark' ? 'light' : 'dark'))
+        }
+      />
     </ThemeProvider>
+  );
+}
+
+createRoot(root).render(
+  <StrictMode>
+    <Root />
   </StrictMode>,
 );

@@ -1,6 +1,6 @@
 {
   "name": "mercury",
-  "version": "0.1.0",
+  "version": "3.0.0",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@11.25.0",
@@ -8,9 +8,9 @@
     "node": ">=24 <25"
   },
   "scripts": {
-    "dev": "concurrently --kill-others -n server,web,electron \"pnpm --filter @mercury/server dev\" \"pnpm --filter @mercury/web dev\" \"pnpm --filter @mercury/desktop dev\"",
+    "dev": "concurrently --kill-others -n server,web,electron \"pnpm --filter @mercury/server dev\" \"pnpm --filter @mercury/web dev\" \"pnpm --filter @mercury/panel dev\"",
     "dev:web": "concurrently --kill-others -n server,web \"pnpm --filter @mercury/server dev\" \"pnpm --filter @mercury/web dev\"",
-    "start": "concurrently --kill-others -n server,electron \"pnpm --filter @mercury/server start\" \"pnpm --filter @mercury/desktop start\"",
+    "start": "concurrently --kill-others -n server,electron \"pnpm --filter @mercury/server start\" \"pnpm --filter @mercury/panel start\"",
     "build": "pnpm -r build",
     "typecheck": "pnpm -r typecheck",
     "format": "prettier --write .",
