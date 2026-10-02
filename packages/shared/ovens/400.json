@@ -1,0 +1,613 @@
+{
+  "model": "400",
+  "name": "Меркурий-400",
+  "designation": "АМСГ.421415.120",
+  "specifications": {
+    "boardWidthMm": 400,
+    "boardDepthMm": 390,
+    "boardHeightMm": 30,
+    "maximumTemperatureC": 280,
+    "profileStepSeconds": {
+      "min": 1,
+      "max": 99999
+    },
+    "maximumHeatingRateCPerSecond": 1.7,
+    "maximumCoolingRateCPerSecond": 0.33,
+    "maximumPowerKw": 7.5
+  },
+  "outputs": {
+    "singlePhase": {
+      "infrared": 7,
+      "infrared2": 6,
+      "infrared3": 1,
+      "topHeater": 4,
+      "bottomHeater": 3,
+      "convection": 2,
+      "f1": 5,
+      "nth": 0
+    },
+    "threePhase": {
+      "infrared": 7,
+      "infrared2": 5,
+      "infrared3": 1,
+      "topHeater": 4,
+      "bottomHeater": 2,
+      "convection": 3,
+      "f1": 6,
+      "nth": 0
+    }
+  },
+  "sensors": {
+    "boardTemperature": {
+      "command": "get",
+      "index": 1,
+      "divisor": 4
+    },
+    "chamberTemperature": {
+      "command": "get",
+      "index": 2,
+      "divisor": 4
+    },
+    "door": {
+      "command": "sensors",
+      "index": 1
+    }
+  },
+  "defaultThermocoupleCorrection": [
+    {
+      "temp": 0,
+      "coef": 1
+    },
+    {
+      "temp": 50,
+      "coef": 1
+    },
+    {
+      "temp": 80,
+      "coef": 1.024
+    },
+    {
+      "temp": 100,
+      "coef": 1.025
+    },
+    {
+      "temp": 120,
+      "coef": 1.026
+    },
+    {
+      "temp": 140,
+      "coef": 1.029
+    },
+    {
+      "temp": 160,
+      "coef": 1.032
+    },
+    {
+      "temp": 180,
+      "coef": 1.034
+    },
+    {
+      "temp": 200,
+      "coef": 1.036
+    },
+    {
+      "temp": 220,
+      "coef": 1.036
+    },
+    {
+      "temp": 240,
+      "coef": 1.038
+    },
+    {
+      "temp": 260,
+      "coef": 1.039
+    },
+    {
+      "temp": 1000,
+      "coef": 1.04
+    }
+  ],
+  "speedProfiles": {
+    "light": [
+      {
+        "pow": 0.666,
+        "ts": [
+          {
+            "temp": -1,
+            "speed": 1.388
+          },
+          {
+            "temp": 50,
+            "speed": 1.388
+          },
+          {
+            "temp": 100,
+            "speed": 1.343
+          },
+          {
+            "temp": 150,
+            "speed": 1.19
+          },
+          {
+            "temp": 205,
+            "speed": 1.053
+          },
+          {
+            "temp": 250,
+            "speed": 0.94
+          },
+          {
+            "temp": 280,
+            "speed": 0.855
+          }
+        ]
+      },
+      {
+        "pow": 0.5,
+        "ts": [
+          {
+            "temp": -1,
+            "speed": 1.2
+          },
+          {
+            "temp": 50,
+            "speed": 1.2
+          },
+          {
+            "temp": 100,
+            "speed": 1.15
+          },
+          {
+            "temp": 150,
+            "speed": 1.02
+          },
+          {
+            "temp": 205,
+            "speed": 0.9
+          },
+          {
+            "temp": 250,
+            "speed": 0.832
+          },
+          {
+            "temp": 280,
+            "speed": 0.745
+          }
+        ]
+      },
+      {
+        "pow": 0.33333,
+        "ts": [
+          {
+            "temp": -1,
+            "speed": 0.955
+          },
+          {
+            "temp": 50,
+            "speed": 0.955
+          },
+          {
+            "temp": 100,
+            "speed": 0.9
+          },
+          {
+            "temp": 150,
+            "speed": 0.851
+          },
+          {
+            "temp": 205,
+            "speed": 0.777
+          },
+          {
+            "temp": 250,
+            "speed": 0.673
+          },
+          {
+            "temp": 280,
+            "speed": 0.597
+          }
+        ]
+      },
+      {
+        "pow": 0.166666,
+        "ts": [
+          {
+            "temp": -1,
+            "speed": 0.75
+          },
+          {
+            "temp": 50,
+            "speed": 0.75
+          },
+          {
+            "temp": 100,
+            "speed": 0.75
+          },
+          {
+            "temp": 150,
+            "speed": 0.725
+          },
+          {
+            "temp": 205,
+            "speed": 0.636
+          },
+          {
+            "temp": 250,
+            "speed": 0.547
+          },
+          {
+            "temp": 280,
+            "speed": 0.493
+          }
+        ]
+      },
+      {
+        "pow": 0,
+        "ts": [
+          {
+            "temp": -1,
+            "speed": 0.37
+          },
+          {
+            "temp": 50,
+            "speed": 0.37
+          },
+          {
+            "temp": 100,
+            "speed": 0.5
+          },
+          {
+            "temp": 150,
+            "speed": 0.42
+          },
+          {
+            "temp": 205,
+            "speed": 0.306
+          },
+          {
+            "temp": 250,
+            "speed": 0.253
+          },
+          {
+            "temp": 280,
+            "speed": 0.192
+          }
+        ]
+      }
+    ],
+    "bothHeaters": [
+      {
+        "pow": 1,
+        "ts": [
+          {
+            "temp": -1,
+            "speed": 0.37
+          },
+          {
+            "temp": 50,
+            "speed": 0.37
+          },
+          {
+            "temp": 100,
+            "speed": 0.5
+          },
+          {
+            "temp": 150,
+            "speed": 0.42
+          },
+          {
+            "temp": 205,
+            "speed": 0.306
+          },
+          {
+            "temp": 250,
+            "speed": 0.253
+          },
+          {
+            "temp": 280,
+            "speed": 0.192
+          }
+        ]
+      },
+      {
+        "pow": 0.75,
+        "ts": [
+          {
+            "temp": -1,
+            "speed": 0.3
+          },
+          {
+            "temp": 50,
+            "speed": 0.3
+          },
+          {
+            "temp": 100,
+            "speed": 0.373
+          },
+          {
+            "temp": 150,
+            "speed": 0.282
+          },
+          {
+            "temp": 205,
+            "speed": 0.176
+          },
+          {
+            "temp": 250,
+            "speed": 0.114
+          },
+          {
+            "temp": 280,
+            "speed": 0.065
+          }
+        ]
+      },
+      {
+        "pow": 0.5,
+        "ts": [
+          {
+            "temp": -1,
+            "speed": 0.214
+          },
+          {
+            "temp": 50,
+            "speed": 0.214
+          },
+          {
+            "temp": 100,
+            "speed": 0.228
+          },
+          {
+            "temp": 150,
+            "speed": 0.151
+          },
+          {
+            "temp": 205,
+            "speed": 0.048
+          },
+          {
+            "temp": 250,
+            "speed": -0.0035
+          },
+          {
+            "temp": 280,
+            "speed": -0.105
+          }
+        ]
+      },
+      {
+        "pow": 0.25,
+        "ts": [
+          {
+            "temp": -1,
+            "speed": 0.127
+          },
+          {
+            "temp": 50,
+            "speed": 0.127
+          },
+          {
+            "temp": 100,
+            "speed": 0.08
+          },
+          {
+            "temp": 150,
+            "speed": 0.02
+          },
+          {
+            "temp": 205,
+            "speed": -0.05
+          },
+          {
+            "temp": 250,
+            "speed": -0.12
+          },
+          {
+            "temp": 280,
+            "speed": -0.145
+          }
+        ]
+      },
+      {
+        "pow": 0,
+        "ts": [
+          {
+            "temp": 30,
+            "speed": 0
+          },
+          {
+            "temp": 50,
+            "speed": -0.01
+          },
+          {
+            "temp": 100,
+            "speed": -0.04
+          },
+          {
+            "temp": 150,
+            "speed": -0.1076
+          },
+          {
+            "temp": 205,
+            "speed": -0.193
+          },
+          {
+            "temp": 250,
+            "speed": -0.233
+          },
+          {
+            "temp": 280,
+            "speed": -0.261
+          }
+        ]
+      }
+    ],
+    "cooling": [
+      {
+        "pow": 1,
+        "ts": [
+          {
+            "temp": 30,
+            "speed": 0
+          },
+          {
+            "temp": 50,
+            "speed": -0.032
+          },
+          {
+            "temp": 100,
+            "speed": -0.14
+          },
+          {
+            "temp": 150,
+            "speed": -0.25
+          },
+          {
+            "temp": 205,
+            "speed": -0.37
+          },
+          {
+            "temp": 250,
+            "speed": -0.45
+          },
+          {
+            "temp": 280,
+            "speed": -0.51
+          }
+        ]
+      },
+      {
+        "pow": 0.75,
+        "ts": [
+          {
+            "temp": 30,
+            "speed": 0
+          },
+          {
+            "temp": 50,
+            "speed": -0.0217
+          },
+          {
+            "temp": 100,
+            "speed": -0.132
+          },
+          {
+            "temp": 150,
+            "speed": -0.2408
+          },
+          {
+            "temp": 205,
+            "speed": -0.353
+          },
+          {
+            "temp": 250,
+            "speed": -0.44
+          },
+          {
+            "temp": 280,
+            "speed": -0.5
+          }
+        ]
+      },
+      {
+        "pow": 0.5,
+        "ts": [
+          {
+            "temp": 30,
+            "speed": 0
+          },
+          {
+            "temp": 50,
+            "speed": -0.02
+          },
+          {
+            "temp": 100,
+            "speed": -0.1214
+          },
+          {
+            "temp": 150,
+            "speed": -0.2249
+          },
+          {
+            "temp": 205,
+            "speed": -0.32
+          },
+          {
+            "temp": 250,
+            "speed": -0.41
+          },
+          {
+            "temp": 280,
+            "speed": -0.48
+          }
+        ]
+      },
+      {
+        "pow": 0.25,
+        "ts": [
+          {
+            "temp": 30,
+            "speed": 0
+          },
+          {
+            "temp": 50,
+            "speed": -0.015
+          },
+          {
+            "temp": 100,
+            "speed": -0.095
+          },
+          {
+            "temp": 150,
+            "speed": -0.2
+          },
+          {
+            "temp": 205,
+            "speed": -0.3
+          },
+          {
+            "temp": 250,
+            "speed": -0.37
+          },
+          {
+            "temp": 280,
+            "speed": -0.42
+          }
+        ]
+      },
+      {
+        "pow": 0,
+        "ts": [
+          {
+            "temp": 30,
+            "speed": 0
+          },
+          {
+            "temp": 50,
+            "speed": -0.01
+          },
+          {
+            "temp": 100,
+            "speed": -0.04
+          },
+          {
+            "temp": 150,
+            "speed": -0.1076
+          },
+          {
+            "temp": 205,
+            "speed": -0.193
+          },
+          {
+            "temp": 250,
+            "speed": -0.233
+          },
+          {
+            "temp": 280,
+            "speed": -0.261
+          }
+        ]
+      }
+    ]
+  }
+}

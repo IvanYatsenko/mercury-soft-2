@@ -32,3 +32,13 @@ export interface ManualProfile extends ProfileBase {
 export type Profile = EasyProfile | ManualProfile;
 
 export { convertProfileMode } from './convertProfile.js';
+export type {
+  CalibrationPoint,
+  ConnectionVoltage,
+  OutputIndex,
+  OvenConfiguration,
+  OvenModel,
+  OvenSelection,
+  SpeedLevel,
+  SpeedPoint,
+} from './ovens/index.js';

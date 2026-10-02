@@ -1,7 +1,14 @@
-import { Box, Button, Paper, Stack, TextField, Typography } from '@mui/material';
+import {
+  Box,
+  Button,
+  Paper,
+  Stack,
+  TextField,
+  Typography,
+} from '@mui/material';
 import { useState } from 'react';
 
-type KeyboardLayout = 'ru' | 'en' | 'numbers';
+type KeyboardLayout = 'ru' | 'en' | 'numbers' | 'symbols';
 
 type OnScreenKeyboardProps = {
   value: string;
@@ -9,12 +16,19 @@ type OnScreenKeyboardProps = {
   onClose: () => void;
   numericOnly?: boolean;
   fullScreen?: boolean;
+  initialLayout?: KeyboardLayout;
 };
 
 const layouts: Record<KeyboardLayout, string[]> = {
   ru: ['й ц у к е н г ш щ з х', 'ф ы в а п р о л д ж э', 'я ч с м и т ь б ю'],
   en: ['q w e r t y u i o p', 'a s d f g h j k l', 'z x c v b n m'],
   numbers: ['1 2 3', '4 5 6', '7 8 9', '0 . -'],
+  symbols: [
+    '! @ # $ % ^ & *',
+    '( ) _ - + = / ?',
+    ': ; . , [ ] { }',
+    '\\ | \' " ~ `',
+  ],
 };
 
 export function OnScreenKeyboard({
@@ -23,8 +37,12 @@ export function OnScreenKeyboard({
   onClose,
   numericOnly = false,
   fullScreen = false,
+  initialLayout,
 }: OnScreenKeyboardProps) {
-  const [layout, setLayout] = useState<KeyboardLayout>(numericOnly ? 'numbers' : 'ru');
+  const [layout, setLayout] = useState<KeyboardLayout>(
+    initialLayout ?? (numericOnly ? 'numbers' : 'ru'),
+  );
+  const [uppercase, setUppercase] = useState(false);
 
   const add = (key: string) => onChange(value + key);
   const backspace = () => onChange(value.slice(0, -1));
@@ -41,34 +59,155 @@ export function OnScreenKeyboard({
       }}
       aria-label="Экранная клавиатура"
     >
-      <Stack spacing={fullScreen ? 0.5 : 0.75} sx={{ flex: fullScreen ? 1 : undefined, minHeight: 0 }}>
+      <Stack
+        spacing={fullScreen ? 0.5 : 0.75}
+        sx={{ flex: fullScreen ? 1 : undefined, minHeight: 0 }}
+      >
         <Stack direction="row" spacing={0.5} sx={{ flexShrink: 0 }}>
-          {!numericOnly && <Button fullWidth variant={layout === 'ru' ? 'contained' : 'outlined'} onClick={() => setLayout('ru')} sx={{ minHeight: fullScreen ? 36 : 40 }}>РУС</Button>}
-          {!numericOnly && <Button fullWidth variant={layout === 'en' ? 'contained' : 'outlined'} onClick={() => setLayout('en')} sx={{ minHeight: fullScreen ? 36 : 40 }}>ENG</Button>}
-          <Button fullWidth variant={layout === 'numbers' ? 'contained' : 'outlined'} onClick={() => setLayout('numbers')} sx={{ minHeight: fullScreen ? 36 : 40 }}>123</Button>
-          {!fullScreen && <Button variant="outlined" onClick={onClose} sx={{ minWidth: 48, minHeight: 40 }}>✓</Button>}
+          {!numericOnly && (
+            <Button
+              fullWidth
+              variant={layout === 'ru' ? 'contained' : 'outlined'}
+              onClick={() => setLayout('ru')}
+              sx={{ minHeight: fullScreen ? 36 : 40 }}
+            >
+              РУС
+            </Button>
+          )}
+          {!numericOnly && (
+            <Button
+              fullWidth
+              variant={layout === 'en' ? 'contained' : 'outlined'}
+              onClick={() => setLayout('en')}
+              sx={{ minHeight: fullScreen ? 36 : 40 }}
+            >
+              ENG
+            </Button>
+          )}
+          <Button
+            fullWidth
+            variant={layout === 'numbers' ? 'contained' : 'outlined'}
+            onClick={() => setLayout('numbers')}
+            sx={{ minHeight: fullScreen ? 36 : 40 }}
+          >
+            123
+          </Button>
+          {!numericOnly && (
+            <Button
+              fullWidth
+              variant={layout === 'symbols' ? 'contained' : 'outlined'}
+              onClick={() => setLayout('symbols')}
+              sx={{ minHeight: fullScreen ? 36 : 40 }}
+            >
+              #+=
+            </Button>
+          )}
+          {!numericOnly && (
+            <Button
+              variant={uppercase ? 'contained' : 'outlined'}
+              onClick={() => setUppercase(!uppercase)}
+              sx={{ minWidth: 44, minHeight: fullScreen ? 36 : 40 }}
+            >
+              ⇧
+            </Button>
+          )}
+          {!fullScreen && (
+            <Button
+              variant="outlined"
+              onClick={onClose}
+              sx={{ minWidth: 48, minHeight: 40 }}
+            >
+              ✓
+            </Button>
+          )}
         </Stack>
 
-        <Stack spacing={0.5} sx={{ flex: fullScreen ? 1 : undefined, minHeight: 0 }}>
-        {layouts[layout].map((row, index) => (
-          <Stack key={`${layout}-${index}`} direction="row" spacing={0.5} justifyContent="center" sx={{ flex: fullScreen ? 1 : undefined, minHeight: 0 }}>
-            {row.split(' ').map((key) => (
-              <Button key={key} variant="outlined" onClick={() => add(key)} sx={{ flex: 1, minWidth: 0, minHeight: fullScreen ? 24 : 42, height: fullScreen ? '100%' : undefined, px: 0.5, fontSize: 18 }}>
-                {key}
-              </Button>
-            ))}
-            {layout !== 'numbers' && index === 2 && (
-              <Button variant="outlined" color="warning" onClick={backspace} sx={{ minWidth: 48, minHeight: fullScreen ? 24 : 42, height: fullScreen ? '100%' : undefined }}>⌫</Button>
-            )}
-          </Stack>
-        ))}
+        <Stack
+          spacing={0.5}
+          sx={{ flex: fullScreen ? 1 : undefined, minHeight: 0 }}
+        >
+          {layouts[layout].map((row, index) => (
+            <Stack
+              key={`${layout}-${index}`}
+              direction="row"
+              spacing={0.5}
+              justifyContent="center"
+              sx={{ flex: fullScreen ? 1 : undefined, minHeight: 0 }}
+            >
+              {row.split(' ').map((key) => (
+                <Button
+                  key={key}
+                  variant="outlined"
+                  onClick={() => add(uppercase ? key.toUpperCase() : key)}
+                  sx={{
+                    flex: 1,
+                    minWidth: 0,
+                    minHeight: fullScreen ? 24 : 42,
+                    height: fullScreen ? '100%' : undefined,
+                    px: 0.5,
+                    fontSize: 18,
+                  }}
+                >
+                  {uppercase ? key.toUpperCase() : key}
+                </Button>
+              ))}
+              {layout !== 'numbers' && index === 2 && (
+                <Button
+                  variant="outlined"
+                  color="warning"
+                  onClick={backspace}
+                  sx={{
+                    minWidth: 48,
+                    minHeight: fullScreen ? 24 : 42,
+                    height: fullScreen ? '100%' : undefined,
+                  }}
+                >
+                  ⌫
+                </Button>
+              )}
+            </Stack>
+          ))}
         </Stack>
 
         <Stack direction="row" spacing={0.5} sx={{ flexShrink: 0 }}>
-          {!numericOnly && <Button variant="outlined" onClick={() => add(' ')} sx={{ flex: 1, minHeight: fullScreen ? 36 : 42 }}>Пробел</Button>}
-          {fullScreen && <Button variant="outlined" color="warning" onClick={backspace} sx={{ minWidth: 64, minHeight: 36 }}>⌫</Button>}
-          {fullScreen && <Button variant="contained" onClick={onClose} sx={{ minWidth: 72, minHeight: 36 }}>Готово</Button>}
-          {!fullScreen && <Button variant="outlined" color="warning" onClick={backspace} sx={{ minWidth: 68, minHeight: 42 }}>⌫</Button>}
+          {!numericOnly && (
+            <Button
+              variant="outlined"
+              onClick={() => add(' ')}
+              sx={{ flex: 1, minHeight: fullScreen ? 36 : 42 }}
+            >
+              Пробел
+            </Button>
+          )}
+          {fullScreen && (
+            <Button
+              variant="outlined"
+              color="warning"
+              onClick={backspace}
+              sx={{ minWidth: 64, minHeight: 36 }}
+            >
+              ⌫
+            </Button>
+          )}
+          {fullScreen && (
+            <Button
+              variant="contained"
+              onClick={onClose}
+              sx={{ minWidth: 72, minHeight: 36 }}
+            >
+              Готово
+            </Button>
+          )}
+          {!fullScreen && (
+            <Button
+              variant="outlined"
+              color="warning"
+              onClick={backspace}
+              sx={{ minWidth: 68, minHeight: 42 }}
+            >
+              ⌫
+            </Button>
+          )}
         </Stack>
       </Stack>
     </Paper>
@@ -85,7 +224,7 @@ export function KeyboardTextField({
   label: string;
   value: string;
   onChange: (value: string) => void;
-  type?: 'text' | 'number';
+  type?: 'text' | 'number' | 'password';
   disabled?: boolean;
 }) {
   const [open, setOpen] = useState(false);
@@ -94,7 +233,7 @@ export function KeyboardTextField({
     <>
       <TextField
         label={label}
-        type="text"
+        type={type === 'password' ? 'password' : 'text'}
         size="small"
         fullWidth
         value={value}
@@ -116,21 +255,42 @@ export function KeyboardTextField({
           }}
         >
           <Stack spacing={0.75} sx={{ width: '100%', flex: 1, minHeight: 0 }}>
-            <Stack direction="row" alignItems="center" spacing={1} sx={{ flexShrink: 0 }}>
-              <Button onClick={() => setOpen(false)} sx={{ minWidth: 88, minHeight: 36 }}>← Назад</Button>
-              <Typography variant="subtitle1" fontWeight={700} noWrap>{label}</Typography>
+            <Stack
+              direction="row"
+              alignItems="center"
+              spacing={1}
+              sx={{ flexShrink: 0 }}
+            >
+              <Button
+                onClick={() => setOpen(false)}
+                sx={{ minWidth: 88, minHeight: 36 }}
+              >
+                ← Назад
+              </Button>
+              <Typography variant="subtitle1" fontWeight={700} noWrap>
+                {label}
+              </Typography>
             </Stack>
             <TextField
               value={value}
+              type={type === 'password' ? 'password' : 'text'}
               fullWidth
-              inputProps={{ readOnly: true, inputMode: 'none', 'aria-label': label }}
-              sx={{ flexShrink: 0, '& .MuiInputBase-root': { minHeight: 48, fontSize: 24 } }}
+              inputProps={{
+                readOnly: true,
+                inputMode: 'none',
+                'aria-label': label,
+              }}
+              sx={{
+                flexShrink: 0,
+                '& .MuiInputBase-root': { minHeight: 48, fontSize: 24 },
+              }}
             />
             <OnScreenKeyboard
               value={value}
               onChange={onChange}
               onClose={() => setOpen(false)}
               numericOnly={type === 'number'}
+              {...(type === 'password' ? { initialLayout: 'en' as const } : {})}
               fullScreen
             />
           </Stack>

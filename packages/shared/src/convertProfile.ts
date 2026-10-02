@@ -33,11 +33,18 @@ export function convertProfileMode(
     // Keep two existing plateaus where possible; otherwise use manual shelf data.
     const preheat = plateaus[0] ?? { ...manual.shelves[0] };
     const peak = plateaus[1] ?? { ...manual.shelves[1] };
-    const lastTemperature = manual.points.at(-1)?.temperature ?? manual.shelves[2].temperature;
+    const lastTemperature =
+      manual.points.at(-1)?.temperature ?? manual.shelves[2].temperature;
     const shelves: EasyProfile['shelves'] = [
       { ...preheat },
       { ...peak },
-      { second: 0, temperature: Math.min(lastTemperature, Math.max(preheat.temperature, peak.temperature)) },
+      {
+        second: 0,
+        temperature: Math.min(
+          lastTemperature,
+          Math.max(preheat.temperature, peak.temperature),
+        ),
+      },
     ];
 
     return {

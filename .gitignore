@@ -4,6 +4,8 @@ coverage/
 .env
 .env.*
 !.env.example
+/config.json
+/.config.json.*.tmp
 *.log
 *.tsbuildinfo
 .DS_Store

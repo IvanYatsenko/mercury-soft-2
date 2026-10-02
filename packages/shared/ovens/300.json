@@ -1,0 +1,463 @@
+{
+  "model": "300",
+  "name": "Меркурий-300",
+  "designation": "АМСГ.421415.110",
+  "specifications": {
+    "boardWidthMm": 300,
+    "boardDepthMm": 250,
+    "boardHeightMm": 30,
+    "maximumTemperatureC": 280,
+    "profileStepSeconds": {
+      "min": 1,
+      "max": 99999
+    },
+    "maximumHeatingRateCPerSecond": 0.7,
+    "maximumCoolingRateCPerSecond": 0.4,
+    "maximumPowerKw": 3.5
+  },
+  "outputs": {
+    "singlePhase": {
+      "infrared": 6,
+      "infrared2": 7,
+      "topHeater": 4,
+      "bottomHeater": 3,
+      "convection": 2,
+      "f1": 5,
+      "f2": 1,
+      "nth": 0
+    },
+    "threePhase": {
+      "infrared": 7,
+      "infrared2": 5,
+      "topHeater": 4,
+      "bottomHeater": 2,
+      "convection": 3,
+      "f1": 6,
+      "f2": 1,
+      "nth": 0
+    }
+  },
+  "sensors": {
+    "boardTemperature": {
+      "command": "get",
+      "index": 1,
+      "divisor": 4
+    },
+    "chamberTemperature": {
+      "command": "get",
+      "index": 2,
+      "divisor": 4
+    },
+    "door": {
+      "command": "sensors",
+      "index": 1
+    }
+  },
+  "defaultThermocoupleCorrection": [
+    {
+      "temp": 0,
+      "coef": 1
+    },
+    {
+      "temp": 50,
+      "coef": 1
+    },
+    {
+      "temp": 80,
+      "coef": 1.038
+    },
+    {
+      "temp": 100,
+      "coef": 1.041
+    },
+    {
+      "temp": 120,
+      "coef": 1.051
+    },
+    {
+      "temp": 140,
+      "coef": 1.052
+    },
+    {
+      "temp": 160,
+      "coef": 1.055
+    },
+    {
+      "temp": 180,
+      "coef": 1.057
+    },
+    {
+      "temp": 200,
+      "coef": 1.058
+    },
+    {
+      "temp": 220,
+      "coef": 1.06
+    },
+    {
+      "temp": 240,
+      "coef": 1.061
+    },
+    {
+      "temp": 260,
+      "coef": 1.065
+    },
+    {
+      "temp": 280,
+      "coef": 1.072
+    },
+    {
+      "temp": 1000,
+      "coef": 1.072
+    }
+  ],
+  "speedProfiles": {
+    "light": [
+      {
+        "pow": 1,
+        "ts": [
+          {
+            "temp": 50,
+            "speed": 1.3
+          },
+          {
+            "temp": 130,
+            "speed": 1.3
+          },
+          {
+            "temp": 200,
+            "speed": 1.09
+          },
+          {
+            "temp": 250,
+            "speed": 1
+          },
+          {
+            "temp": 300,
+            "speed": 0.96
+          }
+        ]
+      },
+      {
+        "pow": 0.75,
+        "ts": [
+          {
+            "temp": 50,
+            "speed": 1.07
+          },
+          {
+            "temp": 130,
+            "speed": 1.07
+          },
+          {
+            "temp": 200,
+            "speed": 0.994
+          },
+          {
+            "temp": 250,
+            "speed": 0.919
+          },
+          {
+            "temp": 300,
+            "speed": 0.87
+          }
+        ]
+      },
+      {
+        "pow": 0.5,
+        "ts": [
+          {
+            "temp": 50,
+            "speed": 0.988
+          },
+          {
+            "temp": 130,
+            "speed": 0.988
+          },
+          {
+            "temp": 200,
+            "speed": 0.88
+          },
+          {
+            "temp": 250,
+            "speed": 0.787
+          },
+          {
+            "temp": 300,
+            "speed": 0.7
+          }
+        ]
+      },
+      {
+        "pow": 0.25,
+        "ts": [
+          {
+            "temp": 50,
+            "speed": 0.846
+          },
+          {
+            "temp": 130,
+            "speed": 0.846
+          },
+          {
+            "temp": 200,
+            "speed": 0.737
+          },
+          {
+            "temp": 250,
+            "speed": 0.65
+          },
+          {
+            "temp": 300,
+            "speed": 0.6
+          }
+        ]
+      },
+      {
+        "pow": 0,
+        "ts": [
+          {
+            "temp": 50,
+            "speed": 0.8
+          },
+          {
+            "temp": 130,
+            "speed": 0.8
+          },
+          {
+            "temp": 200,
+            "speed": 0.65
+          },
+          {
+            "temp": 250,
+            "speed": 0.48
+          },
+          {
+            "temp": 300,
+            "speed": 0.375
+          }
+        ]
+      }
+    ],
+    "bothHeaters": [
+      {
+        "pow": 1,
+        "ts": [
+          {
+            "temp": 50,
+            "speed": 0.8
+          },
+          {
+            "temp": 130,
+            "speed": 0.8
+          },
+          {
+            "temp": 200,
+            "speed": 0.65
+          },
+          {
+            "temp": 250,
+            "speed": 0.48
+          },
+          {
+            "temp": 300,
+            "speed": 0.375
+          }
+        ]
+      },
+      {
+        "pow": 0.75,
+        "ts": [
+          {
+            "temp": 50,
+            "speed": 0.57
+          },
+          {
+            "temp": 130,
+            "speed": 0.57
+          },
+          {
+            "temp": 200,
+            "speed": 0.403
+          },
+          {
+            "temp": 250,
+            "speed": 0.3
+          },
+          {
+            "temp": 300,
+            "speed": 0.182
+          }
+        ]
+      },
+      {
+        "pow": 0.5,
+        "ts": [
+          {
+            "temp": 50,
+            "speed": 0.345
+          },
+          {
+            "temp": 130,
+            "speed": 0.345
+          },
+          {
+            "temp": 200,
+            "speed": 0.2
+          },
+          {
+            "temp": 250,
+            "speed": 0.075
+          },
+          {
+            "temp": 300,
+            "speed": 0
+          }
+        ]
+      },
+      {
+        "pow": 0.25,
+        "ts": [
+          {
+            "temp": 50,
+            "speed": 0.27
+          },
+          {
+            "temp": 130,
+            "speed": 0.11
+          },
+          {
+            "temp": 200,
+            "speed": 0.01
+          },
+          {
+            "temp": 250,
+            "speed": -0.083
+          },
+          {
+            "temp": 300,
+            "speed": -0.2
+          }
+        ]
+      },
+      {
+        "pow": 0,
+        "ts": [
+          {
+            "temp": 0,
+            "speed": 0
+          },
+          {
+            "temp": 50,
+            "speed": 0
+          },
+          {
+            "temp": 130,
+            "speed": -0.1
+          },
+          {
+            "temp": 200,
+            "speed": -0.216
+          },
+          {
+            "temp": 250,
+            "speed": -0.32
+          },
+          {
+            "temp": 300,
+            "speed": -0.43
+          }
+        ]
+      }
+    ],
+    "cooling": [
+      {
+        "pow": 1,
+        "ts": [
+          {
+            "temp": 0,
+            "speed": -0.05
+          },
+          {
+            "temp": 50,
+            "speed": -0.05
+          },
+          {
+            "temp": 130,
+            "speed": -0.204
+          },
+          {
+            "temp": 200,
+            "speed": -0.348
+          },
+          {
+            "temp": 250,
+            "speed": -0.463
+          },
+          {
+            "temp": 300,
+            "speed": -0.579
+          }
+        ]
+      },
+      {
+        "pow": 0.25,
+        "ts": [
+          {
+            "temp": 0,
+            "speed": -0.04
+          },
+          {
+            "temp": 50,
+            "speed": -0.04
+          },
+          {
+            "temp": 130,
+            "speed": -0.17
+          },
+          {
+            "temp": 200,
+            "speed": -0.3
+          },
+          {
+            "temp": 250,
+            "speed": -0.4
+          },
+          {
+            "temp": 300,
+            "speed": -0.515
+          }
+        ]
+      },
+      {
+        "pow": 0,
+        "ts": [
+          {
+            "temp": 0,
+            "speed": 0
+          },
+          {
+            "temp": 50,
+            "speed": 0
+          },
+          {
+            "temp": 130,
+            "speed": -0.1
+          },
+          {
+            "temp": 200,
+            "speed": -0.216
+          },
+          {
+            "temp": 250,
+            "speed": -0.32
+          },
+          {
+            "temp": 300,
+            "speed": -0.43
+          }
+        ]
+      }
+    ]
+  }
+}

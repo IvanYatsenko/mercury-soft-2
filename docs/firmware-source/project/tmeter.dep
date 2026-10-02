@@ -1,0 +1,615 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<project>
+  <fileVersion>2</fileVersion>
+  <fileChecksum>4109808230</fileChecksum>
+  <configuration>
+    <name>Debug</name>
+    <outputs>
+      <file>$PROJ_DIR$\Debug\List\main.lst</file>
+      <file>$PROJ_DIR$\Debug\Obj\dac.pbi</file>
+      <file>$TOOLKIT_DIR$\inc\c\cstddef</file>
+      <file>$PROJ_DIR$\Debug\Obj\itmp_serial.pbi</file>
+      <file>$PROJ_DIR$\Debug\List\tim.i</file>
+      <file>$PROJ_DIR$\Debug\Obj\tim.o</file>
+      <file>$TOOLKIT_DIR$\config\linker\ST\stm32f100x4.icf</file>
+      <file>$PROJ_DIR$\Debug\List\dac.lst</file>
+      <file>$TOOLKIT_DIR$\inc\ecpp\streambuf</file>
+      <file>$TOOLKIT_DIR$\inc\c\stdint.h</file>
+      <file>$TOOLKIT_DIR$\inc\c\DLib_Threads.h</file>
+      <file>$TOOLKIT_DIR$\inc\c\xlocale_c.h</file>
+      <file>$PROJ_DIR$\Debug\Obj\spi.o</file>
+      <file>$TOOLKIT_DIR$\inc\c\cstring</file>
+      <file>$PROJ_DIR$\Debug\Obj\crc.pbi</file>
+      <file>$PROJ_DIR$\Debug\List\usart.lst</file>
+      <file>$TOOLKIT_DIR$\inc\c\stdio.h</file>
+      <file>$TOOLKIT_DIR$\inc\c\errno.h</file>
+      <file>$PROJ_DIR$\nscduinolib\lib\md5.h</file>
+      <file>$PROJ_DIR$\nscduinolib\stm32f10x.core\drivers\tim.h</file>
+      <file>$PROJ_DIR$\Debug\List\system_stm32f10x.i</file>
+      <file>$PROJ_DIR$\Debug\Obj\startup_stm32f10x_ld_vl.o</file>
+      <file>$PROJ_DIR$\lpalg\CBOR.h</file>
+      <file>$PROJ_DIR$\Debug\List\usart.i</file>
+      <file>$TOOLKIT_DIR$\inc\c\yvals.h</file>
+      <file>$PROJ_DIR$\Debug\Obj\sys.o</file>
+      <file>$PROJ_DIR$\Debug\List\itmp_serial.i</file>
+      <file>$TOOLKIT_DIR$\inc\c\intrinsics.h</file>
+      <file>$PROJ_DIR$\Debug\Obj\tmeter.pbd</file>
+      <file>$PROJ_DIR$\Debug\List\itmp.i</file>
+      <file>$PROJ_DIR$\nscduinolib\drivers\usart.h</file>
+      <file>$PROJ_DIR$\Debug\Exe\tmeter.hex</file>
+      <file>$TOOLKIT_DIR$\inc\ecpp\vector</file>
+      <file>$PROJ_DIR$\nscduinolib\stm32f10x.core\drivers\gpio-alloc.h</file>
+      <file>$PROJ_DIR$\Debug\Obj\dac.o</file>
+      <file>$PROJ_DIR$\Debug\List\itmp.lst</file>
+      <file>$TOOLKIT_DIR$\inc\c\xlocale.h</file>
+      <file>$PROJ_DIR$\Debug\List\spi.i</file>
+      <file>$PROJ_DIR$\Debug\List\mot823.map</file>
+      <file>$PROJ_DIR$\nscduinolib\lib\crc.h</file>
+      <file>$PROJ_DIR$\nscduinolib\stm32f10x.core\drivers\adc.h</file>
+      <file>$PROJ_DIR$\Debug\List\dac.i</file>
+      <file>$TOOLKIT_DIR$\inc\c\limits.h</file>
+      <file>$TOOLKIT_DIR$\inc\c\stddef.h</file>
+      <file>$PROJ_DIR$\Debug\Obj\sys.__cstat.et</file>
+      <file>$PROJ_DIR$\Debug\List\CBOR.i</file>
+      <file>$PROJ_DIR$\Debug\Obj\gpio-alloc.__cstat.et</file>
+      <file>$PROJ_DIR$\Debug\Obj\pwm.o</file>
+      <file>$PROJ_DIR$\Debug\Obj\itmp.o</file>
+      <file>$PROJ_DIR$\nscduinolib\lib\CBOR.h</file>
+      <file>$PROJ_DIR$\Debug\Obj\sys.pbi</file>
+      <file>$PROJ_DIR$\Debug\Obj\itmp_serial.__cstat.et</file>
+      <file>$TOOLKIT_DIR$\inc\ecpp\xstring</file>
+      <file>$PROJ_DIR$\Debug\Obj\gpio-alloc.o</file>
+      <file>$PROJ_DIR$\Debug\Obj\pwm.pbi</file>
+      <file>$PROJ_DIR$\nscduinolib\stm32f10x.core\drivers\spi.h</file>
+      <file>$PROJ_DIR$\Debug\Obj\itmp_serial.o</file>
+      <file>$TOOLKIT_DIR$\inc\ecpp\exception</file>
+      <file>$PROJ_DIR$\Debug\Obj\system_stm32f10x.o</file>
+      <file>$PROJ_DIR$\nscduinolib\stm32f10x.core\core_cm3.h</file>
+      <file>$PROJ_DIR$\Debug\Obj\gpio-alloc.pbi</file>
+      <file>$TOOLKIT_DIR$\inc\ecpp\new</file>
+      <file>$PROJ_DIR$\nscduinolib\stm32f10x.core\system_stm32f10x.h</file>
+      <file>$PROJ_DIR$\max6675.hpp</file>
+      <file>$PROJ_DIR$\Debug\Obj\main.__cstat.et</file>
+      <file>$TOOLKIT_DIR$\inc\ecpp\istream</file>
+      <file>$PROJ_DIR$\Debug\List\spi.lst</file>
+      <file>$TOOLKIT_DIR$\lib\m7M_tl.a</file>
+      <file>$TOOLKIT_DIR$\inc\c\cctype</file>
+      <file>$PROJ_DIR$\nscduinolib\drivers\itmp_serial.h</file>
+      <file>$TOOLKIT_DIR$\inc\ecpp\xdebug</file>
+      <file>$PROJ_DIR$\Debug\Obj\main.o</file>
+      <file>$TOOLKIT_DIR$\inc\c\xlocaleuse.h</file>
+      <file>$TOOLKIT_DIR$\inc\c\DLib_Product_string.h</file>
+      <file>$PROJ_DIR$\Debug\Obj\crc.o</file>
+      <file>$TOOLKIT_DIR$\lib\dlpp7M_tl_ne.a</file>
+      <file>$TOOLKIT_DIR$\inc\c\cstdlib</file>
+      <file>$PROJ_DIR$\nscduinolib\stm32f10x.core\core_cmInstr.h</file>
+      <file>$PROJ_DIR$\Debug\Obj\spi.__cstat.et</file>
+      <file>$PROJ_DIR$\Debug\List\pwm.lst</file>
+      <file>$PROJ_DIR$\Debug\List\sys.i</file>
+      <file>$PROJ_DIR$\Debug\Obj\core_cm3.__cstat.et</file>
+      <file>$TOOLKIT_DIR$\inc\ecpp\utility</file>
+      <file>$TOOLKIT_DIR$\inc\c\cerrno</file>
+      <file>$TOOLKIT_DIR$\inc\ecpp\xutility</file>
+      <file>$TOOLKIT_DIR$\inc\c\DLib_Product.h</file>
+      <file>$PROJ_DIR$\Debug\Obj\usart.pbi</file>
+      <file>$PROJ_DIR$\Debug\List\main.i</file>
+      <file>$PROJ_DIR$\Debug\Obj\system_stm32f10x.__cstat.et</file>
+      <file>$PROJ_DIR$\Debug\List\tim.lst</file>
+      <file>$PROJ_DIR$\Debug\Exe\mot823.out</file>
+      <file>$TOOLKIT_DIR$\inc\c\xmtx.h</file>
+      <file>$PROJ_DIR$\Debug\Obj\pwm.__cstat.et</file>
+      <file>$PROJ_DIR$\Debug\Obj\core_cm3.pbi</file>
+      <file>$TOOLKIT_DIR$\inc\c\ystdio.h</file>
+      <file>$TOOLKIT_DIR$\inc\c\cstdio</file>
+      <file>$TOOLKIT_DIR$\inc\c\ctype.h</file>
+      <file>$TOOLKIT_DIR$\inc\c\assert.h</file>
+      <file>$TOOLKIT_DIR$\inc\ecpp\memory</file>
+      <file>$PROJ_DIR$\nscduinolib\drivers\pwm.h</file>
+      <file>$PROJ_DIR$\nscduinolib\stm32f10x.core\stm32f10x_extend.h</file>
+      <file>$PROJ_DIR$\Debug\Obj\itmp.pbi</file>
+      <file>$PROJ_DIR$\Debug\Obj\crc.__cstat.et</file>
+      <file>$PROJ_DIR$\nscduinolib\stm32f10x.core\drivers\sys.h</file>
+      <file>$TOOLKIT_DIR$\inc\c\stdbool.h</file>
+      <file>$PROJ_DIR$\Debug\List\sys.lst</file>
+      <file>$PROJ_DIR$\Debug\Obj\dac.__cstat.et</file>
+      <file>$TOOLKIT_DIR$\inc\c\wchar.h</file>
+      <file>$TOOLKIT_DIR$\inc\ecpp\ostream</file>
+      <file>$PROJ_DIR$\nscduinolib\drivers\pwm.cpp</file>
+      <file>$PROJ_DIR$\nscduinolib\stm32f10x.core\drivers\tim.cpp</file>
+      <file>$PROJ_DIR$\nscduinolib\stm32f10x.core\drivers\spi.cpp</file>
+      <file>$PROJ_DIR$\nscduinolib\stm32f10x.core\drivers\gpio-alloc.cpp</file>
+      <file>$PROJ_DIR$\nscduinolib\stm32f10x.core\drivers\sys.cpp</file>
+      <file>$PROJ_DIR$\nscduinolib\drivers\itmp.cpp</file>
+      <file>$PROJ_DIR$\lpalg\CBOR.cpp</file>
+      <file>$PROJ_DIR$\nscduinolib\stm32f10x.core\core_cm3.c</file>
+      <file>$PROJ_DIR$\nscduinolib\stm32f10x.core\startup_stm32f10x_ld_vl.s</file>
+      <file>$PROJ_DIR$\nscduinolib\stm32f10x.core\system_stm32f10x.c</file>
+      <file>$PROJ_DIR$\nscduinolib\stm32f10x.core\drivers\dac.cpp</file>
+      <file>$PROJ_DIR$\nscduinolib\lib\crc.cpp</file>
+      <file>$PROJ_DIR$\nscduinolib\drivers\usart.cpp</file>
+      <file>$PROJ_DIR$\nscduinolib\drivers\itmp_serial.cpp</file>
+      <file>$PROJ_DIR$\nscduinolib\stm32f10x.core\drivers\adc.cpp</file>
+      <file>$PROJ_DIR$\main.cpp</file>
+      <file>$PROJ_DIR$\sn74c595.hpp</file>
+      <file>$PROJ_DIR$\Debug\Obj\core_cm3.o</file>
+      <file>$PROJ_DIR$\Debug\Obj\tim.pbi</file>
+      <file>$PROJ_DIR$\Debug\Obj\tim.__cstat.et</file>
+      <file>$TOOLKIT_DIR$\inc\c\stdlib.h</file>
+      <file>$PROJ_DIR$\Debug\List\system_stm32f10x.lst</file>
+      <file>$TOOLKIT_DIR$\inc\c\ycheck.h</file>
+      <file>$TOOLKIT_DIR$\inc\ecpp\xiosbase</file>
+      <file>$TOOLKIT_DIR$\inc\ecpp\ios</file>
+      <file>$PROJ_DIR$\nscduinolib\drivers\itmp.h</file>
+      <file>$PROJ_DIR$\Debug\List\gpio-alloc.i</file>
+      <file>$PROJ_DIR$\Debug\Obj\CBOR.pbi</file>
+      <file>$PROJ_DIR$\Debug\List\crc.lst</file>
+      <file>$PROJ_DIR$\nscduinolib\stm32f10x.core\stm32f10x.h</file>
+      <file>$PROJ_DIR$\Debug\List\core_cm3.i</file>
+      <file>$PROJ_DIR$\nscduinolib\stm32f10x.core\drivers\dac.h</file>
+      <file>$TOOLKIT_DIR$\inc\c\climits</file>
+      <file>$PROJ_DIR$\nscduinolib\stm32f10x.core\core_cmFunc.h</file>
+      <file>$PROJ_DIR$\Debug\List\gpio-alloc.lst</file>
+      <file>$PROJ_DIR$\Debug\Obj\CBOR.__cstat.et</file>
+      <file>$TOOLKIT_DIR$\inc\ecpp\ichooser</file>
+      <file>$PROJ_DIR$\Debug\List\pwm.i</file>
+      <file>$PROJ_DIR$\Debug\List\core_cm3.lst</file>
+      <file>$PROJ_DIR$\Debug\Obj\itmp.__cstat.et</file>
+      <file>$TOOLKIT_DIR$\inc\ecpp\iosfwd</file>
+      <file>$PROJ_DIR$\Debug\Obj\system_stm32f10x.pbi</file>
+      <file>$TOOLKIT_DIR$\inc\c\string.h</file>
+      <file>$PROJ_DIR$\Debug\Obj\main.pbi</file>
+      <file>$TOOLKIT_DIR$\inc\ecpp\xmemory</file>
+      <file>$TOOLKIT_DIR$\inc\c\ysizet.h</file>
+      <file>$PROJ_DIR$\Debug\List\itmp_serial.lst</file>
+      <file>$TOOLKIT_DIR$\inc\ecpp\stdexcept</file>
+      <file>$TOOLKIT_DIR$\inc\ecpp\xstddef</file>
+      <file>$TOOLKIT_DIR$\inc\ecpp\xlocnum</file>
+      <file>$PROJ_DIR$\Debug\Obj\usart.__cstat.et</file>
+      <file>$TOOLKIT_DIR$\inc\c\cmsis_iar.h</file>
+      <file>$PROJ_DIR$\Debug\List\CBOR.lst</file>
+      <file>$PROJ_DIR$\Debug\Obj\CBOR.o</file>
+      <file>$TOOLKIT_DIR$\inc\c\DLib_Defaults.h</file>
+      <file>$PROJ_DIR$\Debug\Obj\spi.pbi</file>
+      <file>$PROJ_DIR$\Debug\Obj\usart.o</file>
+      <file>$TOOLKIT_DIR$\lib\rt7M_tl.a</file>
+      <file>$TOOLKIT_DIR$\inc\c\locale.h</file>
+      <file>$TOOLKIT_DIR$\inc\ecpp\iutility</file>
+      <file>$TOOLKIT_DIR$\inc\c\xencoding_limits.h</file>
+      <file>$TOOLKIT_DIR$\inc\c\DLib_Config_Normal.h</file>
+      <file>$TOOLKIT_DIR$\inc\ecpp\iterator</file>
+      <file>$PROJ_DIR$\nscduinolib\stm32f10x.core\drivers\dma.h</file>
+      <file>$PROJ_DIR$\nscduinolib\lib\blockfifo.h</file>
+      <file>$PROJ_DIR$\Debug\List\crc.i</file>
+      <file>$TOOLKIT_DIR$\inc\c\xtls.h</file>
+      <file>$TOOLKIT_DIR$\lib\dl7M_tln.a</file>
+      <file>$TOOLKIT_DIR$\inc\c\xlocale_lconv.h</file>
+      <file>$TOOLKIT_DIR$\inc\c\clocale</file>
+    </outputs>
+    <file>
+      <name>$PROJ_DIR$\Debug\Exe\mot823.out</name>
+      <outputs>
+        <tool>
+          <name>ILINK</name>
+          <file> 38</file>
+        </tool>
+        <tool>
+          <name>OBJCOPY</name>
+          <file> 31</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ILINK</name>
+          <file> 6 162 126 74 34 53 48 56 71 47 12 21 25 58 5 165 166 75 67 176</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\nscduinolib\drivers\pwm.cpp</name>
+      <outputs>
+        <tool>
+          <name>ICCARM</name>
+          <file> 146 79 47</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 54</file>
+        </tool>
+        <tool>
+          <name>__cstat</name>
+          <file> 92</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ICCARM</name>
+          <file> 100 138 59 9 131 24 163 170 85 169 10 77 160 27 142 62 104 33 99 103 19 129 154</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 59 104 129 19 142 10 24 99 27 160 33 103 138 62 9 131 100 169 77 163 170 85 154</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\nscduinolib\stm32f10x.core\drivers\tim.cpp</name>
+      <outputs>
+        <tool>
+          <name>ICCARM</name>
+          <file> 4 89 5</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 127</file>
+        </tool>
+        <tool>
+          <name>__cstat</name>
+          <file> 128</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ICCARM</name>
+          <file> 19 129 131 24 163 170 85 169 10 154 9 104 33 138 59 77 160 27 142 62 100 103</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 131 163 169 154 9 170 138 104 77 100 33 85 24 59 103 129 10 62 27 160 19 142</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\nscduinolib\stm32f10x.core\drivers\spi.cpp</name>
+      <outputs>
+        <tool>
+          <name>ICCARM</name>
+          <file> 37 66 12</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 164</file>
+        </tool>
+        <tool>
+          <name>__cstat</name>
+          <file> 78</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ICCARM</name>
+          <file> 138 59 9 131 24 163 170 85 169 10 77 160 27 142 62 104 55 43 154 151 73 33 103 100</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 104 27 9 131 160 33 59 142 10 24 43 154 55 62 77 73 100 138 163 169 170 85 151 103</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\nscduinolib\stm32f10x.core\drivers\gpio-alloc.cpp</name>
+      <outputs>
+        <tool>
+          <name>ICCARM</name>
+          <file> 135 143 53</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 60</file>
+        </tool>
+        <tool>
+          <name>__cstat</name>
+          <file> 46</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ICCARM</name>
+          <file> 97 131 24 163 170 85 169 10 33 104 9 138 59 77 160 27 142 62 96 36 175 91 129 154 72 11 107</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 131 163 169 24 170 59 142 154 96 85 9 104 175 91 33 138 10 62 160 72 97 77 27 36 11 129 107</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\nscduinolib\stm32f10x.core\drivers\sys.cpp</name>
+      <outputs>
+        <tool>
+          <name>ICCARM</name>
+          <file> 80 105 25</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 50</file>
+        </tool>
+        <tool>
+          <name>__cstat</name>
+          <file> 44</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ICCARM</name>
+          <file> 97 131 24 163 170 85 169 10 138 59 9 77 160 27 142 62 104 100 103</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 160 85 77 24 59 100 10 170 131 104 138 103 163 169 62 9 97 142 27</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\nscduinolib\drivers\itmp.cpp</name>
+      <outputs>
+        <tool>
+          <name>ICCARM</name>
+          <file> 29 35 48</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 101</file>
+        </tool>
+        <tool>
+          <name>__cstat</name>
+          <file> 148</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ICCARM</name>
+          <file> 134 151 131 24 163 170 85 169 10 154 73 33 104 9 138 59 77 160 27 142 62 18 32 98 171 84 141 42 82 149 95 16 94 13 157 2 43 76 129 168 65 108 133 158 83 17 178 167 177 8 132 68 96 36 175 91 72 11 107 156 57 52 70 153 61 145 39 49</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 24 131 33 163 169 104 62 27 157 76 170 95 156 57 49 85 138 9 77 84 65 168 177 72 107 39 151 18 32 154 73 10 59 142 160 153 82 42 94 2 43 129 158 141 8 17 167 96 175 91 134 98 145 171 149 13 16 108 133 83 178 132 68 70 36 11 52 61</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\lpalg\CBOR.cpp</name>
+      <outputs>
+        <tool>
+          <name>ICCARM</name>
+          <file> 45 161 162</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 136</file>
+        </tool>
+        <tool>
+          <name>__cstat</name>
+          <file> 144</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ICCARM</name>
+          <file> 22 43 131 24 163 170 85 169 10 154 9 151 73</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 131 24 73 151 9 154 10 22 43 163 169 170 85</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\nscduinolib\stm32f10x.core\core_cm3.c</name>
+      <outputs>
+        <tool>
+          <name>ICCARM</name>
+          <file> 139 147 126</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 93</file>
+        </tool>
+        <tool>
+          <name>__cstat</name>
+          <file> 81</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ICCARM</name>
+          <file> 9 131 24 163 170 85 169 10</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 131 170 10 24 163 169 85 9</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\nscduinolib\stm32f10x.core\startup_stm32f10x_ld_vl.s</name>
+      <outputs>
+        <tool>
+          <name>AARM</name>
+          <file> 21</file>
+        </tool>
+      </outputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\nscduinolib\stm32f10x.core\system_stm32f10x.c</name>
+      <outputs>
+        <tool>
+          <name>ICCARM</name>
+          <file> 20 130 58</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 150</file>
+        </tool>
+        <tool>
+          <name>__cstat</name>
+          <file> 88</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ICCARM</name>
+          <file> 138 59 9 131 24 163 170 85 169 10 77 160 27 142 62 104</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 59 24 104 9 131 62 142 163 169 27 138 77 10 170 85 160</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\nscduinolib\stm32f10x.core\drivers\dac.cpp</name>
+      <outputs>
+        <tool>
+          <name>ICCARM</name>
+          <file> 41 7 34</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 1</file>
+        </tool>
+        <tool>
+          <name>__cstat</name>
+          <file> 106</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ICCARM</name>
+          <file> 100 138 59 9 131 24 163 170 85 169 10 77 160 27 142 62 104 140 43 154</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 131 138 62 77 140 9 24 59 104 163 169 27 100 142 10 170 85 160 43 154</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\nscduinolib\lib\crc.cpp</name>
+      <outputs>
+        <tool>
+          <name>ICCARM</name>
+          <file> 174 137 74</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 14</file>
+        </tool>
+        <tool>
+          <name>__cstat</name>
+          <file> 102</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ICCARM</name>
+          <file> 39 9 131 24 163 170 85 169 10 43 154</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 163 169 9 131 170 24 43 10 85 39 154</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\nscduinolib\drivers\usart.cpp</name>
+      <outputs>
+        <tool>
+          <name>ICCARM</name>
+          <file> 23 15 165</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 86</file>
+        </tool>
+        <tool>
+          <name>__cstat</name>
+          <file> 159</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ICCARM</name>
+          <file> 138 59 9 131 24 163 170 85 169 10 77 160 27 142 62 104 30 43 154 151 73 173 33 103 100</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 10 24 138 62 43 103 9 77 27 160 173 154 30 59 104 142 131 151 163 169 170 85 33 73 100</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\nscduinolib\drivers\itmp_serial.cpp</name>
+      <outputs>
+        <tool>
+          <name>ICCARM</name>
+          <file> 26 155 56</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 3</file>
+        </tool>
+        <tool>
+          <name>__cstat</name>
+          <file> 51</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ICCARM</name>
+          <file> 69 134 151 131 24 163 170 85 169 10 154 73 33 104 9 138 59 77 160 27 142 62 18 32 98 171 84 141 42 82 149 95 16 94 13 157 2 43 76 129 168 65 108 133 158 83 17 178 167 177 8 132 68 96 36 175 91 72 11 107 156 57 52 70 153 61 145 30 173 39 19</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 168 77 76 158 85 131 24 8 17 96 27 138 9 145 82 94 2 43 167 57 104 19 30 33 163 169 170 62 160 98 171 42 95 151 129 141 175 91 84 39 134 18 32 154 73 10 59 142 156 153 65 157 177 72 107 69 149 13 16 108 133 83 178 132 68 70 36 11 52 61 173</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\main.cpp</name>
+      <outputs>
+        <tool>
+          <name>ICCARM</name>
+          <file> 87 0 71</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 152</file>
+        </tool>
+        <tool>
+          <name>__cstat</name>
+          <file> 64</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ICCARM</name>
+          <file> 43 131 24 163 170 85 169 10 154 129 9 104 33 138 59 77 160 27 142 62 103 100 40 172 19 30 151 73 173 55 134 18 32 98 171 84 141 42 82 149 95 16 94 13 157 2 76 168 65 108 133 158 83 17 178 167 177 8 132 68 96 36 175 91 72 11 107 156 57 52 70 153 61 145 69 22 99 63 125</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 167 163 24 169 96 160 125 19 168 9 33 69 131 170 104 59 142 129 154 43 141 158 8 17 57 30 55 40 99 85 138 100 151 98 171 16 175 91 84 103 172 134 22 63 10 62 77 73 18 32 145 149 13 95 177 156 72 107 76 27 173 153 82 65 42 157 94 2 108 133 83 178 132 68 70 36 11 52 61</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>[ROOT_NODE]</name>
+      <outputs>
+        <tool>
+          <name>ILINK</name>
+          <file> 90 38</file>
+        </tool>
+      </outputs>
+    </file>
+  </configuration>
+  <configuration>
+    <name>Release</name>
+    <outputs/>
+    <forcedrebuild>
+      <name>[MULTI_TOOL]</name>
+      <tool>ILINK</tool>
+    </forcedrebuild>
+  </configuration>
+</project>
+
+

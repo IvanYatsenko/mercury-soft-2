@@ -1,6 +1,11 @@
 import { StrictMode, useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { CssBaseline, ThemeProvider, createTheme } from '@mui/material';
+import {
+  CssBaseline,
+  GlobalStyles,
+  ThemeProvider,
+  createTheme,
+} from '@mui/material';
 import { App } from './App';
 
 const root = document.getElementById('root');
@@ -14,6 +19,12 @@ function Root() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
+      <GlobalStyles
+        styles={{
+          '*': { scrollbarWidth: 'none', msOverflowStyle: 'none' },
+          '*::-webkit-scrollbar': { display: 'none' },
+        }}
+      />
       <App
         mode={mode}
         onToggleMode={() =>

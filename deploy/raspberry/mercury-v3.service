@@ -1,0 +1,16 @@
+[Unit]
+Description=Mercury 3 oven panel and API
+After=graphical-session.target
+
+[Service]
+Environment=DISPLAY=:0
+Environment=XAUTHORITY=/home/pi/.Xauthority
+WorkingDirectory=/home/pi/mercury-v3
+ExecStart=/bin/sh /home/pi/mercury-v3/scripts/raspberry-start.sh
+Restart=always
+RestartSec=3
+KillSignal=SIGINT
+TimeoutStopSec=10
+
+[Install]
+WantedBy=default.target

@@ -1,14 +1,26 @@
 import { app, BrowserWindow } from 'electron';
+import { existsSync } from 'node:fs';
+import { loadEnvFile } from 'node:process';
+
+const envFile = new URL('../../../.env', import.meta.url);
+if (existsSync(envFile)) loadEnvFile(envFile);
+
+const fullscreen = process.env.MERCURY_PANEL_FULLSCREEN === 'true';
+if (process.env.MERCURY_PANEL_SOFTWARE_RENDERING === 'true') {
+  app.disableHardwareAcceleration();
+}
 
 const appUrl = process.argv.includes('--dev')
-  ? 'http://127.0.0.1:5173'
-  : 'http://127.0.0.1:3001';
+  ? `http://127.0.0.1:${process.env.MERCURY_WEB_PORT ?? 5173}`
+  : `http://127.0.0.1:${process.env.MERCURY_API_PORT ?? 3001}`;
 
 async function createWindow() {
   const window = new BrowserWindow({
     title: 'Mercury — экран печи',
-    width: 800,
-    height: 600,
+    width: fullscreen ? 480 : 800,
+    height: fullscreen ? 320 : 600,
+    fullscreen,
+    frame: !fullscreen,
     show: false,
     autoHideMenuBar: true,
     webPreferences: {

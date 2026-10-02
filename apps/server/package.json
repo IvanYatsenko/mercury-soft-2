@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
+    "dev": "tsc -p tsconfig.json && node ../../node_modules/concurrently/dist/bin/concurrently.js --kill-others -n types,api \"tsc -w -p tsconfig.json --preserveWatchOutput\" \"node --watch dist/index.js\"",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js",
     "typecheck": "tsc --noEmit"

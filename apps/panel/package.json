@@ -8,10 +8,10 @@
     "@mercury/shared": "workspace:*"
   },
   "scripts": {
-    "dev": "tsc && wait-on --timeout 60000 http-get://127.0.0.1:5173 http-get://127.0.0.1:3001/api/health && electron . --dev",
+    "dev": "tsc && node wait-for-services.mjs --dev && electron . --dev",
     "build": "tsc",
     "typecheck": "tsc --noEmit",
-    "start": "wait-on --timeout 60000 http-get://127.0.0.1:3001/ && electron ."
+    "start": "node wait-for-services.mjs && electron ."
   },
   "devDependencies": {
     "electron": "^42.0.0",
