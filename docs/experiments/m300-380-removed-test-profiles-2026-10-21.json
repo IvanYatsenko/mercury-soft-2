@@ -1,0 +1,169 @@
+{
+  "removed": [
+    {
+      "board": false,
+      "mode": "manual",
+      "name": "Acceptance M300-380 1792563050108047900",
+      "points": [
+        {
+          "second": 0,
+          "temperature": 30
+        },
+        {
+          "second": 212,
+          "temperature": 200
+        },
+        {
+          "second": 110,
+          "temperature": 200
+        },
+        {
+          "second": 75,
+          "temperature": 260
+        },
+        {
+          "second": 30,
+          "temperature": 260
+        },
+        {
+          "second": 150,
+          "temperature": 200
+        },
+        {
+          "second": 167,
+          "temperature": 150
+        },
+        {
+          "second": 250,
+          "temperature": 100
+        }
+      ],
+      "shelves": [
+        {
+          "second": 110,
+          "temperature": 200
+        },
+        {
+          "second": 30,
+          "temperature": 260
+        },
+        {
+          "second": 400,
+          "temperature": 100
+        }
+      ],
+      "repeat": 1,
+      "id": "c5a10dcf-62e4-4163-8091-efc00839df66"
+    },
+    {
+      "name": "Acceptance repeats M300-380 1792564063248569000",
+      "mode": "manual",
+      "board": false,
+      "repeat": 2,
+      "points": [
+        {
+          "second": 0,
+          "temperature": 50
+        },
+        {
+          "second": 60,
+          "temperature": 100
+        },
+        {
+          "second": 15,
+          "temperature": 100
+        },
+        {
+          "second": 30,
+          "temperature": 50
+        }
+      ],
+      "shelves": [
+        {
+          "second": 15,
+          "temperature": 100
+        },
+        {
+          "second": 0,
+          "temperature": 100
+        },
+        {
+          "second": 0,
+          "temperature": 50
+        }
+      ],
+      "id": "5eb60736-d955-4281-9a88-30bcd3f26225"
+    },
+    {
+      "name": "Acceptance repeats M300-380 1792564188514222100",
+      "mode": "manual",
+      "board": false,
+      "repeat": 2,
+      "points": [
+        {
+          "second": 0,
+          "temperature": 50
+        },
+        {
+          "second": 60,
+          "temperature": 100
+        },
+        {
+          "second": 15,
+          "temperature": 100
+        }
+      ],
+      "shelves": [
+        {
+          "second": 15,
+          "temperature": 100
+        },
+        {
+          "second": 0,
+          "temperature": 100
+        },
+        {
+          "second": 0,
+          "temperature": 100
+        }
+      ],
+      "id": "1eab8eeb-13d3-463c-af36-0bf40e72432a"
+    },
+    {
+      "name": "Приёмка дверь/пауза/авария 1792564634060318900",
+      "mode": "manual",
+      "board": false,
+      "repeat": 1,
+      "points": [
+        {
+          "second": 0,
+          "temperature": 50
+        },
+        {
+          "second": 60,
+          "temperature": 65
+        },
+        {
+          "second": 600,
+          "temperature": 65
+        }
+      ],
+      "shelves": [
+        {
+          "second": 0,
+          "temperature": 50
+        },
+        {
+          "second": 600,
+          "temperature": 65
+        },
+        {
+          "second": 0,
+          "temperature": 50
+        }
+      ],
+      "id": "e924f12e-9479-4d71-a9d6-0b9fcc51939a"
+    }
+  ],
+  "selectedId": "ea14e9b0-34d9-4e13-9d9e-6aa3fb552061"
+}

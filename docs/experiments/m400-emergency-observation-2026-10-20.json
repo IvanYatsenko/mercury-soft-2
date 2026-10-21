@@ -1,0 +1,87 @@
+{
+  "runId": "b8e081aa-1255-4aff-87a6-1e52e1c7b03e",
+  "observations": 43,
+  "first": {
+    "time": 1792472863.0747185,
+    "board": {
+      "connected": true,
+      "port": "/dev/ttyS0",
+      "protocolVersion": 2,
+      "boardType": "380V",
+      "ready": true,
+      "state": 1,
+      "readData": [47, 138, 266, 47, 0],
+      "telemetry": {
+        "chamberTemperatureC": 66.5,
+        "boardTemperatureC": 34.5,
+        "convectionFanHz": 47,
+        "lamps": false,
+        "heaters": false,
+        "fans": true,
+        "convection": true
+      },
+      "doorOpen": false,
+      "fanReferenceHz": 50
+    },
+    "run": {
+      "id": "b8e081aa-1255-4aff-87a6-1e52e1c7b03e",
+      "state": "running",
+      "profileName": "Приёмка дверь/пауза/авария 1792472681336402000",
+      "cycle": 1,
+      "cycles": 1,
+      "stage": 2,
+      "elapsedSeconds": 171,
+      "remainingSeconds": 490,
+      "targetTemperatureC": 65,
+      "measuredTemperatureC": 66.5,
+      "error": null,
+      "paused": false,
+      "doorOpen": false,
+      "holdingTemperatureC": null,
+      "pendingReady": false,
+      "canAcknowledge": false
+    }
+  },
+  "last": {
+    "time": 1792472906.9320605,
+    "board": {
+      "connected": true,
+      "port": "/dev/ttyS0",
+      "protocolVersion": 2,
+      "boardType": "380V",
+      "ready": false,
+      "state": 97,
+      "readData": [47, 141, 252, 0, 0],
+      "telemetry": {
+        "chamberTemperatureC": 63,
+        "boardTemperatureC": 35.25,
+        "convectionFanHz": 0,
+        "lamps": null,
+        "heaters": null,
+        "fans": null,
+        "convection": null
+      },
+      "fanReferenceHz": 50
+    },
+    "run": {
+      "id": "b8e081aa-1255-4aff-87a6-1e52e1c7b03e",
+      "state": "failed",
+      "profileName": "Приёмка дверь/пауза/авария 1792472681336402000",
+      "cycle": 1,
+      "cycles": 1,
+      "stage": 2,
+      "elapsedSeconds": 178,
+      "remainingSeconds": 0,
+      "targetTemperatureC": 65,
+      "measuredTemperatureC": 65.25,
+      "error": "Ошибка платы: 65; Нет подтверждения отключения нагрева: Error: 406",
+      "paused": false,
+      "doorOpen": false,
+      "holdingTemperatureC": null,
+      "pendingReady": false,
+      "canAcknowledge": false
+    }
+  },
+  "observedHeatingBeforeFault": false,
+  "faultObserved": true
+}

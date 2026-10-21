@@ -1,0 +1,102 @@
+[
+  {
+    "host": "10.10.1.167",
+    "version": {
+      "phase": "idle",
+      "currentVersion": "3.0.1"
+    },
+    "selected": {
+      "ovenModel": "400",
+      "connectionVoltage": "230"
+    },
+    "board": {
+      "connected": true,
+      "port": "/dev/ttyS0",
+      "protocolVersion": 2,
+      "boardType": "380V",
+      "ready": true,
+      "state": 1,
+      "readData": [38, 119, 142, 45, 0],
+      "telemetry": {
+        "chamberTemperatureC": 35.5,
+        "boardTemperatureC": 29.75,
+        "convectionFanHz": 45,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "fanReferenceHz": 50
+    },
+    "run": {
+      "id": null,
+      "state": "idle",
+      "profileName": null,
+      "cycle": 0,
+      "cycles": 0,
+      "stage": 0,
+      "elapsedSeconds": 0,
+      "remainingSeconds": 0,
+      "targetTemperatureC": null,
+      "measuredTemperatureC": null,
+      "error": null,
+      "paused": false,
+      "doorOpen": false,
+      "holdingTemperatureC": null,
+      "pendingReady": false,
+      "canAcknowledge": true
+    },
+    "historyRecords": 0
+  },
+  {
+    "host": "10.10.1.88",
+    "version": {
+      "phase": "idle",
+      "currentVersion": "3.0.1"
+    },
+    "selected": {
+      "ovenModel": "300",
+      "connectionVoltage": "380"
+    },
+    "board": {
+      "connected": true,
+      "port": "/dev/ttyS0",
+      "protocolVersion": 2,
+      "boardType": "380V",
+      "ready": true,
+      "state": 1,
+      "readData": [27, 138, 123, 45, 0],
+      "telemetry": {
+        "chamberTemperatureC": 34.5,
+        "boardTemperatureC": 30.75,
+        "convectionFanHz": 45,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "fanReferenceHz": 50
+    },
+    "run": {
+      "id": null,
+      "state": "idle",
+      "profileName": null,
+      "cycle": 0,
+      "cycles": 0,
+      "stage": 0,
+      "elapsedSeconds": 0,
+      "remainingSeconds": 0,
+      "targetTemperatureC": null,
+      "measuredTemperatureC": null,
+      "error": null,
+      "paused": false,
+      "doorOpen": false,
+      "holdingTemperatureC": null,
+      "pendingReady": false,
+      "canAcknowledge": true
+    },
+    "historyRecords": 10
+  }
+]

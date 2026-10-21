@@ -4,6 +4,8 @@ import type {
   Profile,
   TemperatureValue,
 } from './index.js';
+import { profileDurationPoints } from './profilePlan.js';
+import type { TemperatureRate } from './profilePlan.js';
 
 /**
  * Converts the editable representation of a profile.
@@ -13,6 +15,8 @@ import type {
 export function convertProfileMode(
   profile: Profile,
   mode: 'easy' | 'manual',
+  heatingRate: TemperatureRate = 0.7,
+  coolingRate: TemperatureRate = 0.4,
 ): Profile {
   if (profile.mode === mode) return profile;
 
@@ -32,7 +36,18 @@ export function convertProfileMode(
     // The simple format always has preheat, peak, and cooling shelves.
     // Keep two existing plateaus where possible; otherwise use manual shelf data.
     const preheat = plateaus[0] ?? { ...manual.shelves[0] };
-    const peak = plateaus[1] ?? { ...manual.shelves[1] };
+    const maximum = Math.max(
+      preheat.temperature,
+      ...manual.points.map((point) => point.temperature),
+    );
+    const peak = {
+      temperature: maximum,
+      second:
+        plateaus
+          .filter((point) => point.temperature === maximum)
+          .reduce((total, point) => total + point.second, 0) ||
+        manual.shelves[1].second,
+    };
     const lastTemperature =
       manual.points.at(-1)?.temperature ?? manual.shelves[2].temperature;
     const shelves: EasyProfile['shelves'] = [
@@ -49,11 +64,17 @@ export function convertProfileMode(
 
     return {
       mode: 'easy',
+      ...(manual.id ? { id: manual.id } : {}),
       name: manual.name,
       board: manual.board,
       ...(manual.repeat === undefined ? {} : { repeat: manual.repeat }),
       shelves,
-      points: buildApproximatePoints(shelves),
+      points: buildApproximatePoints(
+        shelves,
+        heatingRate,
+        coolingRate,
+        manual.board,
+      ),
     };
   }
 
@@ -63,10 +84,16 @@ export function convertProfileMode(
     { ...easy.shelves[1] },
     { second: 0, temperature: easy.shelves[2].temperature },
   ];
-  const points = buildApproximatePoints(easy.shelves);
+  const points = buildApproximatePoints(
+    easy.shelves,
+    heatingRate,
+    coolingRate,
+    easy.board,
+  );
 
   return {
     mode: 'manual',
+    ...(easy.id ? { id: easy.id } : {}),
     name: easy.name,
     board: easy.board,
     ...(easy.repeat === undefined ? {} : { repeat: easy.repeat }),
@@ -77,31 +104,19 @@ export function convertProfileMode(
 
 function buildApproximatePoints(
   shelves: EasyProfile['shelves'],
+  heatingRate: TemperatureRate,
+  coolingRate: TemperatureRate,
+  board: boolean,
 ): TemperatureValue[] {
-  const [preheat, peak, cooling] = shelves;
-  const maxTemperature = Math.max(preheat.temperature, peak.temperature);
-
-  // Heating ramps use a provisional rate of 0.8 °C/s, matching the old app.
-  // The controller's real ramp model must replace this before hardware use.
-  const preheatRamp = Math.max(
-    0,
-    Math.round(Math.abs(preheat.temperature - 30) / 0.8),
+  return profileDurationPoints(
+    {
+      name: '',
+      mode: 'easy',
+      board,
+      shelves,
+      points: [],
+    },
+    heatingRate,
+    coolingRate,
   );
-  const peakRamp = Math.max(
-    0,
-    Math.round(Math.abs(maxTemperature - preheat.temperature) / 0.8),
-  );
-  const coolingRamp = Math.max(
-    0,
-    Math.round(Math.abs(maxTemperature - cooling.temperature) / 0.4),
-  );
-
-  return [
-    { second: 0, temperature: 30 },
-    { second: preheatRamp, temperature: preheat.temperature },
-    { second: preheat.second, temperature: preheat.temperature },
-    { second: peakRamp, temperature: maxTemperature },
-    { second: peak.second, temperature: maxTemperature },
-    { second: coolingRamp, temperature: cooling.temperature },
-  ];
 }

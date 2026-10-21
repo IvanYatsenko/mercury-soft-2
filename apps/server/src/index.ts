@@ -1,6 +1,33 @@
 import { fileURLToPath } from 'node:url';
+import { networkInterfaces } from 'node:os';
 import express from 'express';
 import { config } from './config.js';
+import { startUsbLogger } from './usbLogger.js';
+import {
+  checkSoftwareUpdate,
+  downloadSoftwareUpdate,
+  installSoftwareUpdate,
+  updateBusy,
+  updateStatus,
+} from './softwareUpdate.js';
+import { profileRunner } from './profileRunner.js';
+import {
+  listProfiles,
+  saveProfile,
+  deleteProfile,
+  findProfile,
+  importProfiles,
+  listStoredRuns,
+  storedRunDetails,
+  getMetadata,
+  setMetadata,
+  checkpointDatabase,
+} from './database.js';
+import { startRaspberryCooling } from './raspberryCooling.js';
+import {
+  handleRaspberryShutdown,
+  isShuttingDown,
+} from './raspberryShutdown.js';
 import {
   checkControllerConnection,
   getVirtualBoardSnapshot,
@@ -9,6 +36,9 @@ import {
   powerOffController,
   testOvenElement,
   setConvectionEnabled,
+  advanceIdleSimulation,
+  playBoardStartupSound,
+  setDoorWarning,
 } from './controller/checkControllerConnection.js';
 import { profileTemplates } from './profileTemplates.js';
 import {
@@ -16,6 +46,13 @@ import {
   listOvenModels,
   readOvenSelection,
   saveOvenSelection,
+  readFanReferenceHz,
+  saveFanReferenceHz,
+  flushConfigWrites,
+  readThermalSettings,
+  saveThermalSettings,
+  readKeepHeatEnabled,
+  saveKeepHeatEnabled,
 } from './ovenSettings.js';
 import {
   connectWifi,
@@ -25,12 +62,233 @@ import {
   setWifiEnabled,
 } from './wifi.js';
 
+startUsbLogger();
 const server = express();
+let terminating = false;
 server.disable('x-powered-by');
 server.use(express.json());
+server.use((_request, response, next) => {
+  if (isShuttingDown() || terminating) {
+    response.status(503).json({ error: 'Печь выключается.' });
+    return;
+  }
+  next();
+});
+
+server.use((request, response, next) => {
+  if (
+    updateBusy() &&
+    request.method !== 'GET' &&
+    !request.path.startsWith('/api/software-update')
+  ) {
+    response.status(409).json({ error: 'Выполняется обновление программы.' });
+    return;
+  }
+  if (
+    profileRunner.controlling() &&
+    request.path !== '/api/settings/keep-heat' &&
+    request.method !== 'GET' &&
+    (request.path.startsWith('/api/controller/') ||
+      request.path.startsWith('/api/settings/') ||
+      request.path === '/api/config')
+  ) {
+    response.status(409).json({
+      error: 'Останови профиль перед изменением настроек оборудования.',
+    });
+    return;
+  }
+  next();
+});
+
+const profilesResponse = () => ({
+  profiles: listProfiles(),
+  selectedId: getMetadata('selected-profile') ?? null,
+});
+server.get('/api/software-update', (_request, response) =>
+  response.json(updateStatus()),
+);
+server.post('/api/software-update/:action', async (request, response) => {
+  try {
+    if (profileRunner.controlling())
+      throw new Error('Останови профиль и поддержание перед обновлением.');
+    const action = request.params.action;
+    if (action === 'check') response.json(await checkSoftwareUpdate());
+    else if (action === 'download')
+      response.json(await downloadSoftwareUpdate());
+    else if (action === 'install') {
+      const board = await checkControllerConnection();
+      if (
+        !board.ready ||
+        !board.telemetry ||
+        board.telemetry.lamps !== false ||
+        board.telemetry.heaters !== false ||
+        Math.max(
+          board.telemetry.chamberTemperatureC ?? Infinity,
+          board.telemetry.boardTemperatureC ?? Infinity,
+        ) >= 50
+      )
+        throw new Error(
+          'Перед установкой выключи нагрев и дождись температуры ниже 50 °C.',
+        );
+      response.json(await installSoftwareUpdate());
+    } else response.status(404).json({ error: 'Неизвестное действие.' });
+  } catch (error) {
+    response.status(400).json({ error: String(error) });
+  }
+});
+server.get('/api/settings/thermal', (_request, response) => {
+  response.json(readThermalSettings());
+});
+server.get('/api/settings/keep-heat', (_request, response) =>
+  response.json({ enabled: readKeepHeatEnabled() }),
+);
+server.put('/api/settings/keep-heat', async (request, response) => {
+  try {
+    const enabled = await saveKeepHeatEnabled(request.body?.enabled);
+    if (!enabled) await profileRunner.disableKeepHeat();
+    else if (
+      !profileRunner.controlling() &&
+      !profileRunner.snapshot().pendingReady
+    )
+      await profileRunner.startTemperatureHold();
+    response.json({ enabled });
+  } catch (error) {
+    response.status(400).json({ error: String(error) });
+  }
+});
+server.put('/api/settings/thermal', async (request, response) => {
+  try {
+    response.json(await saveThermalSettings(request.body));
+  } catch (error) {
+    response.status(400).json({ error: String(error) });
+  }
+});
+server.get('/api/profiles', (_request, response) =>
+  response.json(profilesResponse()),
+);
+server.post('/api/profiles/import', (request, response) => {
+  try {
+    importProfiles(request.body?.profiles);
+    response.json(profilesResponse());
+  } catch (error) {
+    response.status(400).json({ error: String(error) });
+  }
+});
+server.post('/api/profiles', (request, response) => {
+  try {
+    response.status(201).json(saveProfile(request.body));
+  } catch (error) {
+    response.status(400).json({ error: String(error) });
+  }
+});
+server.put('/api/profiles/selected', (request, response) => {
+  try {
+    const profile = findProfile(String(request.body?.id));
+    setMetadata('selected-profile', profile.id!);
+    response.json({ selectedId: profile.id });
+  } catch (error) {
+    response.status(400).json({ error: String(error) });
+  }
+});
+server.put('/api/profiles/:id', (request, response) => {
+  try {
+    response.json(saveProfile(request.body, String(request.params.id)));
+  } catch (error) {
+    response.status(400).json({ error: String(error) });
+  }
+});
+server.delete('/api/profiles/:id', (request, response) => {
+  try {
+    if (profileRunner.active())
+      throw new Error('Останови профиль перед удалением.');
+    deleteProfile(String(request.params.id));
+    response.status(204).end();
+  } catch (error) {
+    response.status(400).json({ error: String(error) });
+  }
+});
+server.get('/api/run', (_request, response) =>
+  response.json(profileRunner.snapshot()),
+);
+server.post('/api/run/start', async (request, response) => {
+  try {
+    response.json(
+      await profileRunner.startProfile(
+        findProfile(String(request.body?.profileId)),
+      ),
+    );
+  } catch (error) {
+    response.status(409).json({ error: String(error) });
+  }
+});
+server.post('/api/run/stop', async (_request, response) => {
+  response.json(await profileRunner.stop());
+});
+server.post('/api/run/hold', async (_request, response) => {
+  try {
+    response.json(await profileRunner.startTemperatureHold());
+  } catch (error) {
+    response.status(409).json({ error: String(error) });
+  }
+});
+for (const action of ['pause', 'resume'] as const) {
+  server.post(`/api/run/${action}`, async (_request, response) => {
+    try {
+      response.json(await profileRunner[action]());
+    } catch (error) {
+      response.status(409).json({ error: String(error) });
+    }
+  });
+}
+server.post('/api/run/ready', async (request, response) => {
+  try {
+    response.json(await profileRunner.acknowledgeReady(request.body?.runId));
+  } catch (error) {
+    response.status(409).json({ error: String(error) });
+  }
+});
+server.post('/api/run/maximum-response-test', async (request, response) => {
+  try {
+    response.json(
+      await profileRunner.startMaximumResponseTest(
+        request.body?.targetTemperatureC ?? 100,
+      ),
+    );
+  } catch (error) {
+    response.status(409).json({ error: String(error) });
+  }
+});
+server.get('/api/history', async (_request, response) =>
+  response.json(await listStoredRuns()),
+);
+server.get('/api/history/:id', async (request, response) => {
+  try {
+    response.json(await storedRunDetails(String(request.params.id)));
+  } catch (error) {
+    response.status(404).json({ error: String(error) });
+  }
+});
 
 server.get('/api/health', (_request, response) => {
   response.json({ status: 'ok', service: 'mercury' });
+});
+
+server.get('/api/network', (_request, response) => {
+  const addresses = [
+    ...new Set(
+      Object.values(networkInterfaces()).flatMap((entries) =>
+        (entries ?? [])
+          .filter(
+            (entry) =>
+              !entry.internal &&
+              entry.family === 'IPv4' &&
+              !entry.address.startsWith('169.254.'),
+          )
+          .map((entry) => entry.address),
+      ),
+    ),
+  ];
+  response.json({ addresses });
 });
 
 server.get('/api/profile-templates', (_request, response) => {
@@ -138,7 +396,8 @@ server.put('/api/config', async (request, response) => {
     return;
   }
   try {
-    response.json({ selected: await saveOvenSelection(request.body) });
+    const selected = await saveOvenSelection(request.body);
+    response.json({ selected, models: listOvenModels() });
   } catch (error) {
     response.status(500).json({
       error:
@@ -151,7 +410,23 @@ server.put('/api/config', async (request, response) => {
 
 server.get('/api/controller/check', async (_request, response) => {
   const result = await checkControllerConnection();
-  response.status(result.connected ? 200 : 503).json(result);
+  response
+    .status(result.connected ? 200 : 503)
+    .json({ ...result, fanReferenceHz: readFanReferenceHz() });
+});
+
+server.put('/api/settings/fan-reference', async (request, response) => {
+  try {
+    const fanReferenceHz = await saveFanReferenceHz(
+      request.body?.fanReferenceHz,
+    );
+    response.json({ fanReferenceHz });
+  } catch (error) {
+    response.status(400).json({
+      error:
+        error instanceof Error ? error.message : 'Не удалось сохранить эталон.',
+    });
+  }
 });
 
 server.get('/api/controller/test-elements', (_request, response) => {
@@ -227,16 +502,74 @@ server.use((_request, response) => {
 
 const port = config.apiPort;
 
-server.listen(port, '127.0.0.1', () => {
-  console.log(`Mercury API: http://127.0.0.1:${port}`);
+const httpServer = server.listen(port, config.apiHost, () => {
+  void startRaspberryCooling().catch((error: unknown) => {
+    console.warn('Raspberry cooling initialization failed:', error);
+  });
+  console.log(`Mercury API: http://${config.apiHost}:${port}`);
   if (config.controllerMode === 'simulation') {
     console.log('Controller simulation enabled (state: STARTING)');
   }
 
   let previousStatus = '';
+  let startupSoundPlayed = false;
   const monitorController = async () => {
+    if (isShuttingDown()) return;
+    if (!profileRunner.controlling()) advanceIdleSimulation(2);
     try {
       const result = await initializeControllerConnection();
+      setDoorWarning(
+        profileRunner.active() &&
+          result.connected &&
+          result.ready === true &&
+          result.doorOpen === true,
+      );
+      if (!result.connected || !result.ready) startupSoundPlayed = false;
+      if (
+        result.connected &&
+        result.ready &&
+        !startupSoundPlayed &&
+        !profileRunner.active()
+      ) {
+        startupSoundPlayed = true;
+        try {
+          await playBoardStartupSound();
+        } catch (error) {
+          console.warn('Стартовый сигнал пищалки:', String(error));
+        }
+      }
+      if (
+        profileRunner.controlling() &&
+        (!result.connected ||
+          !result.ready ||
+          (result.state ?? 0) & (2 | 4 | 8 | 32 | 64 | 128))
+      ) {
+        await profileRunner.failFromMonitor(
+          result.error ??
+            `Ошибка или отключение платы (${result.state ?? 'нет состояния'}).`,
+        );
+      }
+      if (
+        result.connected &&
+        result.ready &&
+        !profileRunner.active() &&
+        profileRunner.needsOutputReset
+      ) {
+        await profileRunner.resetIdleOutputs(
+          Math.max(
+            result.telemetry?.chamberTemperatureC ?? Infinity,
+            result.telemetry?.boardTemperatureC ?? Infinity,
+          ),
+        );
+      }
+      if (result.connected && result.ready)
+        await profileRunner.updateIdleCooling(
+          Math.max(
+            result.telemetry?.chamberTemperatureC ?? Infinity,
+            result.telemetry?.boardTemperatureC ?? Infinity,
+          ),
+        );
+      if (result.connected) await handleRaspberryShutdown(result.state);
       const status = result.connected
         ? `state=${result.state}, ready=${result.ready}`
         : (result.error ?? 'нет связи');
@@ -248,9 +581,27 @@ server.listen(port, '127.0.0.1', () => {
       }
     } catch (error) {
       console.warn('Controller monitor failed:', error);
+      await profileRunner.failFromMonitor(String(error));
     } finally {
       setTimeout(() => void monitorController(), 2000);
     }
   };
   void monitorController();
 });
+
+for (const signal of ['SIGINT', 'SIGTERM'] as const)
+  process.once(signal, () => {
+    setDoorWarning(false);
+    terminating = true;
+    httpServer.close();
+    void flushConfigWrites()
+      .then(() => profileRunner.stop())
+      .then(async () => {
+        await checkpointDatabase();
+        process.exit(0);
+      })
+      .catch((error: unknown) => {
+        console.error('Failed to stop run:', error);
+        process.exit(1);
+      });
+  });

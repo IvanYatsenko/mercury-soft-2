@@ -10,6 +10,7 @@ export interface EasyCoolingShelf extends TemperatureValue {
 }
 
 export interface ProfileBase {
+  id?: string;
   name: string;
   board: boolean;
   points: TemperatureValue[];
@@ -30,8 +31,32 @@ export interface ManualProfile extends ProfileBase {
 }
 
 export type Profile = EasyProfile | ManualProfile;
+export {
+  validateProfile,
+  profileDurationPoints,
+  buildProfilePlan,
+  buildRunPlan,
+  targetAt,
+  rateAtTemperature,
+} from './profilePlan.js';
+export type {
+  ProfilePlan,
+  RunStatus,
+  RunSample,
+  RunRecord,
+  RunState,
+  TemperatureRate,
+  ResponseBand,
+} from './profilePlan.js';
 
 export { convertProfileMode } from './convertProfile.js';
+export { manualCoolingWarnings } from './profilePlan.js';
+export {
+  heatOutputs,
+  defaultThermalSettings,
+  validateThermalSettings,
+} from './thermalControl.js';
+export type { HeatOutput, ThermalSettings } from './thermalControl.js';
 export type {
   CalibrationPoint,
   ConnectionVoltage,

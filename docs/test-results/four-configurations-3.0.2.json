@@ -1,0 +1,9 @@
+{
+  "version": "3.0.2",
+  "configurations": 4,
+  "distinctMeasurements": 4,
+  "published230M300And380M400Unchanged": true,
+  "otherModelParametersUnchanged": true,
+  "newCurvesMatchUsbExports": true,
+  "status": "PASS"
+}

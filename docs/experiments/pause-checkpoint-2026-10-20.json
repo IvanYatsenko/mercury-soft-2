@@ -1,0 +1,88 @@
+{
+  "M300": {
+    "run": {
+      "id": "b5a5f70d-7c78-4d56-9b4e-0e57ad0098b3",
+      "state": "stopped",
+      "profileName": "Приёмка повторы 100 C 1792473100695455600",
+      "cycle": 1,
+      "cycles": 2,
+      "stage": 3,
+      "elapsedSeconds": 130,
+      "remainingSeconds": 0,
+      "targetTemperatureC": 95.9402873282,
+      "measuredTemperatureC": 96.25,
+      "error": null,
+      "paused": false,
+      "doorOpen": false,
+      "holdingTemperatureC": null,
+      "pendingReady": false,
+      "canAcknowledge": false
+    },
+    "board": {
+      "connected": true,
+      "port": "/dev/serial0",
+      "protocolVersion": 2,
+      "boardType": "380V",
+      "ready": true,
+      "state": 1,
+      "readData": [36, 381, 115, 50, 0],
+      "telemetry": {
+        "chamberTemperatureC": 95.25,
+        "boardTemperatureC": 28.75,
+        "convectionFanHz": 50,
+        "lamps": false,
+        "heaters": false,
+        "fans": true,
+        "convection": true
+      },
+      "doorOpen": false,
+      "fanReferenceHz": 50
+    },
+    "keepHeat": {
+      "enabled": false
+    }
+  },
+  "M400": {
+    "run": {
+      "id": "78b666b7-ac76-4a1c-96e0-dad4a417a589",
+      "state": "stopped",
+      "profileName": "Приёмка М400 260 C 1792473100840808100",
+      "cycle": 1,
+      "cycles": 1,
+      "stage": 1,
+      "elapsedSeconds": 141,
+      "remainingSeconds": 0,
+      "targetTemperatureC": 163.45602559193395,
+      "measuredTemperatureC": 160.5,
+      "error": null,
+      "paused": false,
+      "doorOpen": false,
+      "holdingTemperatureC": null,
+      "pendingReady": false,
+      "canAcknowledge": false
+    },
+    "board": {
+      "connected": true,
+      "port": "/dev/ttyS0",
+      "protocolVersion": 2,
+      "boardType": "380V",
+      "ready": true,
+      "state": 1,
+      "readData": [40, 145, 650, 53, 0],
+      "telemetry": {
+        "chamberTemperatureC": 162.5,
+        "boardTemperatureC": 36.25,
+        "convectionFanHz": 53,
+        "lamps": false,
+        "heaters": false,
+        "fans": true,
+        "convection": true
+      },
+      "doorOpen": false,
+      "fanReferenceHz": 50
+    },
+    "keepHeat": {
+      "enabled": false
+    }
+  }
+}

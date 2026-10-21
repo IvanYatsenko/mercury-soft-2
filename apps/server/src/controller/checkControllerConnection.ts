@@ -1,7 +1,15 @@
 import { createRequire } from 'node:module';
 import { config } from '../config.js';
-import { getOvenModel, readOvenSelection } from '../ovenSettings.js';
+import {
+  getOvenModel,
+  readOvenSelection,
+  readThermalSettings,
+} from '../ovenSettings.js';
+import { heatOutputs } from '@mercury/shared';
 import { virtualBoard } from './virtualBoard.js';
+import { LampOutputProtection } from './lampOutputProtection.js';
+
+const lampProtection = new LampOutputProtection();
 
 const require = createRequire(import.meta.url);
 
@@ -23,6 +31,7 @@ type ItmpModule = {
 const itmp = require('itmp') as ItmpModule;
 
 export type ControllerConnectionCheck = {
+  doorOpen?: boolean;
   connected: boolean;
   port: string;
   protocolVersion?: 0 | 1 | 2;
@@ -63,7 +72,7 @@ function decodeTelemetry(
     const value = data[index];
     if (!Number.isFinite(value)) return null;
     return protocolVersion >= 2
-      ? Math.round(value / 4)
+      ? value / 4
       : Math.round(
           24.5809 * (((data[0] / 32) * 0.039986) ** 1.01 + value / 128),
         );
@@ -81,7 +90,7 @@ function decodeTelemetry(
     ),
     boardTemperatureC: temperature(model?.sensors.boardTemperature.index ?? 1),
     convectionFanHz: Number.isFinite(data[3]) ? data[3] : null,
-    lamps: active(['infrared', 'infrared2']),
+    lamps: active(['infrared', 'infrared2', 'infrared3']),
     heaters: active(['topHeater', 'bottomHeater']),
     fans: active(['f1', 'f2']),
     convection: active(['convection']),
@@ -137,10 +146,240 @@ function hasParallelCoolingFans(
   );
 }
 
+export async function playBoardStartupSound() {
+  return playBoardSignal([[40, 0]]);
+}
+export async function playBoardCompletionSound(matchesProfile: boolean) {
+  return playBoardSignal(
+    Array.from({ length: matchesProfile ? 2 : 3 }, () => [700, 250]),
+  );
+}
+let doorWarning = false;
+let doorWarningGeneration = 0;
+let doorWarningTimer: ReturnType<typeof setTimeout> | undefined;
+export function setDoorWarning(open: boolean) {
+  if (open === doorWarning) return;
+  doorWarning = open;
+  const generation = ++doorWarningGeneration;
+  clearTimeout(doorWarningTimer);
+  if (!open) return;
+  const pulse = async () => {
+    try {
+      await playBoardSignal(
+        [[150, 0]],
+        () => doorWarning && generation === doorWarningGeneration,
+      );
+    } catch (error) {
+      console.warn('Сигнал открытой двери:', getErrorMessage(error));
+    }
+    if (doorWarning && generation === doorWarningGeneration)
+      doorWarningTimer = setTimeout(() => void pulse(), 650);
+    doorWarningTimer?.unref();
+  };
+  void pulse();
+}
+async function playBoardSignal(rhythm: number[][], shouldPlay = () => true) {
+  return runExclusive(async () => {
+    if (!shouldPlay()) return;
+    const simulated = isSimulationMode();
+    const activeSession = simulated
+      ? undefined
+      : getOrCreateSession(config.serialPort);
+    const call = async (name: string, args: number[] = []) =>
+      simulated
+        ? virtualBoard.call(name, args)
+        : activeSession!.client.call(name, args, undefined, 1200);
+    const healthy = async () => {
+      const state = readState(await call('stat'));
+      return (
+        (state & WORKING) !== 0 &&
+        (state & (STARTING | 2 | 4 | 8 | 32 | 64 | 128)) === 0
+      );
+    };
+    if (!(await healthy()))
+      throw new Error('Плата не готова к стартовому сигналу.');
+    const original = await call('setLV');
+    if (!Array.isArray(original) || original.length !== 6)
+      throw new Error('Неверный ответ setLV.');
+    if (Number(original[3]) !== 0) return;
+    const setBuzzer = async (enabled: boolean) => {
+      const values = await call('setLV');
+      if (!Array.isArray(values) || values.length !== 6)
+        throw new Error('Неверный ответ setLV.');
+      const next = values.map(Number);
+      next[3] = Number(enabled);
+      await call('setLV', next);
+    };
+    try {
+      for (const [duration, pause] of rhythm) {
+        if (!shouldPlay() || !(await healthy())) break;
+        await setBuzzer(true);
+        await new Promise((resolve) => setTimeout(resolve, duration));
+        if (!(await healthy())) break;
+        await setBuzzer(false);
+        await new Promise((resolve) => setTimeout(resolve, pause));
+      }
+    } finally {
+      // Do not silence the firmware buzzer if an alarm occurred during the chime.
+      if (await healthy()) await setBuzzer(false);
+    }
+  });
+}
+
 let session: ControllerSession | undefined;
 let activeCheck: Promise<ControllerConnectionCheck> | undefined;
 let activeOperation: Promise<unknown> | undefined;
 let convectionEnabled = true;
+let profileControl = false;
+export function setProfileControl(active: boolean) {
+  profileControl = active;
+  if (active) convectionEnabled = true;
+}
+export function advanceIdleSimulation(seconds: number) {
+  if (!isSimulationMode()) return;
+  const selection = readOvenSelection();
+  const model = selection && getOvenModel(selection.ovenModel);
+  const snapshot = virtualBoard.snapshot();
+  const cooling = model
+    ? Boolean(
+        snapshot.highVoltageOutputs[model.outputs.singlePhase.f1!] ||
+        snapshot.highVoltageOutputs[model.outputs.singlePhase.f2!],
+      )
+    : false;
+  virtualBoard.advance(seconds, false, cooling);
+}
+
+export async function readProfileController() {
+  return runExclusive(async () => {
+    const simulated = isSimulationMode();
+    const activeSession = simulated
+      ? undefined
+      : getOrCreateSession(config.serialPort);
+    const status = simulated
+      ? simulatedCheck()
+      : activeSession
+        ? await readController(activeSession)
+        : ({
+            connected: false,
+            port: config.serialPort,
+          } as ControllerConnectionCheck);
+    if ((status.state ?? 0) & (2 | 4 | 8 | 32 | 64 | 128))
+      throw new Error(`Ошибка платы: ${status.state}`);
+    if (!status.connected || !status.ready)
+      throw new Error(status.error ?? 'Плата не готова.');
+    const sensors = simulated
+      ? virtualBoard.call('sensors')
+      : await activeSession!.client.call('sensors', [], undefined, 1200);
+    if (!Array.isArray(sensors) || sensors.length < 2)
+      throw new Error('Не удалось прочитать датчик двери.');
+    const doorIndex = (status.protocolVersion ?? 2) >= 2 ? 1 : 6;
+    if (![0, 1].includes(Number(sensors[doorIndex])))
+      throw new Error('Неверное значение датчика двери.');
+    return { ...status, doorOpen: Boolean(sensors[doorIndex]) };
+  });
+}
+
+export async function applyProfileOutputs(
+  heating: boolean,
+  cooling: boolean,
+  heatChannels?: Record<string, boolean>,
+) {
+  return runExclusive(async () => {
+    const selection = readOvenSelection();
+    const model = selection && getOvenModel(selection.ovenModel);
+    if (!model) throw new Error('Не выбрана печь.');
+    const simulated = isSimulationMode();
+    const activeSession = simulated
+      ? undefined
+      : getOrCreateSession(config.serialPort);
+    if (!simulated && !activeSession) throw new Error('Нет связи с платой.');
+    const outputs =
+      activeSession?.boardType === '380V'
+        ? model.outputs.threePhase
+        : model.outputs.singlePhase;
+    if (
+      (heating || Object.values(heatChannels ?? {}).some(Boolean)) &&
+      activeSession?.boardType === 'unknown'
+    )
+      throw new Error('Не определена плата.');
+    const values = Array<number>(8).fill(0);
+    values[outputs.convection!] = 1;
+    for (const name of heatOutputs)
+      if (outputs[name] !== undefined)
+        values[outputs[name]!] = Number(
+          heatChannels
+            ? Boolean(heatChannels[name])
+            : !name.startsWith('infrared') && heating,
+        );
+    const activeHeat = heatOutputs.filter(
+      (name) => outputs[name] !== undefined && values[outputs[name]!] !== 0,
+    );
+    if (cooling && activeHeat.length)
+      throw new Error('Нагрев и охлаждение не могут работать одновременно.');
+    if (activeHeat.length) {
+      const settings = readThermalSettings();
+      if (activeHeat.some((name) => settings.powersW[name] <= 0))
+        throw new Error('Не заданы мощности потребителей.');
+      const power =
+        settings.auxiliaryPowerW +
+        activeHeat.reduce((sum, name) => sum + settings.powersW[name], 0);
+      if (selection.connectionVoltage !== '380') {
+        const lampPairs = activeHeat.filter((name) =>
+          name.startsWith('infrared'),
+        );
+        if (lampPairs.length > 1)
+          throw new Error('Лампы включаются только по одной паре.');
+        const combined = settings.mode === 'combined';
+        if (lampPairs.length && activeHeat.length > 1 && !combined)
+          throw new Error(
+            'Совместный нагрев разрешён только в комбинированном режиме.',
+          );
+        if (!combined && !lampPairs.length && power > 220 * 10)
+          throw new Error('Команда нагрева превышает предел 10 А.');
+      }
+    }
+    for (const name of ['f1', 'f2'])
+      if (
+        outputs[name] !== undefined &&
+        !(
+          name === 'f2' &&
+          hasParallelCoolingFans(model.model, activeSession?.boardType)
+        )
+      )
+        values[outputs[name]!] = Number(cooling);
+    const lampIndices: number[] = heatOutputs
+      .filter(
+        (name) => name.startsWith('infrared') && outputs[name] !== undefined,
+      )
+      .map((name) => outputs[name]!);
+    // Off and cooling commands must not depend on a preceding output read.
+    const previous = lampIndices.some((index) => values[index])
+      ? simulated
+        ? virtualBoard.call('setHV', [])
+        : await activeSession!.client.call('setHV', [], undefined, 1200)
+      : values.map((value, index) => (lampIndices.includes(index) ? 1 : value));
+    if (!Array.isArray(previous) || previous.length !== 8)
+      throw new Error('Не удалось прочитать выходы перед переключением ламп.');
+    await lampProtection.apply(
+      previous.map(Number),
+      values,
+      lampIndices,
+      async (next) => {
+        if (simulated) virtualBoard.call('setHV', next);
+        else await activeSession!.client.call('setHV', next, undefined, 1200);
+      },
+      async () => {
+        const state = readState(
+          simulated
+            ? virtualBoard.call('stat', [])
+            : await activeSession!.client.call('stat', [], undefined, 1200),
+        );
+        if (!(state & 1) || state & (2 | 4 | 8 | 32 | 64 | 128))
+          throw new Error(`Плата не готова к включению ламп: ${state}`);
+      },
+    );
+  });
+}
 
 async function applyConvection(
   hv: unknown,
@@ -168,6 +407,10 @@ async function applyConvection(
 export async function setConvectionEnabled(
   enabled: boolean,
 ): Promise<ControllerConnectionCheck> {
+  if (profileControl)
+    throw new Error(
+      'Во время выполнения профиля конвекция управляется автоматически.',
+    );
   return runExclusive(async () => {
     if (isSimulationMode()) {
       const status = simulatedCheck();
@@ -203,12 +446,7 @@ export async function initializeControllerConnection(
 ): Promise<ControllerConnectionCheck> {
   if (isSimulationMode()) {
     return runExclusive(async () => {
-      try {
-        virtualBoard.call('stat', [2]);
-      } catch {
-        virtualBoard.reset();
-        virtualBoard.call('stat', [2]);
-      }
+      if (!profileControl) virtualBoard.call('stat', [2]);
       if (readOvenSelection())
         await applyConvection(
           virtualBoard.call('setHV'),
@@ -279,6 +517,12 @@ export async function testOvenElement(name: unknown): Promise<{
   simulated: boolean;
   error?: string;
 }> {
+  if (profileControl)
+    return {
+      success: false,
+      simulated: isSimulationMode(),
+      error: 'Останови профиль перед проверкой элементов.',
+    };
   if (typeof name !== 'string' || !Object.hasOwn(testElementLabels, name)) {
     return {
       success: false,
@@ -302,7 +546,10 @@ export async function testOvenElement(name: unknown): Promise<{
         ? simulatedCheck()
         : await readController(activeSession!);
       if (!status.connected || !status.ready)
-        throw new Error('Плата не готова к проверке.');
+        throw new Error(
+          status.error ??
+            `Плата не готова к проверке (состояние ${status.state ?? 'не прочитано'}).`,
+        );
       if (
         name === 'f2' &&
         hasParallelCoolingFans(model.model, status.boardType)
@@ -347,9 +594,30 @@ export async function testOvenElement(name: unknown): Promise<{
       values[index] = 1;
       try {
         await call(values);
-        await new Promise((resolve) =>
-          setTimeout(resolve, ELEMENT_TEST_DURATION_MS),
-        );
+        // Firmware disables outputs after three seconds without a command.
+        // Keep the exclusive UART operation, but feed the watchdog during the pulse.
+        const startedAt = Date.now();
+        while (Date.now() - startedAt < ELEMENT_TEST_DURATION_MS) {
+          await new Promise((resolve) =>
+            setTimeout(
+              resolve,
+              Math.min(
+                500,
+                ELEMENT_TEST_DURATION_MS - (Date.now() - startedAt),
+              ),
+            ),
+          );
+          const state = readState(
+            simulated
+              ? virtualBoard.call('stat')
+              : await activeSession!.client.call('stat', [], undefined, 1200),
+          );
+          if (
+            (state & WORKING) === 0 ||
+            (state & (STARTING | 2 | 4 | 8 | 32 | 64 | 128)) !== 0
+          )
+            throw new Error(`Проверка остановлена: состояние платы ${state}.`);
+        }
       } finally {
         await call(current.map(Number));
       }
@@ -361,14 +629,17 @@ export async function testOvenElement(name: unknown): Promise<{
 }
 
 /** Sends the controller-board poweroff command without shutting down the Raspberry Pi. */
-export async function powerOffController(port = config.serialPort): Promise<{
+export async function powerOffController(
+  port = config.serialPort,
+  delaySeconds = 5,
+): Promise<{
   success: boolean;
   port: string;
   simulated?: boolean;
   error?: string;
 }> {
   if (isSimulationMode()) {
-    virtualBoard.call('poweroff', [5]);
+    virtualBoard.call('poweroff', [delaySeconds]);
     return { success: true, port: 'SIMULATOR', simulated: true };
   }
 
@@ -389,7 +660,12 @@ export async function powerOffController(port = config.serialPort): Promise<{
     }
 
     try {
-      await activeSession.client.call('poweroff', [5], undefined, 1200);
+      await activeSession.client.call(
+        'poweroff',
+        [delaySeconds],
+        undefined,
+        1200,
+      );
       activeSession.ready = false;
       return { success: true, port };
     } catch (error) {
@@ -443,29 +719,37 @@ function isSimulationMode(): boolean {
 
 function simulatedCheck(): ControllerConnectionCheck {
   const snapshot = virtualBoard.snapshot();
-  return {
-    connected: snapshot.powered,
-    port: 'SIMULATOR',
-    protocolVersion: 2,
-    boardType: 'unknown',
-    ready: (snapshot.globalState & 1) !== 0,
-    state: snapshot.globalState,
-    ...(snapshot.powered
-      ? {
-          readData: virtualBoard.call('get') as number[],
-          telemetry: decodeTelemetry(
-            virtualBoard.call('get'),
-            (snapshot.globalState & WORKING) !== 0
-              ? virtualBoard.call('setHV')
-              : [],
-            2,
-            'unknown',
-          ),
-        }
-      : {}),
-    simulated: true,
-    ...(!snapshot.powered ? { error: 'Симулируемая плата выключена.' } : {}),
-  };
+  try {
+    const readData = virtualBoard.call('get');
+    return {
+      connected: true,
+      port: 'SIMULATOR',
+      protocolVersion: 2,
+      boardType: 'unknown',
+      ready: (snapshot.globalState & (WORKING | STARTING | 32)) === WORKING,
+      state: snapshot.globalState,
+      readData,
+      telemetry: decodeTelemetry(
+        readData,
+        (snapshot.globalState & WORKING) !== 0
+          ? virtualBoard.call('setHV')
+          : [],
+        2,
+        'unknown',
+      ),
+      simulated: true,
+      doorOpen: readDoorState(virtualBoard.call('sensors'), 2),
+    };
+  } catch (error) {
+    return {
+      connected: false,
+      ready: false,
+      port: 'SIMULATOR',
+      state: snapshot.globalState,
+      simulated: true,
+      error: getErrorMessage(error),
+    };
+  }
 }
 
 export function getVirtualBoardSnapshot() {
@@ -496,13 +780,17 @@ async function readController(
     let state = readState(await client.call('stat', [], undefined, 1200));
     if (
       initialize &&
+      !profileControl &&
+      (state & 32) === 0 &&
       ((state & STARTING) !== 0 || (state & NO_COMMAND_TIMEOUT) !== 0)
     ) {
       state = readState(
         await client.call('stat', [NO_COMMAND_TIMEOUT], undefined, 1200),
       );
     }
-    activeSession.ready = (state & WORKING) !== 0 && (state & STARTING) === 0;
+    activeSession.ready =
+      (state & WORKING) !== 0 &&
+      (state & (STARTING | NO_COMMAND_TIMEOUT | 4 | 8 | 32 | 64 | 128)) === 0;
 
     if (activeSession.protocolVersion === undefined) {
       let description: unknown = '';
@@ -539,7 +827,20 @@ async function readController(
     try {
       if (activeSession.ready)
         hv = await client.call('setHV', [], undefined, 1200);
-    } catch {
+    } catch (error) {
+      if (initialize && activeSession.ready) {
+        let failureState: number | undefined;
+        try {
+          failureState = readState(
+            await client.call('stat', [], undefined, 1200),
+          );
+        } catch {
+          // Preserve the original refusal even if the diagnostic read fails.
+        }
+        throw new Error(
+          `Не удалось прочитать выходы платы (setHV): ${getErrorMessage(error)}; состояние после отказа: ${failureState ?? 'не прочитано'}.`,
+        );
+      }
       // Temperature and connection state remain available if an output read fails.
     }
     if (initialize && activeSession.ready && readOvenSelection()) {
@@ -557,6 +858,14 @@ async function readController(
       state,
       readData,
       telemetry: decodeTelemetry(readData, hv, protocolVersion, boardType),
+      ...(activeSession.ready
+        ? {
+            doorOpen: readDoorState(
+              await client.call('sensors', [], undefined, 1200),
+              protocolVersion,
+            ),
+          }
+        : {}),
     };
   } catch (error) {
     activeSession.ready = false;
@@ -575,8 +884,15 @@ function readState(value: unknown): number {
   }
   return value[0] as number;
 }
+function readDoorState(value: unknown, protocolVersion: number): boolean {
+  const index = protocolVersion >= 2 ? 1 : 6;
+  if (!Array.isArray(value) || ![0, 1].includes(Number(value[index])))
+    throw new Error('Неверное значение датчика двери.');
+  return Boolean(Number(value[index]));
+}
 
 export function closeControllerConnection(): void {
+  setDoorWarning(false);
   session?.client.close();
   session = undefined;
 }

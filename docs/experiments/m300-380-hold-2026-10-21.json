@@ -1,0 +1,762 @@
+[
+  {
+    "run": {
+      "id": "1a2b150a-5252-410d-b38a-6c7b98f24faa",
+      "state": "completed",
+      "profileName": "Acceptance repeats M300-380 1792564188514222100",
+      "cycle": 2,
+      "cycles": 2,
+      "stage": 2,
+      "elapsedSeconds": 151,
+      "remainingSeconds": 0,
+      "targetTemperatureC": 100,
+      "measuredTemperatureC": 99.75,
+      "error": null,
+      "paused": false,
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "pendingReady": false,
+      "canAcknowledge": true
+    },
+    "board": {
+      "connected": true,
+      "port": "/dev/ttyS0",
+      "protocolVersion": 2,
+      "boardType": "380V",
+      "ready": true,
+      "state": 1,
+      "readData": [46, 402, 130, 50, 0],
+      "telemetry": {
+        "chamberTemperatureC": 100.5,
+        "boardTemperatureC": 32.5,
+        "convectionFanHz": 50,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "fanReferenceHz": 50
+    }
+  },
+  {
+    "run": {
+      "id": "1a2b150a-5252-410d-b38a-6c7b98f24faa",
+      "state": "completed",
+      "profileName": "Acceptance repeats M300-380 1792564188514222100",
+      "cycle": 2,
+      "cycles": 2,
+      "stage": 2,
+      "elapsedSeconds": 151,
+      "remainingSeconds": 0,
+      "targetTemperatureC": 100,
+      "measuredTemperatureC": 99.75,
+      "error": null,
+      "paused": false,
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "pendingReady": false,
+      "canAcknowledge": true
+    },
+    "board": {
+      "connected": true,
+      "port": "/dev/ttyS0",
+      "protocolVersion": 2,
+      "boardType": "380V",
+      "ready": true,
+      "state": 1,
+      "readData": [40, 402, 126, 50, 0],
+      "telemetry": {
+        "chamberTemperatureC": 100.5,
+        "boardTemperatureC": 31.5,
+        "convectionFanHz": 50,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "fanReferenceHz": 50
+    }
+  },
+  {
+    "run": {
+      "id": "1a2b150a-5252-410d-b38a-6c7b98f24faa",
+      "state": "completed",
+      "profileName": "Acceptance repeats M300-380 1792564188514222100",
+      "cycle": 2,
+      "cycles": 2,
+      "stage": 2,
+      "elapsedSeconds": 151,
+      "remainingSeconds": 0,
+      "targetTemperatureC": 100,
+      "measuredTemperatureC": 99.75,
+      "error": null,
+      "paused": false,
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "pendingReady": false,
+      "canAcknowledge": true
+    },
+    "board": {
+      "connected": true,
+      "port": "/dev/ttyS0",
+      "protocolVersion": 2,
+      "boardType": "380V",
+      "ready": true,
+      "state": 1,
+      "readData": [47, 400, 127, 50, 0],
+      "telemetry": {
+        "chamberTemperatureC": 100,
+        "boardTemperatureC": 31.75,
+        "convectionFanHz": 50,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "fanReferenceHz": 50
+    }
+  },
+  {
+    "run": {
+      "id": "1a2b150a-5252-410d-b38a-6c7b98f24faa",
+      "state": "completed",
+      "profileName": "Acceptance repeats M300-380 1792564188514222100",
+      "cycle": 2,
+      "cycles": 2,
+      "stage": 2,
+      "elapsedSeconds": 151,
+      "remainingSeconds": 0,
+      "targetTemperatureC": 100,
+      "measuredTemperatureC": 99.75,
+      "error": null,
+      "paused": false,
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "pendingReady": false,
+      "canAcknowledge": true
+    },
+    "board": {
+      "connected": true,
+      "port": "/dev/ttyS0",
+      "protocolVersion": 2,
+      "boardType": "380V",
+      "ready": true,
+      "state": 1,
+      "readData": [49, 398, 124, 50, 0],
+      "telemetry": {
+        "chamberTemperatureC": 99.5,
+        "boardTemperatureC": 31,
+        "convectionFanHz": 50,
+        "lamps": false,
+        "heaters": true,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "fanReferenceHz": 50
+    }
+  },
+  {
+    "run": {
+      "id": "1a2b150a-5252-410d-b38a-6c7b98f24faa",
+      "state": "completed",
+      "profileName": "Acceptance repeats M300-380 1792564188514222100",
+      "cycle": 2,
+      "cycles": 2,
+      "stage": 2,
+      "elapsedSeconds": 151,
+      "remainingSeconds": 0,
+      "targetTemperatureC": 100,
+      "measuredTemperatureC": 99.75,
+      "error": null,
+      "paused": false,
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "pendingReady": false,
+      "canAcknowledge": true
+    },
+    "board": {
+      "connected": true,
+      "port": "/dev/ttyS0",
+      "protocolVersion": 2,
+      "boardType": "380V",
+      "ready": true,
+      "state": 1,
+      "readData": [47, 397, 125, 50, 0],
+      "telemetry": {
+        "chamberTemperatureC": 99.25,
+        "boardTemperatureC": 31.25,
+        "convectionFanHz": 50,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "fanReferenceHz": 50
+    }
+  },
+  {
+    "run": {
+      "id": "1a2b150a-5252-410d-b38a-6c7b98f24faa",
+      "state": "completed",
+      "profileName": "Acceptance repeats M300-380 1792564188514222100",
+      "cycle": 2,
+      "cycles": 2,
+      "stage": 2,
+      "elapsedSeconds": 151,
+      "remainingSeconds": 0,
+      "targetTemperatureC": 100,
+      "measuredTemperatureC": 99.75,
+      "error": null,
+      "paused": false,
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "pendingReady": false,
+      "canAcknowledge": true
+    },
+    "board": {
+      "connected": true,
+      "port": "/dev/ttyS0",
+      "protocolVersion": 2,
+      "boardType": "380V",
+      "ready": true,
+      "state": 1,
+      "readData": [47, 399, 128, 50, 0],
+      "telemetry": {
+        "chamberTemperatureC": 99.75,
+        "boardTemperatureC": 32,
+        "convectionFanHz": 50,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "fanReferenceHz": 50
+    }
+  },
+  {
+    "run": {
+      "id": "1a2b150a-5252-410d-b38a-6c7b98f24faa",
+      "state": "completed",
+      "profileName": "Acceptance repeats M300-380 1792564188514222100",
+      "cycle": 2,
+      "cycles": 2,
+      "stage": 2,
+      "elapsedSeconds": 151,
+      "remainingSeconds": 0,
+      "targetTemperatureC": 100,
+      "measuredTemperatureC": 99.75,
+      "error": null,
+      "paused": false,
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "pendingReady": false,
+      "canAcknowledge": true
+    },
+    "board": {
+      "connected": true,
+      "port": "/dev/ttyS0",
+      "protocolVersion": 2,
+      "boardType": "380V",
+      "ready": true,
+      "state": 1,
+      "readData": [44, 395, 129, 50, 0],
+      "telemetry": {
+        "chamberTemperatureC": 98.75,
+        "boardTemperatureC": 32.25,
+        "convectionFanHz": 50,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "fanReferenceHz": 50
+    }
+  },
+  {
+    "run": {
+      "id": "1a2b150a-5252-410d-b38a-6c7b98f24faa",
+      "state": "completed",
+      "profileName": "Acceptance repeats M300-380 1792564188514222100",
+      "cycle": 2,
+      "cycles": 2,
+      "stage": 2,
+      "elapsedSeconds": 151,
+      "remainingSeconds": 0,
+      "targetTemperatureC": 100,
+      "measuredTemperatureC": 99.75,
+      "error": null,
+      "paused": false,
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "pendingReady": false,
+      "canAcknowledge": true
+    },
+    "board": {
+      "connected": true,
+      "port": "/dev/ttyS0",
+      "protocolVersion": 2,
+      "boardType": "380V",
+      "ready": true,
+      "state": 1,
+      "readData": [53, 400, 131, 49, 0],
+      "telemetry": {
+        "chamberTemperatureC": 100,
+        "boardTemperatureC": 32.75,
+        "convectionFanHz": 49,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "fanReferenceHz": 50
+    }
+  },
+  {
+    "run": {
+      "id": "1a2b150a-5252-410d-b38a-6c7b98f24faa",
+      "state": "completed",
+      "profileName": "Acceptance repeats M300-380 1792564188514222100",
+      "cycle": 2,
+      "cycles": 2,
+      "stage": 2,
+      "elapsedSeconds": 151,
+      "remainingSeconds": 0,
+      "targetTemperatureC": 100,
+      "measuredTemperatureC": 99.75,
+      "error": null,
+      "paused": false,
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "pendingReady": false,
+      "canAcknowledge": true
+    },
+    "board": {
+      "connected": true,
+      "port": "/dev/ttyS0",
+      "protocolVersion": 2,
+      "boardType": "380V",
+      "ready": true,
+      "state": 1,
+      "readData": [51, 400, 132, 50, 0],
+      "telemetry": {
+        "chamberTemperatureC": 100,
+        "boardTemperatureC": 33,
+        "convectionFanHz": 50,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "fanReferenceHz": 50
+    }
+  },
+  {
+    "run": {
+      "id": "1a2b150a-5252-410d-b38a-6c7b98f24faa",
+      "state": "completed",
+      "profileName": "Acceptance repeats M300-380 1792564188514222100",
+      "cycle": 2,
+      "cycles": 2,
+      "stage": 2,
+      "elapsedSeconds": 151,
+      "remainingSeconds": 0,
+      "targetTemperatureC": 100,
+      "measuredTemperatureC": 99.75,
+      "error": null,
+      "paused": false,
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "pendingReady": false,
+      "canAcknowledge": true
+    },
+    "board": {
+      "connected": true,
+      "port": "/dev/ttyS0",
+      "protocolVersion": 2,
+      "boardType": "380V",
+      "ready": true,
+      "state": 1,
+      "readData": [47, 401, 133, 50, 0],
+      "telemetry": {
+        "chamberTemperatureC": 100.25,
+        "boardTemperatureC": 33.25,
+        "convectionFanHz": 50,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "fanReferenceHz": 50
+    }
+  },
+  {
+    "run": {
+      "id": "1a2b150a-5252-410d-b38a-6c7b98f24faa",
+      "state": "completed",
+      "profileName": "Acceptance repeats M300-380 1792564188514222100",
+      "cycle": 2,
+      "cycles": 2,
+      "stage": 2,
+      "elapsedSeconds": 151,
+      "remainingSeconds": 0,
+      "targetTemperatureC": 100,
+      "measuredTemperatureC": 99.75,
+      "error": null,
+      "paused": false,
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "pendingReady": false,
+      "canAcknowledge": true
+    },
+    "board": {
+      "connected": true,
+      "port": "/dev/ttyS0",
+      "protocolVersion": 2,
+      "boardType": "380V",
+      "ready": true,
+      "state": 1,
+      "readData": [47, 403, 135, 50, 0],
+      "telemetry": {
+        "chamberTemperatureC": 100.75,
+        "boardTemperatureC": 33.75,
+        "convectionFanHz": 50,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "fanReferenceHz": 50
+    }
+  },
+  {
+    "run": {
+      "id": "1a2b150a-5252-410d-b38a-6c7b98f24faa",
+      "state": "completed",
+      "profileName": "Acceptance repeats M300-380 1792564188514222100",
+      "cycle": 2,
+      "cycles": 2,
+      "stage": 2,
+      "elapsedSeconds": 151,
+      "remainingSeconds": 0,
+      "targetTemperatureC": 100,
+      "measuredTemperatureC": 99.75,
+      "error": null,
+      "paused": false,
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "pendingReady": false,
+      "canAcknowledge": true
+    },
+    "board": {
+      "connected": true,
+      "port": "/dev/ttyS0",
+      "protocolVersion": 2,
+      "boardType": "380V",
+      "ready": true,
+      "state": 1,
+      "readData": [47, 403, 135, 50, 0],
+      "telemetry": {
+        "chamberTemperatureC": 100.75,
+        "boardTemperatureC": 33.75,
+        "convectionFanHz": 50,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "fanReferenceHz": 50
+    }
+  },
+  {
+    "run": {
+      "id": "1a2b150a-5252-410d-b38a-6c7b98f24faa",
+      "state": "completed",
+      "profileName": "Acceptance repeats M300-380 1792564188514222100",
+      "cycle": 2,
+      "cycles": 2,
+      "stage": 2,
+      "elapsedSeconds": 151,
+      "remainingSeconds": 0,
+      "targetTemperatureC": 100,
+      "measuredTemperatureC": 99.75,
+      "error": null,
+      "paused": false,
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "pendingReady": false,
+      "canAcknowledge": true
+    },
+    "board": {
+      "connected": true,
+      "port": "/dev/ttyS0",
+      "protocolVersion": 2,
+      "boardType": "380V",
+      "ready": true,
+      "state": 1,
+      "readData": [47, 401, 134, 50, 0],
+      "telemetry": {
+        "chamberTemperatureC": 100.25,
+        "boardTemperatureC": 33.5,
+        "convectionFanHz": 50,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "fanReferenceHz": 50
+    }
+  },
+  {
+    "run": {
+      "id": "1a2b150a-5252-410d-b38a-6c7b98f24faa",
+      "state": "completed",
+      "profileName": "Acceptance repeats M300-380 1792564188514222100",
+      "cycle": 2,
+      "cycles": 2,
+      "stage": 2,
+      "elapsedSeconds": 151,
+      "remainingSeconds": 0,
+      "targetTemperatureC": 100,
+      "measuredTemperatureC": 99.75,
+      "error": null,
+      "paused": false,
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "pendingReady": false,
+      "canAcknowledge": true
+    },
+    "board": {
+      "connected": true,
+      "port": "/dev/ttyS0",
+      "protocolVersion": 2,
+      "boardType": "380V",
+      "ready": true,
+      "state": 1,
+      "readData": [42, 400, 133, 50, 0],
+      "telemetry": {
+        "chamberTemperatureC": 100,
+        "boardTemperatureC": 33.25,
+        "convectionFanHz": 50,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "fanReferenceHz": 50
+    }
+  },
+  {
+    "run": {
+      "id": "1a2b150a-5252-410d-b38a-6c7b98f24faa",
+      "state": "completed",
+      "profileName": "Acceptance repeats M300-380 1792564188514222100",
+      "cycle": 2,
+      "cycles": 2,
+      "stage": 2,
+      "elapsedSeconds": 151,
+      "remainingSeconds": 0,
+      "targetTemperatureC": 100,
+      "measuredTemperatureC": 99.75,
+      "error": null,
+      "paused": false,
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "pendingReady": false,
+      "canAcknowledge": true
+    },
+    "board": {
+      "connected": true,
+      "port": "/dev/ttyS0",
+      "protocolVersion": 2,
+      "boardType": "380V",
+      "ready": true,
+      "state": 1,
+      "readData": [49, 402, 134, 50, 0],
+      "telemetry": {
+        "chamberTemperatureC": 100.5,
+        "boardTemperatureC": 33.5,
+        "convectionFanHz": 50,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "fanReferenceHz": 50
+    }
+  },
+  {
+    "run": {
+      "id": "1a2b150a-5252-410d-b38a-6c7b98f24faa",
+      "state": "completed",
+      "profileName": "Acceptance repeats M300-380 1792564188514222100",
+      "cycle": 2,
+      "cycles": 2,
+      "stage": 2,
+      "elapsedSeconds": 151,
+      "remainingSeconds": 0,
+      "targetTemperatureC": 100,
+      "measuredTemperatureC": 99.75,
+      "error": null,
+      "paused": false,
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "pendingReady": false,
+      "canAcknowledge": true
+    },
+    "board": {
+      "connected": true,
+      "port": "/dev/ttyS0",
+      "protocolVersion": 2,
+      "boardType": "380V",
+      "ready": true,
+      "state": 1,
+      "readData": [44, 399, 136, 50, 0],
+      "telemetry": {
+        "chamberTemperatureC": 99.75,
+        "boardTemperatureC": 34,
+        "convectionFanHz": 50,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "fanReferenceHz": 50
+    }
+  },
+  {
+    "run": {
+      "id": "1a2b150a-5252-410d-b38a-6c7b98f24faa",
+      "state": "completed",
+      "profileName": "Acceptance repeats M300-380 1792564188514222100",
+      "cycle": 2,
+      "cycles": 2,
+      "stage": 2,
+      "elapsedSeconds": 151,
+      "remainingSeconds": 0,
+      "targetTemperatureC": 100,
+      "measuredTemperatureC": 99.75,
+      "error": null,
+      "paused": false,
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "pendingReady": false,
+      "canAcknowledge": true
+    },
+    "board": {
+      "connected": true,
+      "port": "/dev/ttyS0",
+      "protocolVersion": 2,
+      "boardType": "380V",
+      "ready": true,
+      "state": 1,
+      "readData": [42, 400, 133, 49, 0],
+      "telemetry": {
+        "chamberTemperatureC": 100,
+        "boardTemperatureC": 33.25,
+        "convectionFanHz": 49,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "fanReferenceHz": 50
+    }
+  },
+  {
+    "run": {
+      "id": "1a2b150a-5252-410d-b38a-6c7b98f24faa",
+      "state": "completed",
+      "profileName": "Acceptance repeats M300-380 1792564188514222100",
+      "cycle": 2,
+      "cycles": 2,
+      "stage": 2,
+      "elapsedSeconds": 151,
+      "remainingSeconds": 0,
+      "targetTemperatureC": 100,
+      "measuredTemperatureC": 99.75,
+      "error": null,
+      "paused": false,
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "pendingReady": false,
+      "canAcknowledge": true
+    },
+    "board": {
+      "connected": true,
+      "port": "/dev/ttyS0",
+      "protocolVersion": 2,
+      "boardType": "380V",
+      "ready": true,
+      "state": 1,
+      "readData": [48, 399, 134, 50, 0],
+      "telemetry": {
+        "chamberTemperatureC": 99.75,
+        "boardTemperatureC": 33.5,
+        "convectionFanHz": 50,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "fanReferenceHz": 50
+    }
+  },
+  {
+    "run": {
+      "id": "1a2b150a-5252-410d-b38a-6c7b98f24faa",
+      "state": "completed",
+      "profileName": "Acceptance repeats M300-380 1792564188514222100",
+      "cycle": 2,
+      "cycles": 2,
+      "stage": 2,
+      "elapsedSeconds": 151,
+      "remainingSeconds": 0,
+      "targetTemperatureC": 100,
+      "measuredTemperatureC": 99.75,
+      "error": null,
+      "paused": false,
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "pendingReady": false,
+      "canAcknowledge": true
+    },
+    "board": {
+      "connected": true,
+      "port": "/dev/ttyS0",
+      "protocolVersion": 2,
+      "boardType": "380V",
+      "ready": true,
+      "state": 1,
+      "readData": [39, 402, 135, 50, 0],
+      "telemetry": {
+        "chamberTemperatureC": 100.5,
+        "boardTemperatureC": 33.75,
+        "convectionFanHz": 50,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "fanReferenceHz": 50
+    }
+  }
+]

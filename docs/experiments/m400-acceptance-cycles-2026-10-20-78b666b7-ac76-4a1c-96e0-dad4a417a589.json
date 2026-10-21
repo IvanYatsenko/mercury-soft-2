@@ -1,0 +1,1747 @@
+{
+  "profile": {
+    "board": false,
+    "mode": "manual",
+    "name": "Приёмка М400 260 C 1792473100840808100",
+    "points": [
+      {
+        "second": 0,
+        "temperature": 30
+      },
+      {
+        "second": 212,
+        "temperature": 200
+      },
+      {
+        "second": 110,
+        "temperature": 200
+      },
+      {
+        "second": 75,
+        "temperature": 260
+      },
+      {
+        "second": 30,
+        "temperature": 260
+      },
+      {
+        "second": 150,
+        "temperature": 200
+      },
+      {
+        "second": 167,
+        "temperature": 150
+      },
+      {
+        "second": 250,
+        "temperature": 100
+      }
+    ],
+    "shelves": [
+      {
+        "second": 110,
+        "temperature": 200
+      },
+      {
+        "second": 30,
+        "temperature": 260
+      },
+      {
+        "second": 400,
+        "temperature": 100
+      }
+    ],
+    "repeat": 1,
+    "id": "3a7ff2a2-513e-461a-bce6-439774d33093",
+    "executionPlan": {
+      "points": [
+        {
+          "second": 0,
+          "temperature": 50
+        },
+        {
+          "second": 187.05882352941177,
+          "temperature": 200
+        },
+        {
+          "second": 297.05882352941177,
+          "temperature": 200
+        },
+        {
+          "second": 372.05882352941177,
+          "temperature": 260
+        },
+        {
+          "second": 402.05882352941177,
+          "temperature": 260
+        },
+        {
+          "second": 552.0588235294117,
+          "temperature": 200
+        },
+        {
+          "second": 719.0588235294117,
+          "temperature": 150
+        },
+        {
+          "second": 969.0588235294117,
+          "temperature": 100
+        }
+      ],
+      "durationSeconds": 969.0588235294117,
+      "cycles": 1,
+      "maximumTemperatureC": 260
+    }
+  },
+  "plan": {
+    "points": [
+      {
+        "second": 0,
+        "temperature": 50
+      },
+      {
+        "second": 187.05882352941177,
+        "temperature": 200
+      },
+      {
+        "second": 297.05882352941177,
+        "temperature": 200
+      },
+      {
+        "second": 372.05882352941177,
+        "temperature": 260
+      },
+      {
+        "second": 402.05882352941177,
+        "temperature": 260
+      },
+      {
+        "second": 552.0588235294117,
+        "temperature": 200
+      },
+      {
+        "second": 719.0588235294117,
+        "temperature": 150
+      },
+      {
+        "second": 969.0588235294117,
+        "temperature": 100
+      }
+    ],
+    "durationSeconds": 969.0588235294117,
+    "cycles": 1,
+    "maximumTemperatureC": 260
+  },
+  "samples": [
+    {
+      "elapsedSeconds": 1,
+      "targetTemperatureC": 50.80543423056602,
+      "chamberTemperatureC": 49.75,
+      "boardTemperatureC": 34,
+      "heating": false,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": false,
+        "infrared2": false,
+        "infrared3": false
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 2,
+      "targetTemperatureC": 51.62706795759433,
+      "chamberTemperatureC": 49.75,
+      "boardTemperatureC": 34,
+      "heating": true,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": true,
+        "infrared2": true,
+        "infrared3": true
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 4.1,
+      "targetTemperatureC": 53.27436448783018,
+      "chamberTemperatureC": 50,
+      "boardTemperatureC": 34.5,
+      "heating": true,
+      "heatOutputs": {
+        "topHeater": true,
+        "bottomHeater": true,
+        "infrared": true,
+        "infrared2": true,
+        "infrared3": true
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 5.1,
+      "targetTemperatureC": 54.09561068943395,
+      "chamberTemperatureC": 51.5,
+      "boardTemperatureC": 34.5,
+      "heating": true,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": true,
+        "infrared2": true,
+        "infrared3": true
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 6.1,
+      "targetTemperatureC": 54.91750458221698,
+      "chamberTemperatureC": 53,
+      "boardTemperatureC": 34.5,
+      "heating": false,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": false,
+        "infrared2": false,
+        "infrared3": false
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 7.2,
+      "targetTemperatureC": 55.735574948867914,
+      "chamberTemperatureC": 54,
+      "boardTemperatureC": 34.5,
+      "heating": true,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": true,
+        "infrared2": true,
+        "infrared3": true
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 9.2,
+      "targetTemperatureC": 57.3712393718396,
+      "chamberTemperatureC": 55.5,
+      "boardTemperatureC": 34.25,
+      "heating": false,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": false,
+        "infrared2": false,
+        "infrared3": false
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 10.2,
+      "targetTemperatureC": 58.18996943391507,
+      "chamberTemperatureC": 56,
+      "boardTemperatureC": 33.75,
+      "heating": true,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": true,
+        "infrared2": true,
+        "infrared3": true
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 12.3,
+      "targetTemperatureC": 59.84620245438679,
+      "chamberTemperatureC": 57.75,
+      "boardTemperatureC": 34.75,
+      "heating": false,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": false,
+        "infrared2": false,
+        "infrared3": false
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 13.3,
+      "targetTemperatureC": 60.66807736490564,
+      "chamberTemperatureC": 59,
+      "boardTemperatureC": 34.5,
+      "heating": true,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": true,
+        "infrared2": true,
+        "infrared3": true
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 15.4,
+      "targetTemperatureC": 62.3094910451415,
+      "chamberTemperatureC": 60.5,
+      "boardTemperatureC": 34.5,
+      "heating": false,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": false,
+        "infrared2": false,
+        "infrared3": false
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 16.4,
+      "targetTemperatureC": 63.12726575773583,
+      "chamberTemperatureC": 61.5,
+      "boardTemperatureC": 34.25,
+      "heating": true,
+      "heatOutputs": {
+        "topHeater": true,
+        "bottomHeater": true,
+        "infrared": true,
+        "infrared2": true,
+        "infrared3": true
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 18.4,
+      "targetTemperatureC": 64.78363755273583,
+      "chamberTemperatureC": 62.5,
+      "boardTemperatureC": 34.5,
+      "heating": false,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": false,
+        "infrared2": false,
+        "infrared3": false
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 19.5,
+      "targetTemperatureC": 65.60451128033019,
+      "chamberTemperatureC": 64.5,
+      "boardTemperatureC": 35,
+      "heating": true,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": true,
+        "infrared2": true,
+        "infrared3": true
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 21.5,
+      "targetTemperatureC": 67.24569994551885,
+      "chamberTemperatureC": 66.5,
+      "boardTemperatureC": 34.75,
+      "heating": false,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": false,
+        "infrared2": false,
+        "infrared3": false
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 22.5,
+      "targetTemperatureC": 68.06350720990565,
+      "chamberTemperatureC": 67.5,
+      "boardTemperatureC": 35,
+      "heating": false,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": false,
+        "infrared2": false,
+        "infrared3": false
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 23.6,
+      "targetTemperatureC": 68.9024812376415,
+      "chamberTemperatureC": 68,
+      "boardTemperatureC": 34.25,
+      "heating": false,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": false,
+        "infrared2": false,
+        "infrared3": false
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 24.6,
+      "targetTemperatureC": 69.72008712259432,
+      "chamberTemperatureC": 68.25,
+      "boardTemperatureC": 34.75,
+      "heating": true,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": true,
+        "infrared2": true,
+        "infrared3": true
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 26.6,
+      "targetTemperatureC": 71.3585802934434,
+      "chamberTemperatureC": 69.75,
+      "boardTemperatureC": 35,
+      "heating": true,
+      "heatOutputs": {
+        "topHeater": true,
+        "bottomHeater": true,
+        "infrared": false,
+        "infrared2": false,
+        "infrared3": false
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 27.7,
+      "targetTemperatureC": 72.17818467754715,
+      "chamberTemperatureC": 70.75,
+      "boardTemperatureC": 35,
+      "heating": true,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": true,
+        "infrared2": true,
+        "infrared3": true
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 29.7,
+      "targetTemperatureC": 73.81387817773584,
+      "chamberTemperatureC": 71.5,
+      "boardTemperatureC": 35.25,
+      "heating": false,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": false,
+        "infrared2": false,
+        "infrared3": false
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 30.7,
+      "targetTemperatureC": 74.6322310098113,
+      "chamberTemperatureC": 73.25,
+      "boardTemperatureC": 35.25,
+      "heating": true,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": true,
+        "infrared2": true,
+        "infrared3": true
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 32.8,
+      "targetTemperatureC": 76.29175686693394,
+      "chamberTemperatureC": 74.25,
+      "boardTemperatureC": 35,
+      "heating": false,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": false,
+        "infrared2": false,
+        "infrared3": false
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 33.8,
+      "targetTemperatureC": 77.11918343457545,
+      "chamberTemperatureC": 75.75,
+      "boardTemperatureC": 34.5,
+      "heating": true,
+      "heatOutputs": {
+        "topHeater": true,
+        "bottomHeater": true,
+        "infrared": true,
+        "infrared2": true,
+        "infrared3": true
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 35.9,
+      "targetTemperatureC": 78.756232735283,
+      "chamberTemperatureC": 77,
+      "boardTemperatureC": 34.75,
+      "heating": false,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": false,
+        "infrared2": false,
+        "infrared3": false
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 36.9,
+      "targetTemperatureC": 79.573622825283,
+      "chamberTemperatureC": 77.75,
+      "boardTemperatureC": 34.5,
+      "heating": true,
+      "heatOutputs": {
+        "topHeater": true,
+        "bottomHeater": true,
+        "infrared": false,
+        "infrared2": false,
+        "infrared3": false
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 37.9,
+      "targetTemperatureC": 80.41392710382073,
+      "chamberTemperatureC": 78.5,
+      "boardTemperatureC": 34.5,
+      "heating": true,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": true,
+        "infrared2": true,
+        "infrared3": true
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 40,
+      "targetTemperatureC": 82.05509219433961,
+      "chamberTemperatureC": 80.25,
+      "boardTemperatureC": 35.25,
+      "heating": false,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": false,
+        "infrared2": false,
+        "infrared3": false
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 41,
+      "targetTemperatureC": 82.87223020801886,
+      "chamberTemperatureC": 81.5,
+      "boardTemperatureC": 35,
+      "heating": true,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": true,
+        "infrared2": true,
+        "infrared3": true
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 43.1,
+      "targetTemperatureC": 84.53387284900941,
+      "chamberTemperatureC": 82.75,
+      "boardTemperatureC": 35.25,
+      "heating": false,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": false,
+        "infrared2": false,
+        "infrared3": false
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 44.1,
+      "targetTemperatureC": 85.35132521433961,
+      "chamberTemperatureC": 83.75,
+      "boardTemperatureC": 35.25,
+      "heating": true,
+      "heatOutputs": {
+        "topHeater": true,
+        "bottomHeater": true,
+        "infrared": true,
+        "infrared2": true,
+        "infrared3": true
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 46.1,
+      "targetTemperatureC": 86.98979037047168,
+      "chamberTemperatureC": 85,
+      "boardTemperatureC": 35,
+      "heating": false,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": false,
+        "infrared2": false,
+        "infrared3": false
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 47.1,
+      "targetTemperatureC": 87.80726479971696,
+      "chamberTemperatureC": 86.25,
+      "boardTemperatureC": 35,
+      "heating": true,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": true,
+        "infrared2": true,
+        "infrared3": true
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 49.2,
+      "targetTemperatureC": 89.46575911849055,
+      "chamberTemperatureC": 87.75,
+      "boardTemperatureC": 34.5,
+      "heating": true,
+      "heatOutputs": {
+        "topHeater": true,
+        "bottomHeater": true,
+        "infrared": false,
+        "infrared2": false,
+        "infrared3": false
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 50.2,
+      "targetTemperatureC": 90.28403541047169,
+      "chamberTemperatureC": 89,
+      "boardTemperatureC": 35,
+      "heating": true,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": true,
+        "infrared2": true,
+        "infrared3": true
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 52.3,
+      "targetTemperatureC": 91.91936827811318,
+      "chamberTemperatureC": 90,
+      "boardTemperatureC": 35,
+      "heating": false,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": false,
+        "infrared2": false,
+        "infrared3": false
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 53.3,
+      "targetTemperatureC": 92.73746117216982,
+      "chamberTemperatureC": 91.75,
+      "boardTemperatureC": 35,
+      "heating": false,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": false,
+        "infrared2": false,
+        "infrared3": false
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 54.4,
+      "targetTemperatureC": 93.58273841259434,
+      "chamberTemperatureC": 92.25,
+      "boardTemperatureC": 34.75,
+      "heating": true,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": true,
+        "infrared2": true,
+        "infrared3": true
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 56.4,
+      "targetTemperatureC": 95.21976069212263,
+      "chamberTemperatureC": 93.25,
+      "boardTemperatureC": 35.25,
+      "heating": false,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": false,
+        "infrared2": false,
+        "infrared3": false
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 57.4,
+      "targetTemperatureC": 96.03758488113206,
+      "chamberTemperatureC": 93.75,
+      "boardTemperatureC": 35,
+      "heating": true,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": true,
+        "infrared2": true,
+        "infrared3": true
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 59.5,
+      "targetTemperatureC": 97.6939308273113,
+      "chamberTemperatureC": 96,
+      "boardTemperatureC": 35,
+      "heating": true,
+      "heatOutputs": {
+        "topHeater": true,
+        "bottomHeater": true,
+        "infrared": false,
+        "infrared2": false,
+        "infrared3": false
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 60.5,
+      "targetTemperatureC": 98.51207945650943,
+      "chamberTemperatureC": 97,
+      "boardTemperatureC": 35,
+      "heating": true,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": true,
+        "infrared2": true,
+        "infrared3": true
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 62.5,
+      "targetTemperatureC": 100.15078672712264,
+      "chamberTemperatureC": 98,
+      "boardTemperatureC": 35,
+      "heating": false,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": false,
+        "infrared2": false,
+        "infrared3": false
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 63.6,
+      "targetTemperatureC": 100.9684133913679,
+      "chamberTemperatureC": 99,
+      "boardTemperatureC": 35,
+      "heating": true,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": true,
+        "infrared2": true,
+        "infrared3": true
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 65.6,
+      "targetTemperatureC": 102.62759136674526,
+      "chamberTemperatureC": 100.25,
+      "boardTemperatureC": 34.75,
+      "heating": true,
+      "heatOutputs": {
+        "topHeater": true,
+        "bottomHeater": true,
+        "infrared": false,
+        "infrared2": false,
+        "infrared3": false
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 66.7,
+      "targetTemperatureC": 103.45301260396224,
+      "chamberTemperatureC": 101.5,
+      "boardTemperatureC": 34.25,
+      "heating": true,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": true,
+        "infrared2": true,
+        "infrared3": true
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 68.7,
+      "targetTemperatureC": 105.09292091896225,
+      "chamberTemperatureC": 102,
+      "boardTemperatureC": 35.25,
+      "heating": true,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": true,
+        "infrared2": true,
+        "infrared3": true
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 69.7,
+      "targetTemperatureC": 105.91307428679244,
+      "chamberTemperatureC": 103.75,
+      "boardTemperatureC": 35,
+      "heating": false,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": false,
+        "infrared2": false,
+        "infrared3": false
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 70.8,
+      "targetTemperatureC": 106.75235240042451,
+      "chamberTemperatureC": 105.25,
+      "boardTemperatureC": 35.25,
+      "heating": true,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": true,
+        "infrared2": true,
+        "infrared3": true
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 72.8,
+      "targetTemperatureC": 108.38805662344336,
+      "chamberTemperatureC": 105.5,
+      "boardTemperatureC": 34.75,
+      "heating": true,
+      "heatOutputs": {
+        "topHeater": true,
+        "bottomHeater": true,
+        "infrared": false,
+        "infrared2": false,
+        "infrared3": false
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 73.8,
+      "targetTemperatureC": 109.20729088787735,
+      "chamberTemperatureC": 106.75,
+      "boardTemperatureC": 34.75,
+      "heating": true,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": true,
+        "infrared2": true,
+        "infrared3": true
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 75.9,
+      "targetTemperatureC": 110.8660587206132,
+      "chamberTemperatureC": 108,
+      "boardTemperatureC": 35.25,
+      "heating": false,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": false,
+        "infrared2": false,
+        "infrared3": false
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 76.9,
+      "targetTemperatureC": 111.68549344070755,
+      "chamberTemperatureC": 109.25,
+      "boardTemperatureC": 34.75,
+      "heating": true,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": true,
+        "infrared2": true,
+        "infrared3": true
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 79,
+      "targetTemperatureC": 113.32294432712263,
+      "chamberTemperatureC": 110.5,
+      "boardTemperatureC": 35.25,
+      "heating": true,
+      "heatOutputs": {
+        "topHeater": true,
+        "bottomHeater": true,
+        "infrared": true,
+        "infrared2": true,
+        "infrared3": true
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 80,
+      "targetTemperatureC": 114.1469858876415,
+      "chamberTemperatureC": 112.5,
+      "boardTemperatureC": 35.25,
+      "heating": false,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": false,
+        "infrared2": false,
+        "infrared3": false
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 81,
+      "targetTemperatureC": 114.98457628858489,
+      "chamberTemperatureC": 113.25,
+      "boardTemperatureC": 35.25,
+      "heating": true,
+      "heatOutputs": {
+        "topHeater": true,
+        "bottomHeater": true,
+        "infrared": false,
+        "infrared2": false,
+        "infrared3": false
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 82.1,
+      "targetTemperatureC": 115.80192624014148,
+      "chamberTemperatureC": 113.5,
+      "boardTemperatureC": 35.25,
+      "heating": true,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": true,
+        "infrared2": true,
+        "infrared3": true
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 84.1,
+      "targetTemperatureC": 117.43987808768867,
+      "chamberTemperatureC": 114.75,
+      "boardTemperatureC": 34.75,
+      "heating": true,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": true,
+        "infrared2": true,
+        "infrared3": true
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 85.1,
+      "targetTemperatureC": 118.26358344995282,
+      "chamberTemperatureC": 116.5,
+      "boardTemperatureC": 35,
+      "heating": true,
+      "heatOutputs": {
+        "topHeater": true,
+        "bottomHeater": true,
+        "infrared": false,
+        "infrared2": false,
+        "infrared3": false
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 86.1,
+      "targetTemperatureC": 119.08117364759433,
+      "chamberTemperatureC": 117.25,
+      "boardTemperatureC": 35,
+      "heating": true,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": true,
+        "infrared2": true,
+        "infrared3": true
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 88.2,
+      "targetTemperatureC": 120.71647345103771,
+      "chamberTemperatureC": 118.25,
+      "boardTemperatureC": 35.5,
+      "heating": false,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": false,
+        "infrared2": false,
+        "infrared3": false
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 89.2,
+      "targetTemperatureC": 121.53384232632075,
+      "chamberTemperatureC": 119.5,
+      "boardTemperatureC": 35,
+      "heating": true,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": true,
+        "infrared2": true,
+        "infrared3": true
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 91.2,
+      "targetTemperatureC": 123.17174385867922,
+      "chamberTemperatureC": 120.5,
+      "boardTemperatureC": 35.5,
+      "heating": false,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": false,
+        "infrared2": false,
+        "infrared3": false
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 92.3,
+      "targetTemperatureC": 123.98913709608489,
+      "chamberTemperatureC": 121.5,
+      "boardTemperatureC": 35,
+      "heating": true,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": true,
+        "infrared2": true,
+        "infrared3": true
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 94.3,
+      "targetTemperatureC": 125.64635489929242,
+      "chamberTemperatureC": 121.75,
+      "boardTemperatureC": 35,
+      "heating": true,
+      "heatOutputs": {
+        "topHeater": true,
+        "bottomHeater": true,
+        "infrared": true,
+        "infrared2": true,
+        "infrared3": true
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 95.4,
+      "targetTemperatureC": 126.46735854377357,
+      "chamberTemperatureC": 123.25,
+      "boardTemperatureC": 35.5,
+      "heating": true,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": true,
+        "infrared2": true,
+        "infrared3": true
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 96.4,
+      "targetTemperatureC": 127.30388305353772,
+      "chamberTemperatureC": 124.5,
+      "boardTemperatureC": 35.5,
+      "heating": true,
+      "heatOutputs": {
+        "topHeater": true,
+        "bottomHeater": true,
+        "infrared": false,
+        "infrared2": false,
+        "infrared3": false
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 97.4,
+      "targetTemperatureC": 128.12395017042448,
+      "chamberTemperatureC": 126.25,
+      "boardTemperatureC": 35,
+      "heating": true,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": true,
+        "infrared2": true,
+        "infrared3": true
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 99.5,
+      "targetTemperatureC": 129.7598585441981,
+      "chamberTemperatureC": 127.25,
+      "boardTemperatureC": 35.75,
+      "heating": false,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": false,
+        "infrared2": false,
+        "infrared3": false
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 100.5,
+      "targetTemperatureC": 130.57770038273583,
+      "chamberTemperatureC": 128,
+      "boardTemperatureC": 35,
+      "heating": true,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": true,
+        "infrared2": true,
+        "infrared3": true
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 102.6,
+      "targetTemperatureC": 132.23577746056606,
+      "chamberTemperatureC": 129.5,
+      "boardTemperatureC": 35,
+      "heating": true,
+      "heatOutputs": {
+        "topHeater": true,
+        "bottomHeater": true,
+        "infrared": false,
+        "infrared2": false,
+        "infrared3": false
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 103.6,
+      "targetTemperatureC": 133.05608680820754,
+      "chamberTemperatureC": 129.75,
+      "boardTemperatureC": 35.25,
+      "heating": true,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": true,
+        "infrared2": true,
+        "infrared3": true
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 105.6,
+      "targetTemperatureC": 134.69163038363206,
+      "chamberTemperatureC": 131.25,
+      "boardTemperatureC": 35.75,
+      "heating": true,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": true,
+        "infrared2": true,
+        "infrared3": true
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 106.6,
+      "targetTemperatureC": 135.51188391834904,
+      "chamberTemperatureC": 132.5,
+      "boardTemperatureC": 35.25,
+      "heating": true,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": true,
+        "infrared2": true,
+        "infrared3": true
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 107.7,
+      "targetTemperatureC": 136.35230761867922,
+      "chamberTemperatureC": 133.5,
+      "boardTemperatureC": 35.25,
+      "heating": true,
+      "heatOutputs": {
+        "topHeater": true,
+        "bottomHeater": true,
+        "infrared": false,
+        "infrared2": false,
+        "infrared3": false
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 108.7,
+      "targetTemperatureC": 137.17199670768866,
+      "chamberTemperatureC": 134.5,
+      "boardTemperatureC": 35.75,
+      "heating": true,
+      "heatOutputs": {
+        "topHeater": true,
+        "bottomHeater": true,
+        "infrared": true,
+        "infrared2": true,
+        "infrared3": true
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 110.7,
+      "targetTemperatureC": 138.80823367943395,
+      "chamberTemperatureC": 135,
+      "boardTemperatureC": 35.5,
+      "heating": true,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": true,
+        "infrared2": true,
+        "infrared3": true
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 111.8,
+      "targetTemperatureC": 139.6285371484434,
+      "chamberTemperatureC": 136.5,
+      "boardTemperatureC": 35.5,
+      "heating": false,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": false,
+        "infrared2": false,
+        "infrared3": false
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 112.8,
+      "targetTemperatureC": 140.4460707160377,
+      "chamberTemperatureC": 138,
+      "boardTemperatureC": 36,
+      "heating": true,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": true,
+        "infrared2": true,
+        "infrared3": true
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 114.8,
+      "targetTemperatureC": 142.08272687570752,
+      "chamberTemperatureC": 139,
+      "boardTemperatureC": 35.75,
+      "heating": true,
+      "heatOutputs": {
+        "topHeater": true,
+        "bottomHeater": true,
+        "infrared": false,
+        "infrared2": false,
+        "infrared3": false
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 115.9,
+      "targetTemperatureC": 142.90063328938675,
+      "chamberTemperatureC": 139.75,
+      "boardTemperatureC": 35.75,
+      "heating": true,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": true,
+        "infrared2": true,
+        "infrared3": true
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 117.9,
+      "targetTemperatureC": 144.53581977179243,
+      "chamberTemperatureC": 140.25,
+      "boardTemperatureC": 35.75,
+      "heating": true,
+      "heatOutputs": {
+        "topHeater": true,
+        "bottomHeater": true,
+        "infrared": true,
+        "infrared2": true,
+        "infrared3": true
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 118.9,
+      "targetTemperatureC": 145.35502640561322,
+      "chamberTemperatureC": 141.75,
+      "boardTemperatureC": 35.75,
+      "heating": true,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": true,
+        "infrared2": true,
+        "infrared3": true
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 120,
+      "targetTemperatureC": 146.1949605179717,
+      "chamberTemperatureC": 144.25,
+      "boardTemperatureC": 35.75,
+      "heating": false,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": false,
+        "infrared2": false,
+        "infrared3": false
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 121,
+      "targetTemperatureC": 147.01386133783015,
+      "chamberTemperatureC": 145.25,
+      "boardTemperatureC": 35.5,
+      "heating": true,
+      "heatOutputs": {
+        "topHeater": true,
+        "bottomHeater": true,
+        "infrared": false,
+        "infrared2": false,
+        "infrared3": false
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 122,
+      "targetTemperatureC": 147.8320096037736,
+      "chamberTemperatureC": 144.75,
+      "boardTemperatureC": 35.5,
+      "heating": true,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": true,
+        "infrared2": true,
+        "infrared3": true
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 124,
+      "targetTemperatureC": 149.46735089443393,
+      "chamberTemperatureC": 145.75,
+      "boardTemperatureC": 35.75,
+      "heating": true,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": true,
+        "infrared2": true,
+        "infrared3": true
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 125.1,
+      "targetTemperatureC": 150.28664018193393,
+      "chamberTemperatureC": 147.5,
+      "boardTemperatureC": 35.5,
+      "heating": false,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": false,
+        "infrared2": false,
+        "infrared3": false
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 126.1,
+      "targetTemperatureC": 151.12314749924525,
+      "chamberTemperatureC": 148.25,
+      "boardTemperatureC": 36,
+      "heating": true,
+      "heatOutputs": {
+        "topHeater": true,
+        "bottomHeater": true,
+        "infrared": true,
+        "infrared2": true,
+        "infrared3": true
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 128.1,
+      "targetTemperatureC": 152.7586709264623,
+      "chamberTemperatureC": 148.75,
+      "boardTemperatureC": 35.25,
+      "heating": true,
+      "heatOutputs": {
+        "topHeater": true,
+        "bottomHeater": true,
+        "infrared": true,
+        "infrared2": true,
+        "infrared3": true
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 129.2,
+      "targetTemperatureC": 153.5791057316981,
+      "chamberTemperatureC": 150.25,
+      "boardTemperatureC": 36,
+      "heating": true,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": true,
+        "infrared2": true,
+        "infrared3": true
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 130.2,
+      "targetTemperatureC": 154.41700251433957,
+      "chamberTemperatureC": 151.75,
+      "boardTemperatureC": 36,
+      "heating": false,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": false,
+        "infrared2": false,
+        "infrared3": false
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 131.2,
+      "targetTemperatureC": 155.23550528561321,
+      "chamberTemperatureC": 152.5,
+      "boardTemperatureC": 36,
+      "heating": true,
+      "heatOutputs": {
+        "topHeater": true,
+        "bottomHeater": true,
+        "infrared": true,
+        "infrared2": true,
+        "infrared3": true
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 133.3,
+      "targetTemperatureC": 156.88036500136792,
+      "chamberTemperatureC": 153.5,
+      "boardTemperatureC": 35.25,
+      "heating": true,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": true,
+        "infrared2": true,
+        "infrared3": true
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 134.3,
+      "targetTemperatureC": 157.71083034066032,
+      "chamberTemperatureC": 155.25,
+      "boardTemperatureC": 35.5,
+      "heating": false,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": false,
+        "infrared2": false,
+        "infrared3": false
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 135.3,
+      "targetTemperatureC": 158.52813310679244,
+      "chamberTemperatureC": 156,
+      "boardTemperatureC": 35.75,
+      "heating": true,
+      "heatOutputs": {
+        "topHeater": true,
+        "bottomHeater": true,
+        "infrared": true,
+        "infrared2": true,
+        "infrared3": true
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 137.4,
+      "targetTemperatureC": 160.16498380740563,
+      "chamberTemperatureC": 157,
+      "boardTemperatureC": 36,
+      "heating": true,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": true,
+        "infrared2": true,
+        "infrared3": true
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 138.4,
+      "targetTemperatureC": 160.9948299457547,
+      "chamberTemperatureC": 158.25,
+      "boardTemperatureC": 36,
+      "heating": false,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": false,
+        "infrared2": false,
+        "infrared3": false
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 139.4,
+      "targetTemperatureC": 161.81620068117923,
+      "chamberTemperatureC": 159.25,
+      "boardTemperatureC": 36,
+      "heating": true,
+      "heatOutputs": {
+        "topHeater": true,
+        "bottomHeater": true,
+        "infrared": true,
+        "infrared2": true,
+        "infrared3": true
+      },
+      "cooling": false,
+      "cycle": 1
+    },
+    {
+      "elapsedSeconds": 141.5,
+      "targetTemperatureC": 163.45602559193395,
+      "chamberTemperatureC": 160.5,
+      "boardTemperatureC": 36.25,
+      "heating": true,
+      "heatOutputs": {
+        "topHeater": false,
+        "bottomHeater": false,
+        "infrared": true,
+        "infrared2": true,
+        "infrared3": true
+      },
+      "cooling": false,
+      "cycle": 1
+    }
+  ],
+  "events": [
+    {
+      "at": "2026-10-20T05:11:40.784Z",
+      "message": "Запуск профиля"
+    },
+    {
+      "at": "2026-10-20T05:14:02.751Z",
+      "message": "Остановлено"
+    }
+  ]
+}

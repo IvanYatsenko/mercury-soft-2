@@ -1,5 +1,6 @@
 import { existsSync } from 'node:fs';
 import { loadEnvFile } from 'node:process';
+import { isIP } from 'node:net';
 
 const envFile = new URL('../../../.env', import.meta.url);
 if (existsSync(envFile)) loadEnvFile(envFile);
@@ -14,12 +15,28 @@ function readPort(name: string, fallback: number): number {
 }
 
 const controllerMode = process.env.MERCURY_CONTROLLER_MODE ?? 'simulation';
+const apiHost = process.env.MERCURY_API_HOST ?? '127.0.0.1';
+if (!isIP(apiHost))
+  throw new Error('MERCURY_API_HOST: укажи IP-адрес привязки сервера.');
+const hardwareTemperatureLimit = Number(
+  process.env.MERCURY_HARDWARE_MAX_TEMPERATURE_C ?? 50,
+);
+if (
+  !Number.isFinite(hardwareTemperatureLimit) ||
+  hardwareTemperatureLimit < 1 ||
+  hardwareTemperatureLimit > 280
+)
+  throw new Error(
+    'MERCURY_HARDWARE_MAX_TEMPERATURE_C: укажи предел от 1 до 280 °C.',
+  );
 if (controllerMode !== 'simulation' && controllerMode !== 'hardware') {
   throw new Error('MERCURY_CONTROLLER_MODE: укажи simulation или hardware.');
 }
 
 export const config = {
+  apiHost,
   controllerMode,
+  hardwareTemperatureLimit,
   serialPort:
     !process.env.MERCURY_SERIAL_PORT ||
     process.env.MERCURY_SERIAL_PORT === 'auto'

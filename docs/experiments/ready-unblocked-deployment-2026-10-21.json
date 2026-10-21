@@ -1,0 +1,12 @@
+{
+  "M300": {
+    "assetMatches": true,
+    "ready": true,
+    "heatOff": true
+  },
+  "M400": {
+    "assetMatches": true,
+    "ready": true,
+    "heatOff": true
+  }
+}

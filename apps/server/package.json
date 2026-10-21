@@ -4,10 +4,11 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsc -p tsconfig.json && node ../../node_modules/concurrently/dist/bin/concurrently.js --kill-others -n types,api \"tsc -w -p tsconfig.json --preserveWatchOutput\" \"node --watch dist/index.js\"",
+    "dev": "pnpm --filter @mercury/shared build && tsc -p tsconfig.json && node ../../node_modules/concurrently/dist/bin/concurrently.js --kill-others -n shared,types,api \"pnpm --filter @mercury/shared dev\" \"tsc -w -p tsconfig.json --preserveWatchOutput\" \"node --watch dist/index.js\"",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "node --test tests/*.test.mjs"
   },
   "dependencies": {
     "@mercury/shared": "workspace:*",

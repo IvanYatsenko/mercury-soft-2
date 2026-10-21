@@ -1,0 +1,11 @@
+#!/bin/sh
+set -eu
+package_directory="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+export PATH="$package_directory/runtime/bin:$PATH"
+export MERCURY_CONFIG_PATH="$HOME/.config/mercury-v3/config.json"
+export MERCURY_DATABASE_PATH="$HOME/.config/mercury-v3/profiles.sqlite"
+cd "$package_directory/program"
+# Do not duplicate application logs in the old service's system journal.
+exec >/dev/null 2>&1
+node release/migrate-v2.mjs
+exec node release/launch.mjs

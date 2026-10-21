@@ -1,0 +1,165 @@
+{
+  "removed": [
+    {
+      "board": false,
+      "mode": "manual",
+      "name": "Acceptance M400-230 1792564293799608700",
+      "points": [
+        {
+          "second": 0,
+          "temperature": 30
+        },
+        {
+          "second": 212,
+          "temperature": 200
+        },
+        {
+          "second": 110,
+          "temperature": 200
+        },
+        {
+          "second": 75,
+          "temperature": 260
+        },
+        {
+          "second": 30,
+          "temperature": 260
+        },
+        {
+          "second": 150,
+          "temperature": 200
+        },
+        {
+          "second": 167,
+          "temperature": 150
+        },
+        {
+          "second": 250,
+          "temperature": 100
+        }
+      ],
+      "shelves": [
+        {
+          "second": 110,
+          "temperature": 200
+        },
+        {
+          "second": 30,
+          "temperature": 260
+        },
+        {
+          "second": 400,
+          "temperature": 100
+        }
+      ],
+      "repeat": 1,
+      "id": "e1b1d9d7-97cc-4d14-9d24-d20bf48f3f01"
+    },
+    {
+      "name": "Acceptance repeats M400-230 1792566384802183800",
+      "mode": "manual",
+      "board": false,
+      "repeat": 2,
+      "points": [
+        {
+          "second": 0,
+          "temperature": 50
+        },
+        {
+          "second": 60,
+          "temperature": 100
+        },
+        {
+          "second": 15,
+          "temperature": 100
+        }
+      ],
+      "shelves": [
+        {
+          "second": 15,
+          "temperature": 100
+        },
+        {
+          "second": 0,
+          "temperature": 100
+        },
+        {
+          "second": 0,
+          "temperature": 100
+        }
+      ],
+      "id": "a1d0b11a-c6af-4afd-a1c2-619880ed4579"
+    },
+    {
+      "name": "Приёмка дверь/пауза/авария 1792569596260415000",
+      "mode": "manual",
+      "board": false,
+      "repeat": 1,
+      "points": [
+        {
+          "second": 0,
+          "temperature": 50
+        },
+        {
+          "second": 60,
+          "temperature": 65
+        },
+        {
+          "second": 600,
+          "temperature": 65
+        }
+      ],
+      "shelves": [
+        {
+          "second": 0,
+          "temperature": 50
+        },
+        {
+          "second": 600,
+          "temperature": 65
+        },
+        {
+          "second": 0,
+          "temperature": 50
+        }
+      ],
+      "id": "e33b136a-1700-4efc-85e1-31c572f325ba"
+    },
+    {
+      "name": "Приёмка дверь/пауза/авария 100 C 1792569867666662300",
+      "mode": "manual",
+      "board": false,
+      "repeat": 1,
+      "points": [
+        {
+          "second": 0,
+          "temperature": 50
+        },
+        {
+          "second": 60,
+          "temperature": 100
+        },
+        {
+          "second": 300,
+          "temperature": 100
+        }
+      ],
+      "shelves": [
+        {
+          "second": 0,
+          "temperature": 50
+        },
+        {
+          "second": 300,
+          "temperature": 100
+        },
+        {
+          "second": 0,
+          "temperature": 100
+        }
+      ],
+      "id": "9d6b83a3-4cd3-4809-ae93-0ace8d3ba1cf"
+    }
+  ],
+  "selectedId": "adac1818-df3c-4b2b-91e7-54d29240effd"
+}

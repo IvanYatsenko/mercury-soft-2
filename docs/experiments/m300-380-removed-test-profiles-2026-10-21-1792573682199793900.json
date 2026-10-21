@@ -1,0 +1,60 @@
+{
+  "removed": [
+    {
+      "board": false,
+      "mode": "manual",
+      "name": "Acceptance M300-380 1792572538611295900",
+      "points": [
+        {
+          "second": 0,
+          "temperature": 30
+        },
+        {
+          "second": 212,
+          "temperature": 200
+        },
+        {
+          "second": 110,
+          "temperature": 200
+        },
+        {
+          "second": 75,
+          "temperature": 260
+        },
+        {
+          "second": 30,
+          "temperature": 260
+        },
+        {
+          "second": 150,
+          "temperature": 200
+        },
+        {
+          "second": 167,
+          "temperature": 150
+        },
+        {
+          "second": 250,
+          "temperature": 100
+        }
+      ],
+      "shelves": [
+        {
+          "second": 110,
+          "temperature": 200
+        },
+        {
+          "second": 30,
+          "temperature": 260
+        },
+        {
+          "second": 400,
+          "temperature": 100
+        }
+      ],
+      "repeat": 1,
+      "id": "d6e83fd7-f3b9-4d81-bb8b-3063af03bb36"
+    }
+  ],
+  "selectedId": "ea14e9b0-34d9-4e13-9d9e-6aa3fb552061"
+}

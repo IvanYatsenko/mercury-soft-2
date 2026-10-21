@@ -1,0 +1,40 @@
+{
+  "removed": [
+    {
+      "name": "Acceptance warm start M300-380 1792571182514474700",
+      "mode": "manual",
+      "board": false,
+      "repeat": 1,
+      "points": [
+        {
+          "second": 0,
+          "temperature": 50
+        },
+        {
+          "second": 125,
+          "temperature": 150
+        },
+        {
+          "second": 30,
+          "temperature": 150
+        }
+      ],
+      "shelves": [
+        {
+          "second": 0,
+          "temperature": 50
+        },
+        {
+          "second": 30,
+          "temperature": 150
+        },
+        {
+          "second": 0,
+          "temperature": 150
+        }
+      ],
+      "id": "23c191a1-6c21-423d-a6da-06c28a8bc1e8"
+    }
+  ],
+  "selectedId": "ea14e9b0-34d9-4e13-9d9e-6aa3fb552061"
+}

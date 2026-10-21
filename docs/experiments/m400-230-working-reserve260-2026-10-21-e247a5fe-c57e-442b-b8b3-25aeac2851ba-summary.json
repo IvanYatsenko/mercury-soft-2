@@ -1,0 +1,36 @@
+{
+  "source": "m400-230-working-reserve260-2026-10-21-e247a5fe-c57e-442b-b8b3-25aeac2851ba.json",
+  "sensor": "chamberTemperatureC",
+  "samples": 931,
+  "cyclesObserved": [1],
+  "shelves": [
+    {
+      "cycle": 1,
+      "targetC": 200,
+      "count": 108,
+      "meanErrorC": 0.137,
+      "minErrorC": -1.5,
+      "maxErrorC": 1.75,
+      "lastErrorC": -0.25,
+      "afterFirst5Seconds": {
+        "meanErrorC": 0.204,
+        "minErrorC": -1,
+        "maxErrorC": 1.75
+      }
+    },
+    {
+      "cycle": 1,
+      "targetC": 260,
+      "count": 30,
+      "meanErrorC": -0.467,
+      "minErrorC": -1.25,
+      "maxErrorC": 0.5,
+      "lastErrorC": 0.25,
+      "afterFirst5Seconds": {
+        "meanErrorC": -0.51,
+        "minErrorC": -1.25,
+        "maxErrorC": 0.5
+      }
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "removed": [
+    {
+      "name": "Acceptance warm start M400-230 1792571182391681400",
+      "mode": "manual",
+      "board": false,
+      "repeat": 1,
+      "points": [
+        {
+          "second": 0,
+          "temperature": 50
+        },
+        {
+          "second": 125,
+          "temperature": 150
+        },
+        {
+          "second": 30,
+          "temperature": 150
+        }
+      ],
+      "shelves": [
+        {
+          "second": 0,
+          "temperature": 50
+        },
+        {
+          "second": 30,
+          "temperature": 150
+        },
+        {
+          "second": 0,
+          "temperature": 150
+        }
+      ],
+      "id": "27a57b4b-a6cc-4bf9-a040-e757516cad99"
+    }
+  ],
+  "selectedId": "adac1818-df3c-4b2b-91e7-54d29240effd"
+}

@@ -7,6 +7,11 @@ import type {
   OvenConfiguration,
   OvenModel,
   OvenSelection,
+  TemperatureRate,
+} from '@mercury/shared';
+import {
+  defaultThermalSettings,
+  validateThermalSettings,
 } from '@mercury/shared';
 
 const ovensDirectory = fileURLToPath(
@@ -65,11 +70,45 @@ function readOvenModels(): Map<OvenModel, OvenConfiguration> {
 
 const ovenModels = readOvenModels();
 
-export function listOvenModels(): { model: OvenModel; name: string }[] {
-  return Array.from(ovenModels.values(), ({ model, name }) => ({
-    model,
-    name,
+export function listOvenModels(): {
+  model: OvenModel;
+  name: string;
+  heatingRate: TemperatureRate;
+  coolingRate: TemperatureRate;
+}[] {
+  return Array.from(ovenModels.values(), (model) => ({
+    model: model.model,
+    name: model.name,
+    ...getProfileRates(model),
   }));
+}
+
+export function getProfileRates(model: OvenConfiguration): {
+  heatingRate: TemperatureRate;
+  coolingRate: TemperatureRate;
+} {
+  const response = getMeasuredResponse(model);
+  const bands = response?.temperatureBands;
+  const coolingBands = response?.coolingPlanning?.temperatureBands ?? bands;
+  return {
+    heatingRate:
+      bands && readThermalSettings().mode === 'combined'
+        ? { fallback: model.specifications.maximumHeatingRateCPerSecond, bands }
+        : model.specifications.maximumHeatingRateCPerSecond,
+    coolingRate: coolingBands
+      ? {
+          fallback: model.specifications.maximumCoolingRateCPerSecond,
+          bands: coolingBands,
+        }
+      : model.specifications.maximumCoolingRateCPerSecond,
+  };
+}
+
+export function getMeasuredResponse(model: OvenConfiguration) {
+  const voltage = readOvenSelection()?.connectionVoltage;
+  if (!voltage) return undefined;
+  const response = model.measuredResponses?.[voltage] ?? model.measuredResponse;
+  return response?.connectionVoltage === voltage ? response : undefined;
 }
 
 export function getOvenModel(model: OvenModel): OvenConfiguration | undefined {
@@ -136,19 +175,106 @@ export async function saveOvenSelection(
     ovenModel: value.ovenModel,
     connectionVoltage: value.connectionVoltage,
   };
-  const temporaryPath = join(
-    dirname(configPath),
-    `.${basename(configPath)}.${process.pid}.${randomUUID()}.tmp`,
-  );
-  try {
-    await writeFile(
-      temporaryPath,
-      `${JSON.stringify(selected, null, 2)}\n`,
-      'utf8',
-    );
-    await rename(temporaryPath, configPath);
-  } finally {
-    await rm(temporaryPath, { force: true });
-  }
+  const firstSetup = !existsSync(configPath);
+  await updateConfig({
+    ...selected,
+    ...(firstSetup
+      ? {
+          keepHeatEnabled: false,
+          thermalControlModel: selected.ovenModel,
+          thermalControl: { ...defaultThermalSettings, mode: 'combined' },
+        }
+      : {}),
+  });
   return selected;
+}
+
+let pendingConfigWrite: Promise<void> = Promise.resolve();
+export async function flushConfigWrites() {
+  await pendingConfigWrite;
+}
+export function readThermalSettings() {
+  const parsed = existsSync(configPath)
+    ? JSON.parse(readFileSync(configPath, 'utf8'))
+    : {};
+  const saved =
+    parsed.thermalControlModel === readOvenSelection()?.ovenModel
+      ? parsed.thermalControl
+      : undefined;
+  return validateThermalSettings({
+    ...(saved ?? defaultThermalSettings),
+    auxiliaryPowerW: 0,
+    powersW: {
+      ...defaultThermalSettings.powersW,
+      ...getOvenModel(readOvenSelection()?.ovenModel ?? '300')?.heatingLoads,
+    },
+  });
+}
+export async function saveThermalSettings(value: unknown) {
+  const settings = validateThermalSettings(value);
+  await updateConfig({
+    thermalControl: settings,
+    thermalLoadPowersW: settings.powersW,
+    thermalControlModel: readOvenSelection()?.ovenModel,
+  });
+  return settings;
+}
+
+export function readKeepHeatEnabled(): boolean {
+  if (!existsSync(configPath)) return false;
+  return JSON.parse(readFileSync(configPath, 'utf8')).keepHeatEnabled === true;
+}
+export async function saveKeepHeatEnabled(enabled: unknown): Promise<boolean> {
+  if (typeof enabled !== 'boolean')
+    throw new Error('Ожидается включено/выключено.');
+  await updateConfig({ keepHeatEnabled: enabled });
+  return enabled;
+}
+function updateConfig(patch: Record<string, unknown>): Promise<void> {
+  const operation = pendingConfigWrite.then(async () => {
+    const current = existsSync(configPath)
+      ? JSON.parse(readFileSync(configPath, 'utf8'))
+      : {};
+    const temporaryPath = join(
+      dirname(configPath),
+      '.' + basename(configPath) + '.' + randomUUID() + '.tmp',
+    );
+    try {
+      await writeFile(
+        temporaryPath,
+        JSON.stringify({ ...current, ...patch }, null, 2) + '\n',
+        'utf8',
+      );
+      await rename(temporaryPath, configPath);
+    } finally {
+      await rm(temporaryPath, { force: true });
+    }
+  });
+  pendingConfigWrite = operation.catch(() => {});
+  return operation;
+}
+
+export function readFanReferenceHz(): number {
+  if (!existsSync(configPath)) return 50;
+  const parsed = JSON.parse(readFileSync(configPath, 'utf8'));
+  const value = parsed.fanReferenceHz ?? parsed.fanTarget;
+  return typeof value === 'number' &&
+    Number.isFinite(value) &&
+    value >= 1 &&
+    value <= 1000
+    ? value
+    : 50;
+}
+
+export async function saveFanReferenceHz(value: unknown): Promise<number> {
+  if (
+    typeof value !== 'number' ||
+    !Number.isFinite(value) ||
+    value < 1 ||
+    value > 1000
+  ) {
+    throw new Error('Эталонная частота должна быть от 1 до 1000 Гц.');
+  }
+  await updateConfig({ fanReferenceHz: value });
+  return value;
 }

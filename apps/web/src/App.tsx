@@ -1,3 +1,5 @@
+import type { TemperatureRate } from '@mercury/shared';
+import { buildRunPlan } from '@mercury/shared';
 import { useEffect, useRef, useState } from 'react';
 import {
   Alert,
@@ -17,12 +19,21 @@ import {
   RadioGroup,
   Snackbar,
   Stack,
+  Switch,
   SvgIcon,
   Typography,
 } from '@mui/material';
-import type { OvenModel, OvenSelection, Profile } from '@mercury/shared';
+import type {
+  OvenModel,
+  OvenSelection,
+  Profile,
+  RunStatus,
+} from '@mercury/shared';
 import { OvenSelectionForm, type SelectionDraft } from './OvenSelectionForm';
 import { ProfileEditorPage } from './ProfileEditorPage';
+import { ProfileChart } from './ProfileChart';
+import { HistoryPage } from './HistoryPage';
+import { RunProcessWindow } from './RunProcessWindow';
 import { SettingsPage, type OvenSettings } from './SettingsPage';
 import { WifiPage, type WifiStatus } from './WifiPage';
 
@@ -35,19 +46,6 @@ function formatDuration(seconds: number) {
   return `${Math.floor(seconds / 60)} мин`;
 }
 
-function formatWorkDuration(seconds: number) {
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  const remainingSeconds = seconds % 60;
-  return [
-    ...(hours ? [`${hours} ч`] : []),
-    ...(minutes || hours ? [`${minutes} мин`] : []),
-    ...(remainingSeconds || (!hours && !minutes)
-      ? [`${remainingSeconds} с`]
-      : []),
-  ].join(' ');
-}
-
 function temperatureColor(temperature: number | null | undefined) {
   if (temperature == null) return 'text.disabled';
   if (temperature < 50) return 'success.main';
@@ -55,45 +53,10 @@ function temperatureColor(temperature: number | null | undefined) {
   return 'error.main';
 }
 
-function ProfileMetric({
-  kind,
-  label,
-  value,
-  color = 'text.primary',
-}: {
-  kind: 'temperature' | 'duration' | 'repeat' | 'total';
-  label: string;
-  value: string;
-  color?: string;
-}) {
-  const paths = {
-    temperature:
-      'M15 13V5a3 3 0 0 0-6 0v8a5 5 0 1 0 6 0ZM12 3a2 2 0 0 1 2 2v8.5a4 4 0 1 1-4 0V5a2 2 0 0 1 2-2Zm-1 3v8.2a3 3 0 1 0 2 0V6h-2Z',
-    duration:
-      'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm0 2a8 8 0 1 1 0 16 8 8 0 0 1 0-16Zm-1 2v7l5 3 1-1.7-4-2.3V6h-2Z',
-    repeat:
-      'M17 2v3H7a5 5 0 0 0-5 5v2h2v-2a3 3 0 0 1 3-3h10v3l5-4-5-4ZM7 22v-3h10a5 5 0 0 0 5-5v-2h-2v2a3 3 0 0 1-3 3H7v-3l-5 4 5 4Z',
-    total:
-      'M6 2v2h2v3a4 4 0 0 0 1.8 3.3L12 12l-2.2 1.7A4 4 0 0 0 8 17v3H6v2h12v-2h-2v-3a4 4 0 0 0-1.8-3.3L12 12l2.2-1.7A4 4 0 0 0 16 7V4h2V2H6Zm4 2h4v3a2 2 0 0 1-.9 1.7L12 9.5l-1.1-.8A2 2 0 0 1 10 7V4Zm2 10.5 1.1.8A2 2 0 0 1 14 17v3h-4v-3a2 2 0 0 1 .9-1.7l1.1-.8Z',
-  };
-
-  return (
-    <Stack direction="row" spacing={0.5} alignItems="center">
-      <SvgIcon sx={{ fontSize: 15, color: 'text.secondary', flexShrink: 0 }}>
-        <path d={paths[kind]} />
-      </SvgIcon>
-      <Typography variant="caption" sx={{ fontSize: 11, lineHeight: 1.3 }}>
-        {label}:{' '}
-        <Box component="span" sx={{ color, fontWeight: 600 }}>
-          {value}
-        </Box>
-      </Typography>
-    </Stack>
-  );
-}
-
 type ControllerStatus = {
+  doorOpen?: boolean;
   connected: boolean;
+  fanReferenceHz?: number;
   boardType?: '220V' | '230V' | '380V' | 'unknown';
   ready?: boolean;
   state?: number;
@@ -180,7 +143,12 @@ function indicator(
 
 type OvenConfigurationResponse = {
   selected: OvenSelection | null;
-  models: { model: OvenModel; name: string }[];
+  models: {
+    model: OvenModel;
+    name: string;
+    heatingRate?: TemperatureRate;
+    coolingRate?: TemperatureRate;
+  }[];
   error?: string;
 };
 
@@ -204,19 +172,141 @@ export function App({ mode, onToggleMode }: AppProps) {
   const [error, setError] = useState<string | null>(null);
   const [selectedProfile, setSelectedProfile] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState<
-    'profiles' | 'settings' | 'editor' | 'wifi'
+    'profiles' | 'settings' | 'editor' | 'wifi' | 'history'
   >('profiles');
   const [draftProfile, setDraftProfile] = useState<Profile | null>(null);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [settings, setSettings] = useState<OvenSettings>({
     convectionEnabled: true,
-    fanReferenceRpm: 1500,
+    fanReferenceHz: 50,
     reactToFanErrors: true,
     soundOnErrors: true,
     thermalProtection: true,
     thermocoupleCorrection: false,
   });
+  const [savingFanReference, setSavingFanReference] = useState(false);
+  const [runStatus, setRunStatus] = useState<RunStatus | null>(null);
+  const [runBusy, setRunBusy] = useState(false);
+  const [runWindowOpen, setRunWindowOpen] = useState(false);
+  const runActive =
+    runStatus?.state === 'preparing' ||
+    runStatus?.state === 'running' ||
+    runStatus?.state === 'cooling';
+  const holdingActive = runStatus?.holdingTemperatureC === 100;
+  useEffect(() => {
+    if (runActive) setRunWindowOpen(true);
+  }, [runActive]);
+  useEffect(() => {
+    const controller = new AbortController();
+    let timer: number | undefined;
+    const read = async () => {
+      try {
+        const response = await fetch('/api/run', { signal: controller.signal });
+        if (response.ok && !controller.signal.aborted)
+          setRunStatus(await response.json());
+      } catch {
+      } finally {
+        if (!controller.signal.aborted)
+          timer = window.setTimeout(() => void read(), 1000);
+      }
+    };
+    void read();
+    return () => {
+      controller.abort();
+      window.clearTimeout(timer);
+    };
+  }, []);
+  const changeRun = async () => {
+    const selected = profiles.find(
+      (profile) => profile.name === selectedProfile,
+    );
+    setRunBusy(true);
+    try {
+      const response = await fetch(
+        runActive ? '/api/run/stop' : '/api/run/start',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ profileId: selected?.id }),
+        },
+      );
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error);
+      setRunStatus(result);
+      if (!holdingActive) setRunWindowOpen(true);
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : String(error));
+    } finally {
+      setRunBusy(false);
+    }
+  };
   const [notice, setNotice] = useState('');
+  const changePause = async (action: 'pause' | 'resume') => {
+    setRunBusy(true);
+    try {
+      const response = await fetch('/api/run/' + action, { method: 'POST' });
+      const result = await response.json();
+      if (!response.ok)
+        throw new Error(result.error ?? 'Не удалось изменить паузу');
+      setRunStatus(result);
+    } catch (error) {
+      setNotice(String(error));
+    } finally {
+      setRunBusy(false);
+    }
+  };
+  const [keepHeatEnabled, setKeepHeatEnabled] = useState(false);
+  const [keepHeatChanging, setKeepHeatChanging] = useState(false);
+  useEffect(() => {
+    const controller = new AbortController();
+    void fetch('/api/settings/keep-heat', { signal: controller.signal })
+      .then(async (response) => {
+        if (!response.ok)
+          throw new Error('Не удалось загрузить поддержание температуры');
+        const result = await response.json();
+        if (!controller.signal.aborted)
+          setKeepHeatEnabled(result.enabled === true);
+      })
+      .catch((error) => {
+        if (!controller.signal.aborted) setNotice(String(error));
+      });
+    return () => controller.abort();
+  }, []);
+  const changeKeepHeat = async (enabled: boolean) => {
+    setKeepHeatChanging(true);
+    try {
+      const response = await fetch('/api/settings/keep-heat', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enabled }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error);
+      setKeepHeatEnabled(result.enabled);
+    } catch (error) {
+      setNotice(String(error));
+    } finally {
+      setKeepHeatChanging(false);
+    }
+  };
+  const finishRunWindow = async () => {
+    setRunBusy(true);
+    try {
+      const response = await fetch('/api/run/ready', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ runId: runStatus?.id }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error);
+      setRunStatus(result);
+      setRunWindowOpen(false);
+    } catch (error) {
+      setNotice(String(error));
+    } finally {
+      setRunBusy(false);
+    }
+  };
   const [ovenConfiguration, setOvenConfiguration] =
     useState<OvenConfigurationResponse | null>(null);
   const [configurationError, setConfigurationError] = useState<string | null>(
@@ -227,19 +317,39 @@ export function App({ mode, onToggleMode }: AppProps) {
     connectionVoltage: null,
   });
   const [savingSelection, setSavingSelection] = useState(false);
-  const [controllerAction, setControllerAction] = useState(false);
   const [convectionChanging, setConvectionChanging] = useState(false);
   const [controllerStatus, setControllerStatus] =
     useState<ControllerStatus | null>(null);
   const [wifiStatus, setWifiStatus] = useState<WifiStatus | null>(null);
-  const [powerOffDialogOpen, setPowerOffDialogOpen] = useState(false);
   const [aboutDialogOpen, setAboutDialogOpen] = useState(false);
+  const [networkAddresses, setNetworkAddresses] = useState<string[] | null>(
+    null,
+  );
+  const [networkError, setNetworkError] = useState(false);
+
+  useEffect(() => {
+    if (!aboutDialogOpen) return;
+    const controller = new AbortController();
+    setNetworkAddresses(null);
+    setNetworkError(false);
+    void fetch('/api/network', { signal: controller.signal })
+      .then(async (response) => {
+        if (!response.ok) throw new Error('Network status unavailable');
+        const result = (await response.json()) as { addresses: string[] };
+        if (!controller.signal.aborted) setNetworkAddresses(result.addresses);
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) setNetworkError(true);
+      });
+    return () => controller.abort();
+  }, [aboutDialogOpen]);
   const [templatePickerOpen, setTemplatePickerOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState(-1);
   const isFullPage =
     activeSection === 'settings' ||
     activeSection === 'editor' ||
-    activeSection === 'wifi';
+    activeSection === 'wifi' ||
+    activeSection === 'history';
   const contentRef = useRef<HTMLElement | null>(null);
 
   const scrollContent = (direction: -1 | 1) => {
@@ -257,13 +367,20 @@ export function App({ mode, onToggleMode }: AppProps) {
       });
       const result = (await response.json()) as {
         selected?: OvenSelection;
+        models?: OvenConfigurationResponse['models'];
         error?: string;
       };
       if (!response.ok || !result.selected) {
         throw new Error(result.error ?? 'Не удалось сохранить настройки');
       }
       setOvenConfiguration((current) =>
-        current ? { ...current, selected: result.selected ?? null } : current,
+        current
+          ? {
+              ...current,
+              selected: result.selected ?? null,
+              models: result.models ?? current.models,
+            }
+          : current,
       );
       setSelectionDraft(result.selected);
       setConfigurationError(null);
@@ -320,7 +437,7 @@ export function App({ mode, onToggleMode }: AppProps) {
   const beginEditing = (profile: Profile, index: number | null) => {
     setDraftProfile(structuredClone(profile));
     setEditingIndex(index);
-    setSelectedProfile(profile.name);
+    if (index !== null) setSelectedProfile(profile.name);
     setActiveSection('editor');
   };
 
@@ -347,66 +464,71 @@ export function App({ mode, onToggleMode }: AppProps) {
     if (!template) return;
 
     setTemplatePickerOpen(false);
-    beginEditing(structuredClone(template), null);
+    const copy = structuredClone(template);
+    delete copy.id;
+    let suffix = 2;
+    while (profiles.some((profile) => profile.name === copy.name))
+      copy.name = template.name + ' (' + suffix++ + ')';
+    beginEditing(copy, null);
   };
 
-  const saveDraft = () => {
+  const saveDraft = async () => {
     if (!draftProfile) return;
-
-    setProfiles((current) => {
-      if (editingIndex === null) return [...current, draftProfile];
-      return current.map((profile, index) =>
-        index === editingIndex ? draftProfile : profile,
+    try {
+      const existing = editingIndex === null ? null : profiles[editingIndex];
+      const response = await fetch(
+        existing?.id ? '/api/profiles/' + existing.id : '/api/profiles',
+        {
+          method: existing?.id ? 'PUT' : 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(draftProfile),
+        },
       );
-    });
-    setSelectedProfile(draftProfile.name);
-    setDraftProfile(null);
-    setEditingIndex(null);
-    setActiveSection('profiles');
-    setNotice('Сохранено в браузере; на сервер профиль пока не записан');
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error);
+      const saved = result as Profile;
+      setProfiles((current) =>
+        existing
+          ? current.map((profile) =>
+              profile.id === existing.id ? saved : profile,
+            )
+          : [...current, saved],
+      );
+      setSelectedProfile(saved.name);
+      setDraftProfile(null);
+      setEditingIndex(null);
+      setActiveSection('profiles');
+      setNotice('Профиль сохранён');
+    } catch (error) {
+      setNotice(
+        error instanceof Error ? error.message : 'Не удалось сохранить профиль',
+      );
+    }
+  };
+  const deleteDraft = async () => {
+    if (!draftProfile?.id) return;
+    try {
+      const response = await fetch('/api/profiles/' + draftProfile.id, {
+        method: 'DELETE',
+      });
+      if (!response.ok) throw new Error((await response.json()).error);
+      const remaining = profiles.filter(
+        (profile) => profile.id !== draftProfile.id,
+      );
+      setProfiles(remaining);
+      setSelectedProfile(remaining[0]?.name ?? null);
+      setDraftProfile(null);
+      setEditingIndex(null);
+      setActiveSection('profiles');
+    } catch (error) {
+      setNotice(String(error));
+    }
   };
 
   const cancelEditing = () => {
     setDraftProfile(null);
     setEditingIndex(null);
     setActiveSection('profiles');
-  };
-
-  const powerOffBoard = async () => {
-    setControllerAction(true);
-    try {
-      const response = await fetch('/api/controller/poweroff', {
-        method: 'POST',
-      });
-      const result = (await response.json()) as {
-        error?: string;
-        port?: string;
-        simulated?: boolean;
-        connected?: boolean;
-        ready?: boolean;
-        state?: number;
-      };
-      if (!response.ok) {
-        const message = result.error?.includes('504 timeout')
-          ? `Нет подтверждения команды poweroff [5] от платы по ${result.port ?? 'COM-порту'} (504). Проверь питание платы и закрой программы, которые могут занимать этот порт.`
-          : (result.error ?? `Сервер ответил с ошибкой ${response.status}`);
-        throw new Error(message);
-      }
-      setNotice(
-        result.simulated
-          ? 'Симуляция: плата выключена'
-          : 'Команда выключения отправлена плате',
-      );
-    } catch (commandError) {
-      setNotice(
-        commandError instanceof Error
-          ? commandError.message
-          : 'Не удалось отправить команду',
-      );
-    } finally {
-      setControllerAction(false);
-      setPowerOffDialogOpen(false);
-    }
   };
 
   useEffect(() => {
@@ -534,9 +656,48 @@ export function App({ mode, onToggleMode }: AppProps) {
         }
 
         const data = (await response.json()) as Profile[];
-        setProfiles(data);
+        let responseProfiles = await fetch('/api/profiles', {
+          signal: controller.signal,
+        });
+        let savedSelection: string | null = null;
+        const stored = localStorage.getItem('mercury-profiles');
+        if (stored && !localStorage.getItem('mercury-profiles-imported')) {
+          try {
+            const legacy = JSON.parse(stored);
+            if (Array.isArray(legacy?.profiles)) {
+              const imported = await fetch('/api/profiles/import', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ profiles: legacy.profiles }),
+                signal: controller.signal,
+              });
+              if (!imported.ok) throw new Error((await imported.json()).error);
+              responseProfiles = imported;
+              savedSelection = legacy.selected;
+              localStorage.setItem('mercury-profiles-imported', '1');
+            }
+          } catch (importError) {
+            setNotice(
+              'Не удалось перенести старые профили: ' + String(importError),
+            );
+          }
+        }
+        if (!responseProfiles.ok)
+          throw new Error('Не удалось загрузить профили');
+        const result = (await responseProfiles.json()) as {
+          profiles: Profile[];
+          selectedId: string | null;
+        };
+        setProfiles(result.profiles);
         setProfileTemplates(data);
-        setSelectedProfile(data[0]?.name ?? null);
+        setSelectedProfile(
+          result.profiles.find((profile) => profile.id === result.selectedId)
+            ?.name ??
+            result.profiles.find((profile) => profile.name === savedSelection)
+              ?.name ??
+            result.profiles[0]?.name ??
+            null,
+        );
         setError(null);
       } catch (loadError) {
         if (loadError instanceof Error && loadError.name === 'AbortError')
@@ -554,6 +715,30 @@ export function App({ mode, onToggleMode }: AppProps) {
       window.clearTimeout(retryTimer);
     };
   }, []);
+
+  useEffect(() => {
+    if (controllerStatus?.fanReferenceHz !== undefined) {
+      setSettings((current) => ({
+        ...current,
+        fanReferenceHz: controllerStatus.fanReferenceHz!,
+      }));
+    }
+  }, [controllerStatus?.fanReferenceHz]);
+  useEffect(() => {
+    if (isLoading || error) return;
+    const selected = profiles.find(
+      (profile) => profile.name === selectedProfile,
+    );
+    if (!selected?.id) return;
+    const controller = new AbortController();
+    void fetch('/api/profiles/selected', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: selected.id }),
+      signal: controller.signal,
+    }).catch(() => {});
+    return () => controller.abort();
+  }, [profiles, selectedProfile, isLoading, error]);
 
   if (!ovenConfiguration?.selected) {
     return (
@@ -596,24 +781,52 @@ export function App({ mode, onToggleMode }: AppProps) {
   const activeProfile = profiles.find(
     (profile) => profile.name === selectedProfile,
   );
-  const profileUsesBoardSensor = activeProfile?.board ?? false;
-  const profileDuration = activeProfile?.points.reduce(
-    (total, point) => total + point.second,
-    0,
-  );
-  const profileMaxTemperature = activeProfile?.points.reduce<number | null>(
-    (maximum, point) =>
-      maximum === null
-        ? point.temperature
-        : Math.max(maximum, point.temperature),
-    null,
-  );
+  const profileUsesBoardSensor =
+    !holdingActive && (activeProfile?.board ?? false);
   const displayedTemperature = controllerStatus?.connected
     ? profileUsesBoardSensor
       ? controllerStatus.telemetry?.boardTemperatureC
       : controllerStatus.telemetry?.chamberTemperatureC
     : null;
   const boardConnection = boardIndicator(controllerStatus);
+  const fanHz = controllerStatus?.connected
+    ? controllerStatus.telemetry?.convectionFanHz
+    : null;
+  const fanWear =
+    controllerStatus?.telemetry?.convection &&
+    fanHz != null &&
+    controllerStatus.fanReferenceHz
+      ? Math.round(
+          Math.max(
+            0,
+            Math.min(100, (1 - fanHz / controllerStatus.fanReferenceHz) * 100),
+          ),
+        )
+      : null;
+  const confirmFanReference = async () => {
+    setSavingFanReference(true);
+    try {
+      const response = await fetch('/api/settings/fan-reference', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fanReferenceHz: settings.fanReferenceHz }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error);
+      setControllerStatus((current) =>
+        current
+          ? { ...current, fanReferenceHz: result.fanReferenceHz }
+          : current,
+      );
+      setNotice('Эталонная частота сохранена');
+    } catch (error) {
+      setNotice(
+        error instanceof Error ? error.message : 'Не удалось сохранить эталон',
+      );
+    } finally {
+      setSavingFanReference(false);
+    }
+  };
   const sensorTemperature = (
     label: string,
     shortLabel: string,
@@ -634,6 +847,108 @@ export function App({ mode, onToggleMode }: AppProps) {
     </Typography>
   );
 
+  const ovenIndicators = (
+    <Stack
+      aria-label="Индикаторы печи"
+      spacing={0.5}
+      alignItems="center"
+      sx={{ py: 1 }}
+    >
+      <Box
+        role="img"
+        aria-label={
+          controllerStatus?.doorOpen ? 'Дверь открыта' : 'Дверь закрыта'
+        }
+        title={controllerStatus?.doorOpen ? 'Дверь открыта' : 'Дверь закрыта'}
+        sx={{
+          color:
+            !controllerStatus?.connected ||
+            controllerStatus.doorOpen === undefined
+              ? 'text.disabled'
+              : controllerStatus.doorOpen
+                ? runActive
+                  ? '#ff9800'
+                  : 'success.main'
+                : 'text.secondary',
+        }}
+      >
+        <SvgIcon fontSize="small">
+          <path
+            d={
+              controllerStatus?.doorOpen
+                ? 'M4 2h12v2H6v16h10v2H4V2zm4 3 10-3v20l-10-3V5zm7 6v2h2v-2h-2z'
+                : 'M5 2h14v20H5V2zm2 2v16h10V4H7zm7 7h2v2h-2v-2z'
+            }
+          />
+        </SvgIcon>
+      </Box>
+      {indicator(
+        'lamps',
+        'Лампы',
+        controllerStatus?.connected ? controllerStatus.telemetry?.lamps : null,
+      )}
+      {indicator(
+        'heaters',
+        'ТЭНы',
+        controllerStatus?.connected
+          ? controllerStatus.telemetry?.heaters
+          : null,
+      )}
+      {indicator(
+        'fans',
+        'Вентиляторы',
+        controllerStatus?.connected ? controllerStatus.telemetry?.fans : null,
+      )}
+      {indicator(
+        'convection',
+        'Конвекция',
+        controllerStatus?.connected
+          ? controllerStatus.telemetry?.convection
+          : null,
+      )}
+      {fanWear !== null && fanWear > 70 && (
+        <Typography
+          title="Снижение частоты конвекции относительно эталона"
+          sx={{
+            fontSize: 9,
+            lineHeight: 1.2,
+            textAlign: 'center',
+            color: fanWear > 80 ? 'error.main' : '#ff9800',
+          }}
+        >
+          Износ
+          <br />
+          {fanWear}%
+        </Typography>
+      )}
+      <Stack
+        spacing={0.25}
+        alignItems="center"
+        sx={{
+          pt: 0.5,
+          borderTop: 1,
+          borderColor: 'divider',
+          width: '100%',
+        }}
+      >
+        {sensorTemperature(
+          'Камера',
+          'К',
+          controllerStatus?.connected
+            ? controllerStatus.telemetry?.chamberTemperatureC
+            : null,
+        )}
+        {sensorTemperature(
+          'Датчик на плате',
+          'П',
+          controllerStatus?.connected
+            ? controllerStatus.telemetry?.boardTemperatureC
+            : null,
+        )}
+      </Stack>
+    </Stack>
+  );
+
   return (
     <Box
       sx={{
@@ -643,17 +958,37 @@ export function App({ mode, onToggleMode }: AppProps) {
         bgcolor: 'background.default',
       }}
     >
+      <RunProcessWindow
+        indicators={ovenIndicators}
+        open={runWindowOpen}
+        status={runStatus}
+        busy={runBusy}
+        onStop={() => void changeRun()}
+        onPause={() => void changePause('pause')}
+        onResume={() => void changePause('resume')}
+        onClose={() => void finishRunWindow()}
+        heatingRate={
+          ovenConfiguration?.models.find(
+            (model) => model.model === ovenConfiguration.selected?.ovenModel,
+          )?.heatingRate
+        }
+        coolingRate={
+          ovenConfiguration?.models.find(
+            (model) => model.model === ovenConfiguration.selected?.ovenModel,
+          )?.coolingRate
+        }
+      />
       <Box
         sx={{
           width: '100%',
-          maxWidth: 1000,
+          maxWidth: { xs: 1000, md: 1440 },
           height: '100%',
           minHeight: 320,
           mx: 'auto',
           display: 'grid',
           gridTemplateRows: isFullPage
             ? 'minmax(0, 1fr)'
-            : '36px minmax(0, 1fr)',
+            : { xs: '36px minmax(0, 1fr)', md: '56px minmax(0, 1fr)' },
           overflow: 'hidden',
           bgcolor: 'background.paper',
           border: { xs: 0, sm: 1 },
@@ -703,6 +1038,29 @@ export function App({ mode, onToggleMode }: AppProps) {
                 {selectedOvenName}
               </Typography>
             </ButtonBase>
+            <FormControlLabel
+              label="100 °C"
+              title="Поддерживать 100 °C"
+              sx={{
+                m: 0,
+                mr: 2,
+                flexShrink: 0,
+                minHeight: 32,
+                '& .MuiFormControlLabel-label': {
+                  fontSize: 12,
+                  whiteSpace: 'nowrap',
+                },
+              }}
+              control={
+                <Switch
+                  size="small"
+                  checked={keepHeatEnabled}
+                  disabled={keepHeatChanging}
+                  onChange={(_event, checked) => void changeKeepHeat(checked)}
+                  slotProps={{ input: { 'aria-label': 'Поддерживать 100 °C' } }}
+                />
+              }
+            />
             <IconButton
               aria-label={
                 wifiStatus?.connected
@@ -730,18 +1088,6 @@ export function App({ mode, onToggleMode }: AppProps) {
               </SvgIcon>
             </IconButton>
             <IconButton
-              aria-label="Выключить плату"
-              title="Выключение платы: poweroff [5]"
-              disabled={controllerAction}
-              onClick={() => setPowerOffDialogOpen(true)}
-              size="small"
-              sx={{ p: 0.5 }}
-            >
-              <SvgIcon sx={{ fontSize: 16 }}>
-                <path d="M11 2h2v10h-2V2Zm-4.6 3.4 1.4 1.4a7 7 0 1 0 8.4 0l1.4-1.4a9 9 0 1 1-11.2 0Z" />
-              </SvgIcon>
-            </IconButton>
-            <IconButton
               aria-label="Переключить тему"
               onClick={onToggleMode}
               size="small"
@@ -766,6 +1112,7 @@ export function App({ mode, onToggleMode }: AppProps) {
               : {
                   xs: 'minmax(176px, 0.82fr) minmax(0, 1fr)',
                   sm: 'minmax(230px, 0.78fr) minmax(0, 1fr)',
+                  md: 'minmax(0, 1.6fr) minmax(320px, 1fr)',
                 },
           }}
         >
@@ -775,7 +1122,7 @@ export function App({ mode, onToggleMode }: AppProps) {
               aria-label="Состояние печи"
               spacing={0.6}
               sx={{
-                p: 0.75,
+                p: { xs: 0.75, md: 2 },
                 minWidth: 0,
                 minHeight: 0,
                 height: '100%',
@@ -786,18 +1133,18 @@ export function App({ mode, onToggleMode }: AppProps) {
               <Card variant="outlined" sx={{ flex: '0 0 auto' }}>
                 <CardContent
                   sx={{
-                    p: '7px !important',
+                    p: '3px 7px !important',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: 0.2,
+                    gap: 0,
                   }}
                 >
                   <Typography
                     sx={{
                       color: temperatureColor(displayedTemperature),
-                      fontSize: '1.65rem',
+                      fontSize: { xs: '1.65rem', md: '3rem' },
                       fontWeight: 700,
                       lineHeight: 1,
                     }}
@@ -809,7 +1156,7 @@ export function App({ mode, onToggleMode }: AppProps) {
                   <Typography
                     variant="caption"
                     color="text.secondary"
-                    sx={{ fontSize: 10 }}
+                    sx={{ fontSize: { xs: 10, md: 14 } }}
                   >
                     {profileUsesBoardSensor
                       ? 'Датчик на плате'
@@ -818,67 +1165,70 @@ export function App({ mode, onToggleMode }: AppProps) {
                 </CardContent>
               </Card>
 
-              {activeProfile && profileDuration !== undefined && (
-                <Card variant="outlined" sx={{ flex: '0 0 auto' }}>
-                  <CardContent sx={{ p: '7px !important' }}>
-                    <Typography
-                      variant="body2"
-                      noWrap
-                      title={activeProfile.name}
-                      sx={{ fontWeight: 700, mb: 0.5 }}
-                    >
-                      {activeProfile.name}
-                    </Typography>
-                    <Stack spacing={0.25}>
-                      {profileMaxTemperature !== null &&
-                        profileMaxTemperature !== undefined && (
-                          <ProfileMetric
-                            kind="temperature"
-                            label="Макс."
-                            value={`${profileMaxTemperature} °C`}
-                            color={temperatureColor(profileMaxTemperature)}
-                          />
-                        )}
-                      <ProfileMetric
-                        kind="duration"
-                        label="Время"
-                        value={formatWorkDuration(profileDuration)}
-                      />
-                      {activeProfile.repeat !== undefined &&
-                        activeProfile.repeat > 1 && (
-                          <ProfileMetric
-                            kind="repeat"
-                            label="Повторы"
-                            value={String(activeProfile.repeat)}
-                          />
-                        )}
-                      {activeProfile.repeat !== undefined &&
-                        activeProfile.repeat > 1 && (
-                          <ProfileMetric
-                            kind="total"
-                            label="Всего"
-                            value={formatWorkDuration(
-                              profileDuration * activeProfile.repeat,
-                            )}
-                          />
-                        )}
-                    </Stack>
-                  </CardContent>
-                </Card>
+              {activeProfile ? (
+                <ProfileChart
+                  profile={activeProfile}
+                  heatingRate={
+                    ovenConfiguration.models.find(
+                      (model) =>
+                        model.model === ovenConfiguration.selected?.ovenModel,
+                    )?.heatingRate ?? 0.7
+                  }
+                  coolingRate={
+                    ovenConfiguration.models.find(
+                      (model) =>
+                        model.model === ovenConfiguration.selected?.ovenModel,
+                    )?.coolingRate ?? 0.4
+                  }
+                />
+              ) : (
+                <Box sx={{ flex: 1 }} />
               )}
-
-              <Box sx={{ flex: 1 }} />
+              {runStatus?.state !== 'idle' && runStatus && (
+                <Typography
+                  sx={{ fontSize: 10, lineHeight: 1.2 }}
+                  color={runStatus.error ? 'error.main' : 'text.secondary'}
+                >
+                  {runStatus.error ??
+                    (holdingActive
+                      ? 'Поддержание 100 °C'
+                      : runActive
+                        ? (runStatus.state === 'cooling'
+                            ? 'Охлаждение'
+                            : 'Цель: ' +
+                              Math.round(runStatus.targetTemperatureC ?? 0) +
+                              '°') +
+                          ' · ' +
+                          runStatus.cycle +
+                          '/' +
+                          runStatus.cycles +
+                          ' · ' +
+                          Math.floor(runStatus.elapsedSeconds / 60) +
+                          ' мин ' +
+                          (runStatus.elapsedSeconds % 60) +
+                          ' с'
+                        : runStatus.state === 'completed'
+                          ? 'Завершено'
+                          : runStatus.state === 'stopped'
+                            ? 'Остановлено'
+                            : 'Ошибка')}
+                </Typography>
+              )}
               <Stack spacing={0.6}>
                 <Button
                   fullWidth
                   variant="contained"
                   color="success"
                   onClick={() =>
-                    setNotice('Демо: нагрев печи пока не подключён')
+                    runActive ? setRunWindowOpen(true) : void changeRun()
+                  }
+                  disabled={
+                    runBusy ||
+                    (!runActive && (!activeProfile || !controllerStatus?.ready))
                   }
                   sx={{ minHeight: 42, color: 'common.black', fontWeight: 700 }}
                 >
-                  ▶ &nbsp; ПУСК
+                  ▶ ПУСК
                 </Button>
                 <Button
                   fullWidth
@@ -912,7 +1262,7 @@ export function App({ mode, onToggleMode }: AppProps) {
                 overflowY: 'auto',
                 overflowX: 'hidden',
                 overscrollBehavior: 'contain',
-                p: isFullPage ? { xs: 1.25, sm: 2 } : 0.75,
+                p: isFullPage ? { xs: 1.25, sm: 2 } : { xs: 0.75, md: 2 },
               }}
             >
               {activeSection === 'profiles' ? (
@@ -932,10 +1282,23 @@ export function App({ mode, onToggleMode }: AppProps) {
                   {error && <Alert severity="error">{error}</Alert>}
 
                   {profiles.map((profile, index) => {
-                    const duration = profile.points.reduce(
+                    let duration = profile.points.reduce(
                       (total, point) => total + point.second,
                       0,
                     );
+                    try {
+                      const model = ovenConfiguration.models.find(
+                        (item) =>
+                          item.model === ovenConfiguration.selected?.ovenModel,
+                      );
+                      duration = buildRunPlan(
+                        profile,
+                        model?.heatingRate ?? 0.7,
+                        model?.coolingRate ?? 0.4,
+                      ).durationSeconds;
+                    } catch {
+                      /* Drafts without a 50 °C heating section cannot run yet. */
+                    }
                     const isSelected = selectedProfile === profile.name;
 
                     return (
@@ -960,6 +1323,7 @@ export function App({ mode, onToggleMode }: AppProps) {
                             spacing={0.5}
                           >
                             <ButtonBase
+                              disabled={runActive}
                               onClick={() => setSelectedProfile(profile.name)}
                               sx={{ minWidth: 0, flex: 1, textAlign: 'left' }}
                             >
@@ -985,6 +1349,7 @@ export function App({ mode, onToggleMode }: AppProps) {
                               </Box>
                             </ButtonBase>
                             <IconButton
+                              disabled={runActive}
                               aria-label={`Редактировать профиль ${profile.name}`}
                               onClick={() => beginEditing(profile, index)}
                               size="small"
@@ -1030,23 +1395,37 @@ export function App({ mode, onToggleMode }: AppProps) {
                         settings.convectionEnabled,
                     }}
                     onChange={setSettings}
+                    fanHz={fanHz ?? null}
+                    fanWear={fanWear}
+                    onConfirmFanReference={() => void confirmFanReference()}
+                    savingFanReference={savingFanReference}
                     ovenModels={ovenConfiguration.models}
                     ovenSelection={selectionDraft}
                     savedOvenSelection={ovenConfiguration.selected}
                     onOvenSelectionChange={setSelectionDraft}
                     onSaveOvenSelection={() => void saveOvenSelection()}
-                    savingOvenSelection={savingSelection}
+                    savingOvenSelection={
+                      savingSelection || runActive || holdingActive
+                    }
                     detectedBoardType={controllerStatus?.boardType}
                     controllerConnected={controllerStatus?.connected === true}
-                    controllerReady={controllerStatus?.ready === true}
+                    controllerReady={
+                      controllerStatus?.ready === true &&
+                      !runActive &&
+                      !holdingActive
+                    }
                     controllerSimulated={controllerStatus?.simulated === true}
                     onConvectionChange={(enabled) =>
                       void changeConvection(enabled)
                     }
                     convectionChanging={convectionChanging}
                     onBack={closeSettings}
+                    onHistory={() => setActiveSection('history')}
+                    runActive={runActive || holdingActive}
                   />
                 </>
+              ) : activeSection === 'history' ? (
+                <HistoryPage onBack={() => setActiveSection('settings')} />
               ) : activeSection === 'wifi' ? (
                 <WifiPage
                   status={wifiStatus}
@@ -1056,9 +1435,24 @@ export function App({ mode, onToggleMode }: AppProps) {
               ) : draftProfile ? (
                 <ProfileEditorPage
                   profile={draftProfile}
+                  heatingRate={
+                    ovenConfiguration.models.find(
+                      (model) =>
+                        model.model === ovenConfiguration.selected?.ovenModel,
+                    )?.heatingRate ?? 0.7
+                  }
+                  coolingRate={
+                    ovenConfiguration.models.find(
+                      (model) =>
+                        model.model === ovenConfiguration.selected?.ovenModel,
+                    )?.coolingRate ?? 0.4
+                  }
                   onChange={setDraftProfile}
                   onCancel={cancelEditing}
-                  onSave={saveDraft}
+                  onSave={() => void saveDraft()}
+                  {...(draftProfile.id && editingIndex !== null
+                    ? { onDelete: () => void deleteDraft() }
+                    : {})}
                 />
               ) : (
                 <Alert severity="warning">Профиль не выбран</Alert>
@@ -1082,68 +1476,7 @@ export function App({ mode, onToggleMode }: AppProps) {
               >
                 ↑
               </Button>
-              {activeSection === 'profiles' && (
-                <Stack
-                  aria-label="Индикаторы печи"
-                  spacing={0.5}
-                  alignItems="center"
-                  sx={{ py: 1 }}
-                >
-                  {indicator(
-                    'lamps',
-                    'Лампы',
-                    controllerStatus?.connected
-                      ? controllerStatus.telemetry?.lamps
-                      : null,
-                  )}
-                  {indicator(
-                    'heaters',
-                    'ТЭНы',
-                    controllerStatus?.connected
-                      ? controllerStatus.telemetry?.heaters
-                      : null,
-                  )}
-                  {indicator(
-                    'fans',
-                    'Вентиляторы',
-                    controllerStatus?.connected
-                      ? controllerStatus.telemetry?.fans
-                      : null,
-                  )}
-                  {indicator(
-                    'convection',
-                    'Конвекция',
-                    controllerStatus?.connected
-                      ? controllerStatus.telemetry?.convection
-                      : null,
-                  )}
-                  <Stack
-                    spacing={0.25}
-                    alignItems="center"
-                    sx={{
-                      pt: 0.5,
-                      borderTop: 1,
-                      borderColor: 'divider',
-                      width: '100%',
-                    }}
-                  >
-                    {sensorTemperature(
-                      'Камера',
-                      'К',
-                      controllerStatus?.connected
-                        ? controllerStatus.telemetry?.chamberTemperatureC
-                        : null,
-                    )}
-                    {sensorTemperature(
-                      'Датчик на плате',
-                      'П',
-                      controllerStatus?.connected
-                        ? controllerStatus.telemetry?.boardTemperatureC
-                        : null,
-                    )}
-                  </Stack>
-                </Stack>
-              )}
+              {activeSection === 'profiles' && ovenIndicators}
               <Button
                 aria-label="Прокрутить вниз"
                 onClick={() => scrollContent(1)}
@@ -1171,31 +1504,18 @@ export function App({ mode, onToggleMode }: AppProps) {
         <DialogTitle id="about-title">{selectedOvenName}</DialogTitle>
         <DialogContent>
           <Typography>Версия ПО: {__APP_VERSION__}</Typography>
+          <Typography sx={{ mt: 1, overflowWrap: 'anywhere' }}>
+            {networkError
+              ? 'Не удалось узнать IP-адрес'
+              : networkAddresses === null
+                ? 'Проверка подключения…'
+                : networkAddresses.length
+                  ? `IP: ${networkAddresses.join(', ')}`
+                  : 'Не подключена к сети'}
+          </Typography>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setAboutDialogOpen(false)}>Закрыть</Button>
-        </DialogActions>
-      </Dialog>
-
-      <Dialog
-        open={powerOffDialogOpen}
-        onClose={() => setPowerOffDialogOpen(false)}
-      >
-        <DialogTitle>Выключить плату?</DialogTitle>
-        <DialogContent>
-          Будет отправлена команда <code>poweroff [5]</code>. Raspberry Pi
-          останется включённой.
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setPowerOffDialogOpen(false)}>Отмена</Button>
-          <Button
-            color="error"
-            variant="contained"
-            disabled={controllerAction}
-            onClick={() => void powerOffBoard()}
-          >
-            Выключить плату
-          </Button>
         </DialogActions>
       </Dialog>
 

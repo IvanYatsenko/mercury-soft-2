@@ -1,0 +1,7 @@
+{
+  "code": 409,
+  "response": {
+    "error": "Error: Дождись охлаждения до 50 °C."
+  },
+  "temperatureC": 53.75
+}

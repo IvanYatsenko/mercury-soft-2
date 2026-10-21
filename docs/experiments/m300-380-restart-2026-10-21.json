@@ -1,0 +1,77 @@
+{
+  "model": "M300",
+  "host": "10.10.1.88",
+  "preserved": {
+    "selected": {
+      "ovenModel": "300",
+      "connectionVoltage": "380"
+    },
+    "profilesSha256": "744b60c708e2d80ff2753e84e452bbc3b4f8bb882d585a94160c8b25dcb2e6d7",
+    "profileCount": 6,
+    "thermal": {
+      "mode": "combined",
+      "kp": 0.075,
+      "ki": 0.0003,
+      "kd": 1.4,
+      "lookaheadSeconds": 10,
+      "coolingDeadbandC": 0.5,
+      "auxiliaryPowerW": 0,
+      "powersW": {
+        "topHeater": 1200,
+        "bottomHeater": 1200,
+        "infrared": 2600,
+        "infrared2": 2600,
+        "infrared3": 0
+      }
+    },
+    "keepHeat": {
+      "enabled": false
+    },
+    "historyIds": [
+      "0fe2da80-96a2-40c2-85fe-14fac9480b8b",
+      "1a2b150a-5252-410d-b38a-6c7b98f24faa",
+      "8b0efbc2-e185-4499-9315-ab35d8fdb783",
+      "a3866c34-4ab3-4171-be84-eb5c79ccc0fd",
+      "c6b9671c-49b4-459a-b7a9-18027eaf1b0e",
+      "e9d8c0dc-f55a-4b39-9d04-fc859e6357f0"
+    ]
+  },
+  "board": {
+    "connected": true,
+    "port": "/dev/ttyS0",
+    "protocolVersion": 2,
+    "boardType": "380V",
+    "ready": true,
+    "state": 1,
+    "readData": [35, 180, 127, 47, 1],
+    "telemetry": {
+      "chamberTemperatureC": 45,
+      "boardTemperatureC": 31.75,
+      "convectionFanHz": 47,
+      "lamps": false,
+      "heaters": false,
+      "fans": false,
+      "convection": true
+    },
+    "doorOpen": true,
+    "fanReferenceHz": 50
+  },
+  "run": {
+    "id": null,
+    "state": "idle",
+    "profileName": null,
+    "cycle": 0,
+    "cycles": 0,
+    "stage": 0,
+    "elapsedSeconds": 0,
+    "remainingSeconds": 0,
+    "targetTemperatureC": null,
+    "measuredTemperatureC": null,
+    "error": null,
+    "paused": false,
+    "doorOpen": false,
+    "holdingTemperatureC": null,
+    "pendingReady": false,
+    "canAcknowledge": true
+  }
+}

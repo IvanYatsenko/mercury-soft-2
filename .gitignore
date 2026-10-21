@@ -5,6 +5,7 @@ coverage/
 .env.*
 !.env.example
 /config.json
+/data/
 /.config.json.*.tmp
 *.log
 *.tsbuildinfo
@@ -12,3 +13,6 @@ coverage/
 Thumbs.db
 .idea/
 .pnpm-store/
+/release/
+/.test-tmp/
+__pycache__/

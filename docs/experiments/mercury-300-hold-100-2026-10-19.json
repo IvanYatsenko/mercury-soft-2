@@ -1,0 +1,1028 @@
+{
+  "date": "2026-10-19",
+  "targetTemperatureC": 100,
+  "outcome": "observed-120s-after-98",
+  "first98Seconds": 86.9,
+  "samples": [
+    {
+      "second": 0.2,
+      "telemetry": {
+        "chamberTemperatureC": 29,
+        "boardTemperatureC": 27,
+        "convectionFanHz": 46,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "error": null
+    },
+    {
+      "second": 3.3,
+      "telemetry": {
+        "chamberTemperatureC": 29,
+        "boardTemperatureC": 27,
+        "convectionFanHz": 43,
+        "lamps": true,
+        "heaters": true,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "error": null
+    },
+    {
+      "second": 6.4,
+      "telemetry": {
+        "chamberTemperatureC": 31,
+        "boardTemperatureC": 27,
+        "convectionFanHz": 42,
+        "lamps": true,
+        "heaters": true,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "error": null
+    },
+    {
+      "second": 9.6,
+      "telemetry": {
+        "chamberTemperatureC": 34,
+        "boardTemperatureC": 27,
+        "convectionFanHz": 43,
+        "lamps": true,
+        "heaters": true,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "error": null
+    },
+    {
+      "second": 12.7,
+      "telemetry": {
+        "chamberTemperatureC": 37,
+        "boardTemperatureC": 27,
+        "convectionFanHz": 43,
+        "lamps": true,
+        "heaters": true,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "error": null
+    },
+    {
+      "second": 15.7,
+      "telemetry": {
+        "chamberTemperatureC": 42,
+        "boardTemperatureC": 27,
+        "convectionFanHz": 44,
+        "lamps": true,
+        "heaters": true,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "error": null
+    },
+    {
+      "second": 18.8,
+      "telemetry": {
+        "chamberTemperatureC": 46,
+        "boardTemperatureC": 27,
+        "convectionFanHz": 44,
+        "lamps": true,
+        "heaters": true,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "error": null
+    },
+    {
+      "second": 21.9,
+      "telemetry": {
+        "chamberTemperatureC": 49,
+        "boardTemperatureC": 27,
+        "convectionFanHz": 45,
+        "lamps": true,
+        "heaters": true,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "error": null
+    },
+    {
+      "second": 25.0,
+      "telemetry": {
+        "chamberTemperatureC": 53,
+        "boardTemperatureC": 27,
+        "convectionFanHz": 45,
+        "lamps": true,
+        "heaters": true,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "error": null
+    },
+    {
+      "second": 28.1,
+      "telemetry": {
+        "chamberTemperatureC": 57,
+        "boardTemperatureC": 27,
+        "convectionFanHz": 45,
+        "lamps": true,
+        "heaters": true,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "error": null
+    },
+    {
+      "second": 31.2,
+      "telemetry": {
+        "chamberTemperatureC": 59,
+        "boardTemperatureC": 27,
+        "convectionFanHz": 45,
+        "lamps": true,
+        "heaters": true,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "error": null
+    },
+    {
+      "second": 34.3,
+      "telemetry": {
+        "chamberTemperatureC": 65,
+        "boardTemperatureC": 28,
+        "convectionFanHz": 46,
+        "lamps": true,
+        "heaters": true,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "error": null
+    },
+    {
+      "second": 37.4,
+      "telemetry": {
+        "chamberTemperatureC": 68,
+        "boardTemperatureC": 28,
+        "convectionFanHz": 46,
+        "lamps": true,
+        "heaters": true,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "error": null
+    },
+    {
+      "second": 40.6,
+      "telemetry": {
+        "chamberTemperatureC": 72,
+        "boardTemperatureC": 27,
+        "convectionFanHz": 47,
+        "lamps": true,
+        "heaters": true,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "error": null
+    },
+    {
+      "second": 43.6,
+      "telemetry": {
+        "chamberTemperatureC": 76,
+        "boardTemperatureC": 27,
+        "convectionFanHz": 47,
+        "lamps": true,
+        "heaters": true,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "error": null
+    },
+    {
+      "second": 46.7,
+      "telemetry": {
+        "chamberTemperatureC": 79,
+        "boardTemperatureC": 27,
+        "convectionFanHz": 47,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "error": null
+    },
+    {
+      "second": 49.8,
+      "telemetry": {
+        "chamberTemperatureC": 82,
+        "boardTemperatureC": 28,
+        "convectionFanHz": 50,
+        "lamps": true,
+        "heaters": true,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "error": null
+    },
+    {
+      "second": 52.9,
+      "telemetry": {
+        "chamberTemperatureC": 84,
+        "boardTemperatureC": 27,
+        "convectionFanHz": 49,
+        "lamps": true,
+        "heaters": true,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "error": null
+    },
+    {
+      "second": 55.9,
+      "telemetry": {
+        "chamberTemperatureC": 86,
+        "boardTemperatureC": 28,
+        "convectionFanHz": 50,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "error": null
+    },
+    {
+      "second": 59.0,
+      "telemetry": {
+        "chamberTemperatureC": 88,
+        "boardTemperatureC": 27,
+        "convectionFanHz": 48,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "error": null
+    },
+    {
+      "second": 62.2,
+      "telemetry": {
+        "chamberTemperatureC": 89,
+        "boardTemperatureC": 27,
+        "convectionFanHz": 49,
+        "lamps": true,
+        "heaters": true,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "error": null
+    },
+    {
+      "second": 65.3,
+      "telemetry": {
+        "chamberTemperatureC": 92,
+        "boardTemperatureC": 28,
+        "convectionFanHz": 50,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "error": null
+    },
+    {
+      "second": 68.4,
+      "telemetry": {
+        "chamberTemperatureC": 93,
+        "boardTemperatureC": 28,
+        "convectionFanHz": 51,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "error": null
+    },
+    {
+      "second": 71.4,
+      "telemetry": {
+        "chamberTemperatureC": 94,
+        "boardTemperatureC": 28,
+        "convectionFanHz": 51,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "error": null
+    },
+    {
+      "second": 74.5,
+      "telemetry": {
+        "chamberTemperatureC": 94,
+        "boardTemperatureC": 28,
+        "convectionFanHz": 49,
+        "lamps": true,
+        "heaters": true,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "error": null
+    },
+    {
+      "second": 77.6,
+      "telemetry": {
+        "chamberTemperatureC": 96,
+        "boardTemperatureC": 28,
+        "convectionFanHz": 49,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "error": null
+    },
+    {
+      "second": 80.7,
+      "telemetry": {
+        "chamberTemperatureC": 97,
+        "boardTemperatureC": 28,
+        "convectionFanHz": 51,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "error": null
+    },
+    {
+      "second": 83.8,
+      "telemetry": {
+        "chamberTemperatureC": 97,
+        "boardTemperatureC": 28,
+        "convectionFanHz": 51,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "error": null
+    },
+    {
+      "second": 86.9,
+      "telemetry": {
+        "chamberTemperatureC": 98,
+        "boardTemperatureC": 27,
+        "convectionFanHz": 51,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "error": null
+    },
+    {
+      "second": 89.9,
+      "telemetry": {
+        "chamberTemperatureC": 98,
+        "boardTemperatureC": 27,
+        "convectionFanHz": 51,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "error": null
+    },
+    {
+      "second": 93.0,
+      "telemetry": {
+        "chamberTemperatureC": 97,
+        "boardTemperatureC": 27,
+        "convectionFanHz": 51,
+        "lamps": false,
+        "heaters": true,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "error": null
+    },
+    {
+      "second": 96.1,
+      "telemetry": {
+        "chamberTemperatureC": 97,
+        "boardTemperatureC": 28,
+        "convectionFanHz": 51,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "error": null
+    },
+    {
+      "second": 99.1,
+      "telemetry": {
+        "chamberTemperatureC": 98,
+        "boardTemperatureC": 27,
+        "convectionFanHz": 51,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "error": null
+    },
+    {
+      "second": 102.2,
+      "telemetry": {
+        "chamberTemperatureC": 98,
+        "boardTemperatureC": 28,
+        "convectionFanHz": 51,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "error": null
+    },
+    {
+      "second": 105.3,
+      "telemetry": {
+        "chamberTemperatureC": 97,
+        "boardTemperatureC": 27,
+        "convectionFanHz": 51,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "error": null
+    },
+    {
+      "second": 108.4,
+      "telemetry": {
+        "chamberTemperatureC": 98,
+        "boardTemperatureC": 28,
+        "convectionFanHz": 51,
+        "lamps": false,
+        "heaters": true,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "error": null
+    },
+    {
+      "second": 111.4,
+      "telemetry": {
+        "chamberTemperatureC": 98,
+        "boardTemperatureC": 27,
+        "convectionFanHz": 51,
+        "lamps": false,
+        "heaters": true,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "error": null
+    },
+    {
+      "second": 114.5,
+      "telemetry": {
+        "chamberTemperatureC": 98,
+        "boardTemperatureC": 28,
+        "convectionFanHz": 51,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "error": null
+    },
+    {
+      "second": 117.6,
+      "telemetry": {
+        "chamberTemperatureC": 98,
+        "boardTemperatureC": 28,
+        "convectionFanHz": 51,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "error": null
+    },
+    {
+      "second": 120.7,
+      "telemetry": {
+        "chamberTemperatureC": 98,
+        "boardTemperatureC": 28,
+        "convectionFanHz": 50,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "error": null
+    },
+    {
+      "second": 123.7,
+      "telemetry": {
+        "chamberTemperatureC": 99,
+        "boardTemperatureC": 28,
+        "convectionFanHz": 51,
+        "lamps": false,
+        "heaters": true,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "error": null
+    },
+    {
+      "second": 126.8,
+      "telemetry": {
+        "chamberTemperatureC": 98,
+        "boardTemperatureC": 28,
+        "convectionFanHz": 51,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "error": null
+    },
+    {
+      "second": 129.9,
+      "telemetry": {
+        "chamberTemperatureC": 99,
+        "boardTemperatureC": 28,
+        "convectionFanHz": 51,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "error": null
+    },
+    {
+      "second": 132.9,
+      "telemetry": {
+        "chamberTemperatureC": 98,
+        "boardTemperatureC": 28,
+        "convectionFanHz": 51,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "error": null
+    },
+    {
+      "second": 136.0,
+      "telemetry": {
+        "chamberTemperatureC": 98,
+        "boardTemperatureC": 28,
+        "convectionFanHz": 51,
+        "lamps": false,
+        "heaters": true,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "error": null
+    },
+    {
+      "second": 139.1,
+      "telemetry": {
+        "chamberTemperatureC": 98,
+        "boardTemperatureC": 29,
+        "convectionFanHz": 51,
+        "lamps": false,
+        "heaters": true,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "error": null
+    },
+    {
+      "second": 142.1,
+      "telemetry": {
+        "chamberTemperatureC": 98,
+        "boardTemperatureC": 30,
+        "convectionFanHz": 51,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "error": null
+    },
+    {
+      "second": 145.2,
+      "telemetry": {
+        "chamberTemperatureC": 98,
+        "boardTemperatureC": 30,
+        "convectionFanHz": 50,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "error": null
+    },
+    {
+      "second": 148.3,
+      "telemetry": {
+        "chamberTemperatureC": 99,
+        "boardTemperatureC": 31,
+        "convectionFanHz": 51,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "error": null
+    },
+    {
+      "second": 151.4,
+      "telemetry": {
+        "chamberTemperatureC": 99,
+        "boardTemperatureC": 31,
+        "convectionFanHz": 51,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "error": null
+    },
+    {
+      "second": 154.4,
+      "telemetry": {
+        "chamberTemperatureC": 99,
+        "boardTemperatureC": 31,
+        "convectionFanHz": 51,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "error": null
+    },
+    {
+      "second": 157.5,
+      "telemetry": {
+        "chamberTemperatureC": 99,
+        "boardTemperatureC": 32,
+        "convectionFanHz": 51,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "error": null
+    },
+    {
+      "second": 160.7,
+      "telemetry": {
+        "chamberTemperatureC": 98,
+        "boardTemperatureC": 32,
+        "convectionFanHz": 51,
+        "lamps": false,
+        "heaters": true,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "error": null
+    },
+    {
+      "second": 163.7,
+      "telemetry": {
+        "chamberTemperatureC": 98,
+        "boardTemperatureC": 31,
+        "convectionFanHz": 50,
+        "lamps": false,
+        "heaters": true,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "error": null
+    },
+    {
+      "second": 166.8,
+      "telemetry": {
+        "chamberTemperatureC": 98,
+        "boardTemperatureC": 32,
+        "convectionFanHz": 50,
+        "lamps": false,
+        "heaters": true,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "error": null
+    },
+    {
+      "second": 169.9,
+      "telemetry": {
+        "chamberTemperatureC": 99,
+        "boardTemperatureC": 32,
+        "convectionFanHz": 51,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "error": null
+    },
+    {
+      "second": 173.0,
+      "telemetry": {
+        "chamberTemperatureC": 99,
+        "boardTemperatureC": 32,
+        "convectionFanHz": 51,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "error": null
+    },
+    {
+      "second": 176.0,
+      "telemetry": {
+        "chamberTemperatureC": 99,
+        "boardTemperatureC": 33,
+        "convectionFanHz": 51,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "error": null
+    },
+    {
+      "second": 179.1,
+      "telemetry": {
+        "chamberTemperatureC": 99,
+        "boardTemperatureC": 32,
+        "convectionFanHz": 51,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "error": null
+    },
+    {
+      "second": 182.2,
+      "telemetry": {
+        "chamberTemperatureC": 99,
+        "boardTemperatureC": 30,
+        "convectionFanHz": 51,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "error": null
+    },
+    {
+      "second": 185.2,
+      "telemetry": {
+        "chamberTemperatureC": 99,
+        "boardTemperatureC": 29,
+        "convectionFanHz": 50,
+        "lamps": false,
+        "heaters": true,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "error": null
+    },
+    {
+      "second": 188.3,
+      "telemetry": {
+        "chamberTemperatureC": 99,
+        "boardTemperatureC": 28,
+        "convectionFanHz": 51,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "error": null
+    },
+    {
+      "second": 191.4,
+      "telemetry": {
+        "chamberTemperatureC": 99,
+        "boardTemperatureC": 29,
+        "convectionFanHz": 50,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "error": null
+    },
+    {
+      "second": 194.4,
+      "telemetry": {
+        "chamberTemperatureC": 99,
+        "boardTemperatureC": 28,
+        "convectionFanHz": 51,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "error": null
+    },
+    {
+      "second": 197.5,
+      "telemetry": {
+        "chamberTemperatureC": 99,
+        "boardTemperatureC": 28,
+        "convectionFanHz": 50,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "error": null
+    },
+    {
+      "second": 200.7,
+      "telemetry": {
+        "chamberTemperatureC": 99,
+        "boardTemperatureC": 28,
+        "convectionFanHz": 50,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "error": null
+    },
+    {
+      "second": 203.8,
+      "telemetry": {
+        "chamberTemperatureC": 100,
+        "boardTemperatureC": 28,
+        "convectionFanHz": 51,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "error": null
+    },
+    {
+      "second": 206.9,
+      "telemetry": {
+        "chamberTemperatureC": 100,
+        "boardTemperatureC": 28,
+        "convectionFanHz": 51,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "error": null
+    }
+  ]
+}

@@ -1,0 +1,114 @@
+{
+  "model": "300",
+  "connectionVoltage": "380",
+  "targetC": 260,
+  "runId": "e9d8c0dc-f55a-4b39-9d04-fc859e6357f0",
+  "peakC": 260.5,
+  "samples": 1013,
+  "durationSeconds": 1034.4,
+  "heating50ToTargetCPerSecond": 1.3752,
+  "coolingTargetTo50CPerSecond": 0.2408,
+  "outputSequenceVerified": true,
+  "measuredResponse": {
+    "connectionVoltage": "380",
+    "runId": "e9d8c0dc-f55a-4b39-9d04-fc859e6357f0",
+    "sensor": "chamber",
+    "temperatureBands": [
+      {
+        "fromC": 50,
+        "toC": 100,
+        "heatingCPerSecond": 1.6247,
+        "coolingCPerSecond": 0.1009
+      },
+      {
+        "fromC": 100,
+        "toC": 150,
+        "heatingCPerSecond": 1.5015,
+        "coolingCPerSecond": 0.2793
+      },
+      {
+        "fromC": 150,
+        "toC": 200,
+        "heatingCPerSecond": 1.342,
+        "coolingCPerSecond": 0.4587
+      },
+      {
+        "fromC": 200,
+        "toC": 250,
+        "heatingCPerSecond": 1.1691,
+        "coolingCPerSecond": 0.6793
+      },
+      {
+        "fromC": 250,
+        "toC": 260,
+        "heatingCPerSecond": 1.1628,
+        "coolingCPerSecond": 0.6536
+      }
+    ],
+    "coolingPlanning": {
+      "runId": "e9d8c0dc-f55a-4b39-9d04-fc859e6357f0",
+      "temperatureBands": [
+        {
+          "fromC": 50,
+          "toC": 60,
+          "heatingCPerSecond": 1.3752,
+          "coolingCPerSecond": 0.0585
+        },
+        {
+          "fromC": 60,
+          "toC": 75,
+          "heatingCPerSecond": 1.3752,
+          "coolingCPerSecond": 0.0925
+        },
+        {
+          "fromC": 75,
+          "toC": 100,
+          "heatingCPerSecond": 1.3752,
+          "coolingCPerSecond": 0.154
+        },
+        {
+          "fromC": 100,
+          "toC": 125,
+          "heatingCPerSecond": 1.3752,
+          "coolingCPerSecond": 0.2415
+        },
+        {
+          "fromC": 125,
+          "toC": 150,
+          "heatingCPerSecond": 1.3752,
+          "coolingCPerSecond": 0.3311
+        },
+        {
+          "fromC": 150,
+          "toC": 175,
+          "heatingCPerSecond": 1.3752,
+          "coolingCPerSecond": 0.4263
+        },
+        {
+          "fromC": 175,
+          "toC": 200,
+          "heatingCPerSecond": 1.3752,
+          "coolingCPerSecond": 0.4965
+        },
+        {
+          "fromC": 200,
+          "toC": 225,
+          "heatingCPerSecond": 1.3752,
+          "coolingCPerSecond": 0.6266
+        },
+        {
+          "fromC": 225,
+          "toC": 250,
+          "heatingCPerSecond": 1.3752,
+          "coolingCPerSecond": 0.7418
+        },
+        {
+          "fromC": 250,
+          "toC": 260,
+          "heatingCPerSecond": 1.3752,
+          "coolingCPerSecond": 0.6536
+        }
+      ]
+    }
+  }
+}

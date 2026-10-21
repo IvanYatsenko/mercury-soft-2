@@ -1,0 +1,48 @@
+{
+  "model": "300",
+  "connectionVoltage": "380",
+  "targetC": 100,
+  "runId": "0fe2da80-96a2-40c2-85fe-14fac9480b8b",
+  "peakC": 103.25,
+  "samples": 425,
+  "durationSeconds": 434.4,
+  "heating50ToTargetCPerSecond": 1.6488,
+  "coolingTargetTo50CPerSecond": 0.1354,
+  "outputSequenceVerified": true,
+  "measuredResponse": {
+    "connectionVoltage": "380",
+    "runId": "0fe2da80-96a2-40c2-85fe-14fac9480b8b",
+    "sensor": "chamber",
+    "temperatureBands": [
+      {
+        "fromC": 50,
+        "toC": 100,
+        "heatingCPerSecond": 1.6488,
+        "coolingCPerSecond": 0.1354
+      }
+    ],
+    "coolingPlanning": {
+      "runId": "0fe2da80-96a2-40c2-85fe-14fac9480b8b",
+      "temperatureBands": [
+        {
+          "fromC": 50,
+          "toC": 60,
+          "heatingCPerSecond": 1.6488,
+          "coolingCPerSecond": 0.0804
+        },
+        {
+          "fromC": 60,
+          "toC": 75,
+          "heatingCPerSecond": 1.6488,
+          "coolingCPerSecond": 0.1278
+        },
+        {
+          "fromC": 75,
+          "toC": 100,
+          "heatingCPerSecond": 1.6488,
+          "coolingCPerSecond": 0.1959
+        }
+      ]
+    }
+  }
+}

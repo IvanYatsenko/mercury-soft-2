@@ -5,6 +5,7 @@ import {
   Stack,
   TextField,
   Typography,
+  useMediaQuery,
 } from '@mui/material';
 import { useState } from 'react';
 
@@ -228,6 +229,24 @@ export function KeyboardTextField({
   disabled?: boolean;
 }) {
   const [open, setOpen] = useState(false);
+
+  const desktopInput = useMediaQuery('(min-width: 900px) and (pointer: fine)');
+
+  if (desktopInput) {
+    return (
+      <TextField
+        label={label}
+        type={type === 'password' ? 'password' : 'text'}
+        size="small"
+        fullWidth
+        value={value}
+        disabled={disabled}
+        onChange={(event) => onChange(event.target.value)}
+        inputProps={{ inputMode: type === 'number' ? 'decimal' : 'text' }}
+        sx={{ '& .MuiInputBase-root': { minHeight: 48 } }}
+      />
+    );
+  }
 
   return (
     <>

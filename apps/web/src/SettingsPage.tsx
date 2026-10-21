@@ -10,11 +10,12 @@ import {
 import { KeyboardTextField } from './OnScreenKeyboard';
 import { OvenSelectionForm, type SelectionDraft } from './OvenSelectionForm';
 import { ElementTestPanel } from './ElementTestPanel';
+import { SoftwareUpdatePanel } from './SoftwareUpdatePanel';
 import type { OvenModel, OvenSelection } from '@mercury/shared';
 
 export interface OvenSettings {
   convectionEnabled: boolean;
-  fanReferenceRpm: number;
+  fanReferenceHz: number;
   reactToFanErrors: boolean;
   soundOnErrors: boolean;
   thermalProtection: boolean;
@@ -36,7 +37,13 @@ type SettingsPageProps = {
   controllerSimulated: boolean;
   onConvectionChange: (enabled: boolean) => void;
   convectionChanging: boolean;
+  fanHz: number | null;
+  fanWear: number | null;
+  onConfirmFanReference: () => void;
+  savingFanReference: boolean;
   onBack: () => void;
+  onHistory: () => void;
+  runActive: boolean;
 };
 
 export function SettingsPage({
@@ -54,7 +61,13 @@ export function SettingsPage({
   controllerSimulated,
   onConvectionChange,
   convectionChanging,
+  fanHz,
+  fanWear,
+  onConfirmFanReference,
+  savingFanReference,
   onBack,
+  onHistory,
+  runActive,
 }: SettingsPageProps) {
   return (
     <Stack spacing={1.25}>
@@ -68,6 +81,16 @@ export function SettingsPage({
         </Button>
         <Typography variant="h6">Настройки печи</Typography>
       </Stack>
+
+      <Button variant="outlined" onClick={onHistory} sx={{ minHeight: 44 }}>
+        История запусков
+      </Button>
+      <SoftwareUpdatePanel disabled={runActive} />
+      {runActive && (
+        <Typography color="warning.main">
+          Профиль выполняется. Изменение оборудования недоступно.
+        </Typography>
+      )}
 
       <Card variant="outlined">
         <CardContent>
@@ -112,14 +135,45 @@ export function SettingsPage({
               }
               label="Конвекционный вентилятор"
             />
+            <Typography variant="body2">
+              Текущая частота: {fanHz == null ? '—' : fanHz + ' Гц'} · Износ:{' '}
+              {fanWear == null ? '—' : fanWear + '%'}
+            </Typography>
             <KeyboardTextField
-              label="Обороты/мин"
+              label="Эталонная частота, Гц"
               type="number"
-              value={String(settings.fanReferenceRpm)}
+              value={String(settings.fanReferenceHz)}
               onChange={(value) =>
-                onChange({ ...settings, fanReferenceRpm: Number(value) })
+                onChange({ ...settings, fanReferenceHz: Number(value) })
               }
             />
+            <Button
+              variant="outlined"
+              onClick={() =>
+                fanHz != null &&
+                onChange({ ...settings, fanReferenceHz: fanHz })
+              }
+              disabled={
+                !settings.convectionEnabled ||
+                fanHz == null ||
+                fanHz < 1 ||
+                savingFanReference
+              }
+            >
+              Использовать текущую частоту
+            </Button>
+            <Button
+              variant="contained"
+              onClick={onConfirmFanReference}
+              disabled={
+                savingFanReference ||
+                !Number.isFinite(settings.fanReferenceHz) ||
+                settings.fanReferenceHz < 1 ||
+                settings.fanReferenceHz > 1000
+              }
+            >
+              Подтвердить эталон
+            </Button>
             <FormControlLabel
               control={
                 <Switch

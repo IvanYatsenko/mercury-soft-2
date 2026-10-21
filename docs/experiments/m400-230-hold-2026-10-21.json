@@ -1,0 +1,802 @@
+[
+  {
+    "run": {
+      "id": null,
+      "state": "idle",
+      "profileName": null,
+      "cycle": 0,
+      "cycles": 0,
+      "stage": 0,
+      "elapsedSeconds": 0,
+      "remainingSeconds": 0,
+      "targetTemperatureC": null,
+      "measuredTemperatureC": null,
+      "error": null,
+      "paused": false,
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "pendingReady": false,
+      "canAcknowledge": true
+    },
+    "board": {
+      "connected": true,
+      "port": "/dev/ttyS0",
+      "protocolVersion": 2,
+      "boardType": "380V",
+      "ready": true,
+      "state": 1,
+      "readData": [42, 128, 403, 49, 0],
+      "telemetry": {
+        "chamberTemperatureC": 100.75,
+        "boardTemperatureC": 32,
+        "convectionFanHz": 49,
+        "lamps": false,
+        "heaters": false,
+        "fans": true,
+        "convection": true
+      },
+      "doorOpen": false,
+      "fanReferenceHz": 50
+    }
+  },
+  {
+    "run": {
+      "id": null,
+      "state": "idle",
+      "profileName": null,
+      "cycle": 0,
+      "cycles": 0,
+      "stage": 0,
+      "elapsedSeconds": 0,
+      "remainingSeconds": 0,
+      "targetTemperatureC": null,
+      "measuredTemperatureC": null,
+      "error": null,
+      "paused": false,
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "pendingReady": false,
+      "canAcknowledge": true
+    },
+    "board": {
+      "connected": true,
+      "port": "/dev/ttyS0",
+      "protocolVersion": 2,
+      "boardType": "380V",
+      "ready": true,
+      "state": 1,
+      "readData": [40, 126, 405, 50, 0],
+      "telemetry": {
+        "chamberTemperatureC": 101.25,
+        "boardTemperatureC": 31.5,
+        "convectionFanHz": 50,
+        "lamps": false,
+        "heaters": false,
+        "fans": true,
+        "convection": true
+      },
+      "doorOpen": false,
+      "fanReferenceHz": 50
+    }
+  },
+  {
+    "run": {
+      "id": null,
+      "state": "idle",
+      "profileName": null,
+      "cycle": 0,
+      "cycles": 0,
+      "stage": 0,
+      "elapsedSeconds": 0,
+      "remainingSeconds": 0,
+      "targetTemperatureC": null,
+      "measuredTemperatureC": null,
+      "error": null,
+      "paused": false,
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "pendingReady": false,
+      "canAcknowledge": true
+    },
+    "board": {
+      "connected": true,
+      "port": "/dev/ttyS0",
+      "protocolVersion": 2,
+      "boardType": "380V",
+      "ready": true,
+      "state": 1,
+      "readData": [41, 124, 407, 50, 0],
+      "telemetry": {
+        "chamberTemperatureC": 101.75,
+        "boardTemperatureC": 31,
+        "convectionFanHz": 50,
+        "lamps": false,
+        "heaters": false,
+        "fans": true,
+        "convection": true
+      },
+      "doorOpen": false,
+      "fanReferenceHz": 50
+    }
+  },
+  {
+    "run": {
+      "id": null,
+      "state": "idle",
+      "profileName": null,
+      "cycle": 0,
+      "cycles": 0,
+      "stage": 0,
+      "elapsedSeconds": 0,
+      "remainingSeconds": 0,
+      "targetTemperatureC": null,
+      "measuredTemperatureC": null,
+      "error": null,
+      "paused": false,
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "pendingReady": false,
+      "canAcknowledge": true
+    },
+    "board": {
+      "connected": true,
+      "port": "/dev/ttyS0",
+      "protocolVersion": 2,
+      "boardType": "380V",
+      "ready": true,
+      "state": 1,
+      "readData": [44, 124, 409, 50, 0],
+      "telemetry": {
+        "chamberTemperatureC": 102.25,
+        "boardTemperatureC": 31,
+        "convectionFanHz": 50,
+        "lamps": false,
+        "heaters": false,
+        "fans": true,
+        "convection": true
+      },
+      "doorOpen": false,
+      "fanReferenceHz": 50
+    }
+  },
+  {
+    "run": {
+      "id": null,
+      "state": "idle",
+      "profileName": null,
+      "cycle": 0,
+      "cycles": 0,
+      "stage": 0,
+      "elapsedSeconds": 0,
+      "remainingSeconds": 0,
+      "targetTemperatureC": null,
+      "measuredTemperatureC": null,
+      "error": null,
+      "paused": false,
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "pendingReady": false,
+      "canAcknowledge": true
+    },
+    "board": {
+      "connected": true,
+      "port": "/dev/ttyS0",
+      "protocolVersion": 2,
+      "boardType": "380V",
+      "ready": true,
+      "state": 1,
+      "readData": [41, 125, 409, 50, 0],
+      "telemetry": {
+        "chamberTemperatureC": 102.25,
+        "boardTemperatureC": 31.25,
+        "convectionFanHz": 50,
+        "lamps": false,
+        "heaters": false,
+        "fans": true,
+        "convection": true
+      },
+      "doorOpen": false,
+      "fanReferenceHz": 50
+    }
+  },
+  {
+    "run": {
+      "id": null,
+      "state": "idle",
+      "profileName": null,
+      "cycle": 0,
+      "cycles": 0,
+      "stage": 0,
+      "elapsedSeconds": 0,
+      "remainingSeconds": 0,
+      "targetTemperatureC": null,
+      "measuredTemperatureC": null,
+      "error": null,
+      "paused": false,
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "pendingReady": false,
+      "canAcknowledge": true
+    },
+    "board": {
+      "connected": true,
+      "port": "/dev/ttyS0",
+      "protocolVersion": 2,
+      "boardType": "380V",
+      "ready": true,
+      "state": 1,
+      "readData": [41, 124, 407, 50, 0],
+      "telemetry": {
+        "chamberTemperatureC": 101.75,
+        "boardTemperatureC": 31,
+        "convectionFanHz": 50,
+        "lamps": false,
+        "heaters": false,
+        "fans": true,
+        "convection": true
+      },
+      "doorOpen": false,
+      "fanReferenceHz": 50
+    }
+  },
+  {
+    "run": {
+      "id": null,
+      "state": "idle",
+      "profileName": null,
+      "cycle": 0,
+      "cycles": 0,
+      "stage": 0,
+      "elapsedSeconds": 0,
+      "remainingSeconds": 0,
+      "targetTemperatureC": null,
+      "measuredTemperatureC": null,
+      "error": null,
+      "paused": false,
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "pendingReady": false,
+      "canAcknowledge": true
+    },
+    "board": {
+      "connected": true,
+      "port": "/dev/ttyS0",
+      "protocolVersion": 2,
+      "boardType": "380V",
+      "ready": true,
+      "state": 1,
+      "readData": [47, 124, 407, 50, 0],
+      "telemetry": {
+        "chamberTemperatureC": 101.75,
+        "boardTemperatureC": 31,
+        "convectionFanHz": 50,
+        "lamps": false,
+        "heaters": false,
+        "fans": true,
+        "convection": true
+      },
+      "doorOpen": false,
+      "fanReferenceHz": 50
+    }
+  },
+  {
+    "run": {
+      "id": null,
+      "state": "idle",
+      "profileName": null,
+      "cycle": 0,
+      "cycles": 0,
+      "stage": 0,
+      "elapsedSeconds": 0,
+      "remainingSeconds": 0,
+      "targetTemperatureC": null,
+      "measuredTemperatureC": null,
+      "error": null,
+      "paused": false,
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "pendingReady": false,
+      "canAcknowledge": true
+    },
+    "board": {
+      "connected": true,
+      "port": "/dev/ttyS0",
+      "protocolVersion": 2,
+      "boardType": "380V",
+      "ready": true,
+      "state": 1,
+      "readData": [42, 124, 407, 49, 0],
+      "telemetry": {
+        "chamberTemperatureC": 101.75,
+        "boardTemperatureC": 31,
+        "convectionFanHz": 49,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "fanReferenceHz": 50
+    }
+  },
+  {
+    "run": {
+      "id": null,
+      "state": "idle",
+      "profileName": null,
+      "cycle": 0,
+      "cycles": 0,
+      "stage": 0,
+      "elapsedSeconds": 0,
+      "remainingSeconds": 0,
+      "targetTemperatureC": null,
+      "measuredTemperatureC": null,
+      "error": null,
+      "paused": false,
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "pendingReady": false,
+      "canAcknowledge": true
+    },
+    "board": {
+      "connected": true,
+      "port": "/dev/ttyS0",
+      "protocolVersion": 2,
+      "boardType": "380V",
+      "ready": true,
+      "state": 1,
+      "readData": [38, 126, 407, 50, 0],
+      "telemetry": {
+        "chamberTemperatureC": 101.75,
+        "boardTemperatureC": 31.5,
+        "convectionFanHz": 50,
+        "lamps": false,
+        "heaters": false,
+        "fans": true,
+        "convection": true
+      },
+      "doorOpen": false,
+      "fanReferenceHz": 50
+    }
+  },
+  {
+    "run": {
+      "id": null,
+      "state": "idle",
+      "profileName": null,
+      "cycle": 0,
+      "cycles": 0,
+      "stage": 0,
+      "elapsedSeconds": 0,
+      "remainingSeconds": 0,
+      "targetTemperatureC": null,
+      "measuredTemperatureC": null,
+      "error": null,
+      "paused": false,
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "pendingReady": false,
+      "canAcknowledge": true
+    },
+    "board": {
+      "connected": true,
+      "port": "/dev/ttyS0",
+      "protocolVersion": 2,
+      "boardType": "380V",
+      "ready": true,
+      "state": 1,
+      "readData": [37, 125, 406, 49, 0],
+      "telemetry": {
+        "chamberTemperatureC": 101.5,
+        "boardTemperatureC": 31.25,
+        "convectionFanHz": 49,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "fanReferenceHz": 50
+    }
+  },
+  {
+    "run": {
+      "id": null,
+      "state": "idle",
+      "profileName": null,
+      "cycle": 0,
+      "cycles": 0,
+      "stage": 0,
+      "elapsedSeconds": 0,
+      "remainingSeconds": 0,
+      "targetTemperatureC": null,
+      "measuredTemperatureC": null,
+      "error": null,
+      "paused": false,
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "pendingReady": false,
+      "canAcknowledge": true
+    },
+    "board": {
+      "connected": true,
+      "port": "/dev/ttyS0",
+      "protocolVersion": 2,
+      "boardType": "380V",
+      "ready": true,
+      "state": 1,
+      "readData": [42, 125, 404, 49, 0],
+      "telemetry": {
+        "chamberTemperatureC": 101,
+        "boardTemperatureC": 31.25,
+        "convectionFanHz": 49,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "fanReferenceHz": 50
+    }
+  },
+  {
+    "run": {
+      "id": null,
+      "state": "idle",
+      "profileName": null,
+      "cycle": 0,
+      "cycles": 0,
+      "stage": 0,
+      "elapsedSeconds": 0,
+      "remainingSeconds": 0,
+      "targetTemperatureC": null,
+      "measuredTemperatureC": null,
+      "error": null,
+      "paused": false,
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "pendingReady": false,
+      "canAcknowledge": true
+    },
+    "board": {
+      "connected": true,
+      "port": "/dev/ttyS0",
+      "protocolVersion": 2,
+      "boardType": "380V",
+      "ready": true,
+      "state": 1,
+      "readData": [47, 126, 405, 49, 0],
+      "telemetry": {
+        "chamberTemperatureC": 101.25,
+        "boardTemperatureC": 31.5,
+        "convectionFanHz": 49,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "fanReferenceHz": 50
+    }
+  },
+  {
+    "run": {
+      "id": null,
+      "state": "idle",
+      "profileName": null,
+      "cycle": 0,
+      "cycles": 0,
+      "stage": 0,
+      "elapsedSeconds": 0,
+      "remainingSeconds": 0,
+      "targetTemperatureC": null,
+      "measuredTemperatureC": null,
+      "error": null,
+      "paused": false,
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "pendingReady": false,
+      "canAcknowledge": true
+    },
+    "board": {
+      "connected": true,
+      "port": "/dev/ttyS0",
+      "protocolVersion": 2,
+      "boardType": "380V",
+      "ready": true,
+      "state": 1,
+      "readData": [47, 129, 404, 49, 0],
+      "telemetry": {
+        "chamberTemperatureC": 101,
+        "boardTemperatureC": 32.25,
+        "convectionFanHz": 49,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "fanReferenceHz": 50
+    }
+  },
+  {
+    "run": {
+      "id": null,
+      "state": "idle",
+      "profileName": null,
+      "cycle": 0,
+      "cycles": 0,
+      "stage": 0,
+      "elapsedSeconds": 0,
+      "remainingSeconds": 0,
+      "targetTemperatureC": null,
+      "measuredTemperatureC": null,
+      "error": null,
+      "paused": false,
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "pendingReady": false,
+      "canAcknowledge": true
+    },
+    "board": {
+      "connected": true,
+      "port": "/dev/ttyS0",
+      "protocolVersion": 2,
+      "boardType": "380V",
+      "ready": true,
+      "state": 1,
+      "readData": [46, 126, 403, 49, 0],
+      "telemetry": {
+        "chamberTemperatureC": 100.75,
+        "boardTemperatureC": 31.5,
+        "convectionFanHz": 49,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "fanReferenceHz": 50
+    }
+  },
+  {
+    "run": {
+      "id": null,
+      "state": "idle",
+      "profileName": null,
+      "cycle": 0,
+      "cycles": 0,
+      "stage": 0,
+      "elapsedSeconds": 0,
+      "remainingSeconds": 0,
+      "targetTemperatureC": null,
+      "measuredTemperatureC": null,
+      "error": null,
+      "paused": false,
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "pendingReady": false,
+      "canAcknowledge": true
+    },
+    "board": {
+      "connected": true,
+      "port": "/dev/ttyS0",
+      "protocolVersion": 2,
+      "boardType": "380V",
+      "ready": true,
+      "state": 1,
+      "readData": [34, 125, 403, 49, 0],
+      "telemetry": {
+        "chamberTemperatureC": 100.75,
+        "boardTemperatureC": 31.25,
+        "convectionFanHz": 49,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "fanReferenceHz": 50
+    }
+  },
+  {
+    "run": {
+      "id": null,
+      "state": "idle",
+      "profileName": null,
+      "cycle": 0,
+      "cycles": 0,
+      "stage": 0,
+      "elapsedSeconds": 0,
+      "remainingSeconds": 0,
+      "targetTemperatureC": null,
+      "measuredTemperatureC": null,
+      "error": null,
+      "paused": false,
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "pendingReady": false,
+      "canAcknowledge": true
+    },
+    "board": {
+      "connected": true,
+      "port": "/dev/ttyS0",
+      "protocolVersion": 2,
+      "boardType": "380V",
+      "ready": true,
+      "state": 1,
+      "readData": [42, 126, 401, 50, 0],
+      "telemetry": {
+        "chamberTemperatureC": 100.25,
+        "boardTemperatureC": 31.5,
+        "convectionFanHz": 50,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "fanReferenceHz": 50
+    }
+  },
+  {
+    "run": {
+      "id": null,
+      "state": "idle",
+      "profileName": null,
+      "cycle": 0,
+      "cycles": 0,
+      "stage": 0,
+      "elapsedSeconds": 0,
+      "remainingSeconds": 0,
+      "targetTemperatureC": null,
+      "measuredTemperatureC": null,
+      "error": null,
+      "paused": false,
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "pendingReady": false,
+      "canAcknowledge": true
+    },
+    "board": {
+      "connected": true,
+      "port": "/dev/ttyS0",
+      "protocolVersion": 2,
+      "boardType": "380V",
+      "ready": true,
+      "state": 1,
+      "readData": [44, 126, 401, 49, 0],
+      "telemetry": {
+        "chamberTemperatureC": 100.25,
+        "boardTemperatureC": 31.5,
+        "convectionFanHz": 49,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "fanReferenceHz": 50
+    }
+  },
+  {
+    "run": {
+      "id": null,
+      "state": "idle",
+      "profileName": null,
+      "cycle": 0,
+      "cycles": 0,
+      "stage": 0,
+      "elapsedSeconds": 0,
+      "remainingSeconds": 0,
+      "targetTemperatureC": null,
+      "measuredTemperatureC": null,
+      "error": null,
+      "paused": false,
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "pendingReady": false,
+      "canAcknowledge": true
+    },
+    "board": {
+      "connected": true,
+      "port": "/dev/ttyS0",
+      "protocolVersion": 2,
+      "boardType": "380V",
+      "ready": true,
+      "state": 1,
+      "readData": [47, 125, 400, 49, 0],
+      "telemetry": {
+        "chamberTemperatureC": 100,
+        "boardTemperatureC": 31.25,
+        "convectionFanHz": 49,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "fanReferenceHz": 50
+    }
+  },
+  {
+    "run": {
+      "id": null,
+      "state": "idle",
+      "profileName": null,
+      "cycle": 0,
+      "cycles": 0,
+      "stage": 0,
+      "elapsedSeconds": 0,
+      "remainingSeconds": 0,
+      "targetTemperatureC": null,
+      "measuredTemperatureC": null,
+      "error": null,
+      "paused": false,
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "pendingReady": false,
+      "canAcknowledge": true
+    },
+    "board": {
+      "connected": true,
+      "port": "/dev/ttyS0",
+      "protocolVersion": 2,
+      "boardType": "380V",
+      "ready": true,
+      "state": 1,
+      "readData": [41, 127, 397, 49, 0],
+      "telemetry": {
+        "chamberTemperatureC": 99.25,
+        "boardTemperatureC": 31.75,
+        "convectionFanHz": 49,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "fanReferenceHz": 50
+    }
+  },
+  {
+    "run": {
+      "id": null,
+      "state": "idle",
+      "profileName": null,
+      "cycle": 0,
+      "cycles": 0,
+      "stage": 0,
+      "elapsedSeconds": 0,
+      "remainingSeconds": 0,
+      "targetTemperatureC": null,
+      "measuredTemperatureC": null,
+      "error": null,
+      "paused": false,
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "pendingReady": false,
+      "canAcknowledge": true
+    },
+    "board": {
+      "connected": true,
+      "port": "/dev/ttyS0",
+      "protocolVersion": 2,
+      "boardType": "380V",
+      "ready": true,
+      "state": 1,
+      "readData": [41, 126, 398, 49, 0],
+      "telemetry": {
+        "chamberTemperatureC": 99.5,
+        "boardTemperatureC": 31.5,
+        "convectionFanHz": 49,
+        "lamps": false,
+        "heaters": true,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "fanReferenceHz": 50
+    }
+  }
+]

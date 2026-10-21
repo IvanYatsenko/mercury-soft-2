@@ -1,0 +1,802 @@
+[
+  {
+    "run": {
+      "id": "ba11477a-061e-4849-a19c-5bb6fe2d83c6",
+      "state": "completed",
+      "profileName": "Приёмка повторы 100 C 1792549438391750200",
+      "cycle": 2,
+      "cycles": 2,
+      "stage": 3,
+      "elapsedSeconds": 721,
+      "remainingSeconds": 0,
+      "targetTemperatureC": 50,
+      "measuredTemperatureC": 62.75,
+      "error": null,
+      "paused": false,
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "pendingReady": false,
+      "canAcknowledge": false
+    },
+    "board": {
+      "connected": true,
+      "port": "/dev/serial0",
+      "protocolVersion": 2,
+      "boardType": "380V",
+      "ready": true,
+      "state": 1,
+      "readData": [28, 399, 120, 51, 0],
+      "telemetry": {
+        "chamberTemperatureC": 99.75,
+        "boardTemperatureC": 30,
+        "convectionFanHz": 51,
+        "lamps": false,
+        "heaters": true,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "fanReferenceHz": 50
+    }
+  },
+  {
+    "run": {
+      "id": "ba11477a-061e-4849-a19c-5bb6fe2d83c6",
+      "state": "completed",
+      "profileName": "Приёмка повторы 100 C 1792549438391750200",
+      "cycle": 2,
+      "cycles": 2,
+      "stage": 3,
+      "elapsedSeconds": 721,
+      "remainingSeconds": 0,
+      "targetTemperatureC": 50,
+      "measuredTemperatureC": 62.75,
+      "error": null,
+      "paused": false,
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "pendingReady": false,
+      "canAcknowledge": false
+    },
+    "board": {
+      "connected": true,
+      "port": "/dev/serial0",
+      "protocolVersion": 2,
+      "boardType": "380V",
+      "ready": true,
+      "state": 1,
+      "readData": [27, 398, 120, 51, 0],
+      "telemetry": {
+        "chamberTemperatureC": 99.5,
+        "boardTemperatureC": 30,
+        "convectionFanHz": 51,
+        "lamps": false,
+        "heaters": true,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "fanReferenceHz": 50
+    }
+  },
+  {
+    "run": {
+      "id": "ba11477a-061e-4849-a19c-5bb6fe2d83c6",
+      "state": "completed",
+      "profileName": "Приёмка повторы 100 C 1792549438391750200",
+      "cycle": 2,
+      "cycles": 2,
+      "stage": 3,
+      "elapsedSeconds": 721,
+      "remainingSeconds": 0,
+      "targetTemperatureC": 50,
+      "measuredTemperatureC": 62.75,
+      "error": null,
+      "paused": false,
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "pendingReady": false,
+      "canAcknowledge": false
+    },
+    "board": {
+      "connected": true,
+      "port": "/dev/serial0",
+      "protocolVersion": 2,
+      "boardType": "380V",
+      "ready": true,
+      "state": 1,
+      "readData": [34, 399, 120, 51, 0],
+      "telemetry": {
+        "chamberTemperatureC": 99.75,
+        "boardTemperatureC": 30,
+        "convectionFanHz": 51,
+        "lamps": false,
+        "heaters": true,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "fanReferenceHz": 50
+    }
+  },
+  {
+    "run": {
+      "id": "ba11477a-061e-4849-a19c-5bb6fe2d83c6",
+      "state": "completed",
+      "profileName": "Приёмка повторы 100 C 1792549438391750200",
+      "cycle": 2,
+      "cycles": 2,
+      "stage": 3,
+      "elapsedSeconds": 721,
+      "remainingSeconds": 0,
+      "targetTemperatureC": 50,
+      "measuredTemperatureC": 62.75,
+      "error": null,
+      "paused": false,
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "pendingReady": false,
+      "canAcknowledge": false
+    },
+    "board": {
+      "connected": true,
+      "port": "/dev/serial0",
+      "protocolVersion": 2,
+      "boardType": "380V",
+      "ready": true,
+      "state": 1,
+      "readData": [25, 399, 119, 51, 0],
+      "telemetry": {
+        "chamberTemperatureC": 99.75,
+        "boardTemperatureC": 29.75,
+        "convectionFanHz": 51,
+        "lamps": false,
+        "heaters": true,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "fanReferenceHz": 50
+    }
+  },
+  {
+    "run": {
+      "id": "ba11477a-061e-4849-a19c-5bb6fe2d83c6",
+      "state": "completed",
+      "profileName": "Приёмка повторы 100 C 1792549438391750200",
+      "cycle": 2,
+      "cycles": 2,
+      "stage": 3,
+      "elapsedSeconds": 721,
+      "remainingSeconds": 0,
+      "targetTemperatureC": 50,
+      "measuredTemperatureC": 62.75,
+      "error": null,
+      "paused": false,
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "pendingReady": false,
+      "canAcknowledge": false
+    },
+    "board": {
+      "connected": true,
+      "port": "/dev/serial0",
+      "protocolVersion": 2,
+      "boardType": "380V",
+      "ready": true,
+      "state": 1,
+      "readData": [27, 402, 120, 51, 0],
+      "telemetry": {
+        "chamberTemperatureC": 100.5,
+        "boardTemperatureC": 30,
+        "convectionFanHz": 51,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "fanReferenceHz": 50
+    }
+  },
+  {
+    "run": {
+      "id": "ba11477a-061e-4849-a19c-5bb6fe2d83c6",
+      "state": "completed",
+      "profileName": "Приёмка повторы 100 C 1792549438391750200",
+      "cycle": 2,
+      "cycles": 2,
+      "stage": 3,
+      "elapsedSeconds": 721,
+      "remainingSeconds": 0,
+      "targetTemperatureC": 50,
+      "measuredTemperatureC": 62.75,
+      "error": null,
+      "paused": false,
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "pendingReady": false,
+      "canAcknowledge": false
+    },
+    "board": {
+      "connected": true,
+      "port": "/dev/serial0",
+      "protocolVersion": 2,
+      "boardType": "380V",
+      "ready": true,
+      "state": 1,
+      "readData": [35, 403, 118, 52, 0],
+      "telemetry": {
+        "chamberTemperatureC": 100.75,
+        "boardTemperatureC": 29.5,
+        "convectionFanHz": 52,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "fanReferenceHz": 50
+    }
+  },
+  {
+    "run": {
+      "id": "ba11477a-061e-4849-a19c-5bb6fe2d83c6",
+      "state": "completed",
+      "profileName": "Приёмка повторы 100 C 1792549438391750200",
+      "cycle": 2,
+      "cycles": 2,
+      "stage": 3,
+      "elapsedSeconds": 721,
+      "remainingSeconds": 0,
+      "targetTemperatureC": 50,
+      "measuredTemperatureC": 62.75,
+      "error": null,
+      "paused": false,
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "pendingReady": false,
+      "canAcknowledge": false
+    },
+    "board": {
+      "connected": true,
+      "port": "/dev/serial0",
+      "protocolVersion": 2,
+      "boardType": "380V",
+      "ready": true,
+      "state": 1,
+      "readData": [28, 405, 120, 51, 0],
+      "telemetry": {
+        "chamberTemperatureC": 101.25,
+        "boardTemperatureC": 30,
+        "convectionFanHz": 51,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "fanReferenceHz": 50
+    }
+  },
+  {
+    "run": {
+      "id": "ba11477a-061e-4849-a19c-5bb6fe2d83c6",
+      "state": "completed",
+      "profileName": "Приёмка повторы 100 C 1792549438391750200",
+      "cycle": 2,
+      "cycles": 2,
+      "stage": 3,
+      "elapsedSeconds": 721,
+      "remainingSeconds": 0,
+      "targetTemperatureC": 50,
+      "measuredTemperatureC": 62.75,
+      "error": null,
+      "paused": false,
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "pendingReady": false,
+      "canAcknowledge": false
+    },
+    "board": {
+      "connected": true,
+      "port": "/dev/serial0",
+      "protocolVersion": 2,
+      "boardType": "380V",
+      "ready": true,
+      "state": 1,
+      "readData": [38, 406, 120, 51, 0],
+      "telemetry": {
+        "chamberTemperatureC": 101.5,
+        "boardTemperatureC": 30,
+        "convectionFanHz": 51,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "fanReferenceHz": 50
+    }
+  },
+  {
+    "run": {
+      "id": "ba11477a-061e-4849-a19c-5bb6fe2d83c6",
+      "state": "completed",
+      "profileName": "Приёмка повторы 100 C 1792549438391750200",
+      "cycle": 2,
+      "cycles": 2,
+      "stage": 3,
+      "elapsedSeconds": 721,
+      "remainingSeconds": 0,
+      "targetTemperatureC": 50,
+      "measuredTemperatureC": 62.75,
+      "error": null,
+      "paused": false,
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "pendingReady": false,
+      "canAcknowledge": false
+    },
+    "board": {
+      "connected": true,
+      "port": "/dev/serial0",
+      "protocolVersion": 2,
+      "boardType": "380V",
+      "ready": true,
+      "state": 1,
+      "readData": [34, 406, 122, 51, 0],
+      "telemetry": {
+        "chamberTemperatureC": 101.5,
+        "boardTemperatureC": 30.5,
+        "convectionFanHz": 51,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "fanReferenceHz": 50
+    }
+  },
+  {
+    "run": {
+      "id": "ba11477a-061e-4849-a19c-5bb6fe2d83c6",
+      "state": "completed",
+      "profileName": "Приёмка повторы 100 C 1792549438391750200",
+      "cycle": 2,
+      "cycles": 2,
+      "stage": 3,
+      "elapsedSeconds": 721,
+      "remainingSeconds": 0,
+      "targetTemperatureC": 50,
+      "measuredTemperatureC": 62.75,
+      "error": null,
+      "paused": false,
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "pendingReady": false,
+      "canAcknowledge": false
+    },
+    "board": {
+      "connected": true,
+      "port": "/dev/serial0",
+      "protocolVersion": 2,
+      "boardType": "380V",
+      "ready": true,
+      "state": 1,
+      "readData": [33, 406, 121, 51, 0],
+      "telemetry": {
+        "chamberTemperatureC": 101.5,
+        "boardTemperatureC": 30.25,
+        "convectionFanHz": 51,
+        "lamps": false,
+        "heaters": false,
+        "fans": true,
+        "convection": true
+      },
+      "doorOpen": false,
+      "fanReferenceHz": 50
+    }
+  },
+  {
+    "run": {
+      "id": "ba11477a-061e-4849-a19c-5bb6fe2d83c6",
+      "state": "completed",
+      "profileName": "Приёмка повторы 100 C 1792549438391750200",
+      "cycle": 2,
+      "cycles": 2,
+      "stage": 3,
+      "elapsedSeconds": 721,
+      "remainingSeconds": 0,
+      "targetTemperatureC": 50,
+      "measuredTemperatureC": 62.75,
+      "error": null,
+      "paused": false,
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "pendingReady": false,
+      "canAcknowledge": false
+    },
+    "board": {
+      "connected": true,
+      "port": "/dev/serial0",
+      "protocolVersion": 2,
+      "boardType": "380V",
+      "ready": true,
+      "state": 1,
+      "readData": [31, 404, 119, 51, 0],
+      "telemetry": {
+        "chamberTemperatureC": 101,
+        "boardTemperatureC": 29.75,
+        "convectionFanHz": 51,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "fanReferenceHz": 50
+    }
+  },
+  {
+    "run": {
+      "id": "ba11477a-061e-4849-a19c-5bb6fe2d83c6",
+      "state": "completed",
+      "profileName": "Приёмка повторы 100 C 1792549438391750200",
+      "cycle": 2,
+      "cycles": 2,
+      "stage": 3,
+      "elapsedSeconds": 721,
+      "remainingSeconds": 0,
+      "targetTemperatureC": 50,
+      "measuredTemperatureC": 62.75,
+      "error": null,
+      "paused": false,
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "pendingReady": false,
+      "canAcknowledge": false
+    },
+    "board": {
+      "connected": true,
+      "port": "/dev/serial0",
+      "protocolVersion": 2,
+      "boardType": "380V",
+      "ready": true,
+      "state": 1,
+      "readData": [35, 402, 120, 51, 0],
+      "telemetry": {
+        "chamberTemperatureC": 100.5,
+        "boardTemperatureC": 30,
+        "convectionFanHz": 51,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "fanReferenceHz": 50
+    }
+  },
+  {
+    "run": {
+      "id": "ba11477a-061e-4849-a19c-5bb6fe2d83c6",
+      "state": "completed",
+      "profileName": "Приёмка повторы 100 C 1792549438391750200",
+      "cycle": 2,
+      "cycles": 2,
+      "stage": 3,
+      "elapsedSeconds": 721,
+      "remainingSeconds": 0,
+      "targetTemperatureC": 50,
+      "measuredTemperatureC": 62.75,
+      "error": null,
+      "paused": false,
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "pendingReady": false,
+      "canAcknowledge": false
+    },
+    "board": {
+      "connected": true,
+      "port": "/dev/serial0",
+      "protocolVersion": 2,
+      "boardType": "380V",
+      "ready": true,
+      "state": 1,
+      "readData": [41, 403, 119, 51, 0],
+      "telemetry": {
+        "chamberTemperatureC": 100.75,
+        "boardTemperatureC": 29.75,
+        "convectionFanHz": 51,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "fanReferenceHz": 50
+    }
+  },
+  {
+    "run": {
+      "id": "ba11477a-061e-4849-a19c-5bb6fe2d83c6",
+      "state": "completed",
+      "profileName": "Приёмка повторы 100 C 1792549438391750200",
+      "cycle": 2,
+      "cycles": 2,
+      "stage": 3,
+      "elapsedSeconds": 721,
+      "remainingSeconds": 0,
+      "targetTemperatureC": 50,
+      "measuredTemperatureC": 62.75,
+      "error": null,
+      "paused": false,
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "pendingReady": false,
+      "canAcknowledge": false
+    },
+    "board": {
+      "connected": true,
+      "port": "/dev/serial0",
+      "protocolVersion": 2,
+      "boardType": "380V",
+      "ready": true,
+      "state": 1,
+      "readData": [35, 400, 117, 51, 0],
+      "telemetry": {
+        "chamberTemperatureC": 100,
+        "boardTemperatureC": 29.25,
+        "convectionFanHz": 51,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "fanReferenceHz": 50
+    }
+  },
+  {
+    "run": {
+      "id": "ba11477a-061e-4849-a19c-5bb6fe2d83c6",
+      "state": "completed",
+      "profileName": "Приёмка повторы 100 C 1792549438391750200",
+      "cycle": 2,
+      "cycles": 2,
+      "stage": 3,
+      "elapsedSeconds": 721,
+      "remainingSeconds": 0,
+      "targetTemperatureC": 50,
+      "measuredTemperatureC": 62.75,
+      "error": null,
+      "paused": false,
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "pendingReady": false,
+      "canAcknowledge": false
+    },
+    "board": {
+      "connected": true,
+      "port": "/dev/serial0",
+      "protocolVersion": 2,
+      "boardType": "380V",
+      "ready": true,
+      "state": 1,
+      "readData": [37, 401, 118, 51, 0],
+      "telemetry": {
+        "chamberTemperatureC": 100.25,
+        "boardTemperatureC": 29.5,
+        "convectionFanHz": 51,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "fanReferenceHz": 50
+    }
+  },
+  {
+    "run": {
+      "id": "ba11477a-061e-4849-a19c-5bb6fe2d83c6",
+      "state": "completed",
+      "profileName": "Приёмка повторы 100 C 1792549438391750200",
+      "cycle": 2,
+      "cycles": 2,
+      "stage": 3,
+      "elapsedSeconds": 721,
+      "remainingSeconds": 0,
+      "targetTemperatureC": 50,
+      "measuredTemperatureC": 62.75,
+      "error": null,
+      "paused": false,
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "pendingReady": false,
+      "canAcknowledge": false
+    },
+    "board": {
+      "connected": true,
+      "port": "/dev/serial0",
+      "protocolVersion": 2,
+      "boardType": "380V",
+      "ready": true,
+      "state": 1,
+      "readData": [32, 401, 117, 51, 0],
+      "telemetry": {
+        "chamberTemperatureC": 100.25,
+        "boardTemperatureC": 29.25,
+        "convectionFanHz": 51,
+        "lamps": false,
+        "heaters": true,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "fanReferenceHz": 50
+    }
+  },
+  {
+    "run": {
+      "id": "ba11477a-061e-4849-a19c-5bb6fe2d83c6",
+      "state": "completed",
+      "profileName": "Приёмка повторы 100 C 1792549438391750200",
+      "cycle": 2,
+      "cycles": 2,
+      "stage": 3,
+      "elapsedSeconds": 721,
+      "remainingSeconds": 0,
+      "targetTemperatureC": 50,
+      "measuredTemperatureC": 62.75,
+      "error": null,
+      "paused": false,
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "pendingReady": false,
+      "canAcknowledge": false
+    },
+    "board": {
+      "connected": true,
+      "port": "/dev/serial0",
+      "protocolVersion": 2,
+      "boardType": "380V",
+      "ready": true,
+      "state": 1,
+      "readData": [30, 398, 119, 51, 0],
+      "telemetry": {
+        "chamberTemperatureC": 99.5,
+        "boardTemperatureC": 29.75,
+        "convectionFanHz": 51,
+        "lamps": false,
+        "heaters": true,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "fanReferenceHz": 50
+    }
+  },
+  {
+    "run": {
+      "id": "ba11477a-061e-4849-a19c-5bb6fe2d83c6",
+      "state": "completed",
+      "profileName": "Приёмка повторы 100 C 1792549438391750200",
+      "cycle": 2,
+      "cycles": 2,
+      "stage": 3,
+      "elapsedSeconds": 721,
+      "remainingSeconds": 0,
+      "targetTemperatureC": 50,
+      "measuredTemperatureC": 62.75,
+      "error": null,
+      "paused": false,
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "pendingReady": false,
+      "canAcknowledge": false
+    },
+    "board": {
+      "connected": true,
+      "port": "/dev/serial0",
+      "protocolVersion": 2,
+      "boardType": "380V",
+      "ready": true,
+      "state": 1,
+      "readData": [35, 400, 119, 51, 0],
+      "telemetry": {
+        "chamberTemperatureC": 100,
+        "boardTemperatureC": 29.75,
+        "convectionFanHz": 51,
+        "lamps": false,
+        "heaters": true,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "fanReferenceHz": 50
+    }
+  },
+  {
+    "run": {
+      "id": "ba11477a-061e-4849-a19c-5bb6fe2d83c6",
+      "state": "completed",
+      "profileName": "Приёмка повторы 100 C 1792549438391750200",
+      "cycle": 2,
+      "cycles": 2,
+      "stage": 3,
+      "elapsedSeconds": 721,
+      "remainingSeconds": 0,
+      "targetTemperatureC": 50,
+      "measuredTemperatureC": 62.75,
+      "error": null,
+      "paused": false,
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "pendingReady": false,
+      "canAcknowledge": false
+    },
+    "board": {
+      "connected": true,
+      "port": "/dev/serial0",
+      "protocolVersion": 2,
+      "boardType": "380V",
+      "ready": true,
+      "state": 1,
+      "readData": [32, 400, 117, 51, 0],
+      "telemetry": {
+        "chamberTemperatureC": 100,
+        "boardTemperatureC": 29.25,
+        "convectionFanHz": 51,
+        "lamps": false,
+        "heaters": true,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "fanReferenceHz": 50
+    }
+  },
+  {
+    "run": {
+      "id": "ba11477a-061e-4849-a19c-5bb6fe2d83c6",
+      "state": "completed",
+      "profileName": "Приёмка повторы 100 C 1792549438391750200",
+      "cycle": 2,
+      "cycles": 2,
+      "stage": 3,
+      "elapsedSeconds": 721,
+      "remainingSeconds": 0,
+      "targetTemperatureC": 50,
+      "measuredTemperatureC": 62.75,
+      "error": null,
+      "paused": false,
+      "doorOpen": false,
+      "holdingTemperatureC": 100,
+      "pendingReady": false,
+      "canAcknowledge": false
+    },
+    "board": {
+      "connected": true,
+      "port": "/dev/serial0",
+      "protocolVersion": 2,
+      "boardType": "380V",
+      "ready": true,
+      "state": 1,
+      "readData": [35, 402, 119, 51, 0],
+      "telemetry": {
+        "chamberTemperatureC": 100.5,
+        "boardTemperatureC": 29.75,
+        "convectionFanHz": 51,
+        "lamps": false,
+        "heaters": false,
+        "fans": false,
+        "convection": true
+      },
+      "doorOpen": false,
+      "fanReferenceHz": 50
+    }
+  }
+]

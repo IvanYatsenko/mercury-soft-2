@@ -1,0 +1,60 @@
+{
+  "removed": [
+    {
+      "board": false,
+      "mode": "manual",
+      "name": "Acceptance M400-230 1792572538563143200 upper ramp 100s",
+      "points": [
+        {
+          "second": 0,
+          "temperature": 30
+        },
+        {
+          "second": 212,
+          "temperature": 200
+        },
+        {
+          "second": 110,
+          "temperature": 200
+        },
+        {
+          "second": 100,
+          "temperature": 260
+        },
+        {
+          "second": 30,
+          "temperature": 260
+        },
+        {
+          "second": 150,
+          "temperature": 200
+        },
+        {
+          "second": 167,
+          "temperature": 150
+        },
+        {
+          "second": 250,
+          "temperature": 100
+        }
+      ],
+      "shelves": [
+        {
+          "second": 110,
+          "temperature": 200
+        },
+        {
+          "second": 30,
+          "temperature": 260
+        },
+        {
+          "second": 400,
+          "temperature": 100
+        }
+      ],
+      "repeat": 1,
+      "id": "c64cd9a3-c4d7-4ba9-870e-50293030671a"
+    }
+  ],
+  "selectedId": "adac1818-df3c-4b2b-91e7-54d29240effd"
+}

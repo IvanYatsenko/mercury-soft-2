@@ -1,0 +1,12 @@
+{
+  "M300": {
+    "chamberC": 49.5,
+    "boardC": 30,
+    "cooling": false
+  },
+  "M400": {
+    "chamberC": 45.75,
+    "boardC": 34,
+    "cooling": false
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "source": "m300-acceptance-cycles-2026-10-21-ba11477a-061e-4849-a19c-5bb6fe2d83c6.json",
+  "sensor": "chamberTemperatureC",
+  "samples": 689,
+  "cyclesObserved": [1, 2],
+  "shelves": [
+    {
+      "cycle": 1,
+      "targetC": 100,
+      "count": 20,
+      "meanErrorC": -0.275,
+      "minErrorC": -1.5,
+      "maxErrorC": 0.5,
+      "lastErrorC": 0,
+      "afterFirst5Seconds": {
+        "meanErrorC": -0.033,
+        "minErrorC": -1,
+        "maxErrorC": 0.5
+      }
+    },
+    {
+      "cycle": 2,
+      "targetC": 100,
+      "count": 19,
+      "meanErrorC": -0.25,
+      "minErrorC": -1.25,
+      "maxErrorC": 0.5,
+      "lastErrorC": -0.5,
+      "afterFirst5Seconds": {
+        "meanErrorC": -0.196,
+        "minErrorC": -1.25,
+        "maxErrorC": 0.5
+      }
+    }
+  ]
+}

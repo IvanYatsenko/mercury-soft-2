@@ -1,0 +1,60 @@
+{
+  "runId": "09385618-1e29-4d98-8801-081887a2f662",
+  "retained": {
+    "board": false,
+    "mode": "manual",
+    "name": "Бессвинцовая паста — М400/230 В",
+    "points": [
+      {
+        "second": 0,
+        "temperature": 30
+      },
+      {
+        "second": 212,
+        "temperature": 200
+      },
+      {
+        "second": 110,
+        "temperature": 200
+      },
+      {
+        "second": 100,
+        "temperature": 260
+      },
+      {
+        "second": 30,
+        "temperature": 260
+      },
+      {
+        "second": 150,
+        "temperature": 200
+      },
+      {
+        "second": 167,
+        "temperature": 150
+      },
+      {
+        "second": 250,
+        "temperature": 100
+      }
+    ],
+    "shelves": [
+      {
+        "second": 110,
+        "temperature": 200
+      },
+      {
+        "second": 30,
+        "temperature": 260
+      },
+      {
+        "second": 400,
+        "temperature": 100
+      }
+    ],
+    "repeat": 1,
+    "id": "5d1d57fe-df28-4dd0-a79d-43b220e03944"
+  },
+  "originalUnchanged": true,
+  "selectionUnchanged": true
+}

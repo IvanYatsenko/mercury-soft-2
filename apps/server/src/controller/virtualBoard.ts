@@ -1,3 +1,5 @@
+import { getOvenModel, readOvenSelection } from '../ovenSettings.js';
+
 /**
  * A small ITMP-level emulator based on docs/firmware-source/source/main.cpp.
  * It models protocol responses and observable state; it never controls hardware.
@@ -37,7 +39,7 @@ export type VirtualBoardSnapshot = {
   shutdownAt: string | null;
 };
 
-class VirtualBoard {
+export class VirtualBoard {
   private powered = true;
   private globalState: number = boardState.STARTING;
   private temperatures = { cpu: 28, t1: 25, t2: 26 };
@@ -47,10 +49,45 @@ class VirtualBoard {
   private shutdownDelayMs = 0;
   private shutdownAt: Date | null = null;
   private shutdownTimer: ReturnType<typeof setTimeout> | undefined;
+  private doorOpen = false;
+  private disconnected = false;
+  private sensorFault = false;
+  setTemperatures(board: number, chamber: number) {
+    if (!Number.isFinite(board) || !Number.isFinite(chamber))
+      throw new Error('Invalid temperature');
+    this.temperatures.t1 = board;
+    this.temperatures.t2 = chamber;
+  }
+
+  advance(
+    seconds: number,
+    heating: boolean,
+    cooling: boolean,
+    heatFraction = 1,
+  ) {
+    const before = this.temperatures.t2;
+    this.temperatures.t2 = Math.max(
+      25,
+      before +
+        (heating ? 0.7 * heatFraction : cooling ? -0.4 : -0.08) * seconds,
+    );
+    this.temperatures.t1 +=
+      (this.temperatures.t2 - this.temperatures.t1) * Math.min(1, seconds / 8);
+    this.fanFrequency.fan1 = 50;
+  }
+  setFault(fault: 'door' | 'connection' | 'sensor' | 'overheat' | 'none') {
+    this.doorOpen = fault === 'door';
+    this.disconnected = fault === 'connection';
+    this.sensorFault = fault === 'sensor';
+    this.globalState &= ~(boardState.TSENSOR_ERR | boardState.OVERHEAT);
+    if (this.sensorFault) this.globalState |= boardState.TSENSOR_ERR;
+    if (fault === 'overheat') this.globalState |= boardState.OVERHEAT;
+  }
 
   call(name: string, args: unknown[] = []): unknown {
     this.finishShutdownIfDue();
-    if (!this.powered) throw new Error('Виртуальная плата выключена.');
+    if (!this.powered || this.disconnected)
+      throw new Error('Нет связи с виртуальной платой.');
 
     switch (name) {
       case 'stat':
@@ -64,25 +101,27 @@ class VirtualBoard {
         );
         return [this.globalState];
       case 'get':
-        return [
+      case 'gett': {
+        const model = getOvenModel(readOvenSelection()?.ovenModel ?? '300');
+        const data = [
           this.temperatures.cpu,
-          this.temperatures.t1 * 4,
-          this.temperatures.t2 * 4,
+          Math.round(this.temperatures.t1 * 4),
+          Math.round(this.temperatures.t2 * 4),
           this.fanFrequency.fan1,
-          0,
+          name === 'gett' ? this.globalState : 0,
         ];
-      case 'gett':
-        return [
-          this.temperatures.cpu,
+        data[model?.sensors.boardTemperature.index ?? 1] = Math.round(
           this.temperatures.t1 * 4,
+        );
+        data[model?.sensors.chamberTemperature.index ?? 2] = Math.round(
           this.temperatures.t2 * 4,
-          this.fanFrequency.fan1,
-          this.globalState,
-        ];
+        );
+        return data;
+      }
       case 'fansfreq':
         return [this.fanFrequency.fan1, this.fanFrequency.fan2];
       case 'sensors':
-        return [0, 0];
+        return [0, Number(this.doorOpen)];
       case 'setLV':
         if (args.length)
           this.lowVoltageOutputs = this.normalizeOutputs(args, 6);
@@ -136,6 +175,8 @@ class VirtualBoard {
     this.lowVoltageOutputs.fill(0);
     this.shutdownDelayMs = 0;
     this.shutdownAt = null;
+    this.temperatures = { cpu: 28, t1: 25, t2: 26 };
+    this.setFault('none');
   }
 
   private setState(value: number): void {

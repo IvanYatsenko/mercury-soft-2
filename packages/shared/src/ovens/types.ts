@@ -27,10 +27,23 @@ export interface SpeedLevel {
   ts: readonly SpeedPoint[];
 }
 
+export interface MeasuredResponse {
+  connectionVoltage: ConnectionVoltage;
+  runId: string;
+  sensor: 'chamber';
+  coolingPlanning?: {
+    runId: string;
+    temperatureBands: readonly import('../profilePlan.js').ResponseBand[];
+  };
+  temperatureBands: readonly import('../profilePlan.js').ResponseBand[];
+}
 export interface OvenConfiguration {
+  measuredResponse?: MeasuredResponse;
+  measuredResponses?: Partial<Record<ConnectionVoltage, MeasuredResponse>>;
   model: OvenModel;
   name: string;
   designation: string;
+  heatingLoads?: Readonly<Record<string, number>>;
   specifications: {
     boardWidthMm: number;
     boardDepthMm: number;

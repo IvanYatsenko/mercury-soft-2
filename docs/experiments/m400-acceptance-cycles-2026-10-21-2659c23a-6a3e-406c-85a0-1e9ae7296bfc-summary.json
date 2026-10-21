@@ -1,0 +1,36 @@
+{
+  "source": "m400-acceptance-cycles-2026-10-21-2659c23a-6a3e-406c-85a0-1e9ae7296bfc.json",
+  "sensor": "chamberTemperatureC",
+  "samples": 887,
+  "cyclesObserved": [1],
+  "shelves": [
+    {
+      "cycle": 1,
+      "targetC": 200,
+      "count": 101,
+      "meanErrorC": -0.394,
+      "minErrorC": -5.25,
+      "maxErrorC": 1.25,
+      "lastErrorC": 0,
+      "afterFirst5Seconds": {
+        "meanErrorC": -0.232,
+        "minErrorC": -2,
+        "maxErrorC": 1.25
+      }
+    },
+    {
+      "cycle": 1,
+      "targetC": 260,
+      "count": 25,
+      "meanErrorC": -0.78,
+      "minErrorC": -3.75,
+      "maxErrorC": 0.25,
+      "lastErrorC": -0.5,
+      "afterFirst5Seconds": {
+        "meanErrorC": -0.512,
+        "minErrorC": -1.75,
+        "maxErrorC": 0.25
+      }
+    }
+  ]
+}

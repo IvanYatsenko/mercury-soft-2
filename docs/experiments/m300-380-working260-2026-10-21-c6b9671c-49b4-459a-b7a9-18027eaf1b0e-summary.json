@@ -1,0 +1,36 @@
+{
+  "source": "m300-380-working260-2026-10-21-c6b9671c-49b4-459a-b7a9-18027eaf1b0e.json",
+  "sensor": "chamberTemperatureC",
+  "samples": 924,
+  "cyclesObserved": [1],
+  "shelves": [
+    {
+      "cycle": 1,
+      "targetC": 200,
+      "count": 103,
+      "meanErrorC": -0.24,
+      "minErrorC": -4,
+      "maxErrorC": 1.25,
+      "lastErrorC": -0.25,
+      "afterFirst5Seconds": {
+        "meanErrorC": -0.115,
+        "minErrorC": -1.75,
+        "maxErrorC": 1.25
+      }
+    },
+    {
+      "cycle": 1,
+      "targetC": 260,
+      "count": 28,
+      "meanErrorC": -0.464,
+      "minErrorC": -3,
+      "maxErrorC": 0.5,
+      "lastErrorC": 0.5,
+      "afterFirst5Seconds": {
+        "meanErrorC": -0.13,
+        "minErrorC": -1.25,
+        "maxErrorC": 0.5
+      }
+    }
+  ]
+}

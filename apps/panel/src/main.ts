@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, session } from 'electron';
 import { existsSync } from 'node:fs';
 import { loadEnvFile } from 'node:process';
 
@@ -35,6 +35,11 @@ async function createWindow() {
     if (new URL(url).origin !== appUrl) event.preventDefault();
   });
   window.once('ready-to-show', () => window.show());
+  if (fullscreen) {
+    window.webContents.on('did-finish-load', () => {
+      void window.webContents.insertCSS('* { cursor: none !important; }');
+    });
+  }
   await window.loadURL(appUrl);
 }
 
@@ -55,3 +60,7 @@ void app.whenReady().then(() => {
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
 });
+
+app.on('before-quit', () => session.defaultSession.flushStorageData());
+process.on('SIGINT', () => app.quit());
+process.on('SIGTERM', () => app.quit());

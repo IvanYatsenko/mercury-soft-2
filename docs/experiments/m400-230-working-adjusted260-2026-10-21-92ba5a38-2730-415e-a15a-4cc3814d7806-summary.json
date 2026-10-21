@@ -1,0 +1,36 @@
+{
+  "source": "m400-230-working-adjusted260-2026-10-21-92ba5a38-2730-415e-a15a-4cc3814d7806.json",
+  "sensor": "chamberTemperatureC",
+  "samples": 971,
+  "cyclesObserved": [1],
+  "shelves": [
+    {
+      "cycle": 1,
+      "targetC": 200,
+      "count": 107,
+      "meanErrorC": 0.114,
+      "minErrorC": -1.5,
+      "maxErrorC": 1.5,
+      "lastErrorC": 0.25,
+      "afterFirst5Seconds": {
+        "meanErrorC": 0.176,
+        "minErrorC": -1.5,
+        "maxErrorC": 1.5
+      }
+    },
+    {
+      "cycle": 1,
+      "targetC": 260,
+      "count": 29,
+      "meanErrorC": -0.086,
+      "minErrorC": -1.5,
+      "maxErrorC": 0.75,
+      "lastErrorC": 0,
+      "afterFirst5Seconds": {
+        "meanErrorC": 0.062,
+        "minErrorC": -0.75,
+        "maxErrorC": 0.75
+      }
+    }
+  ]
+}

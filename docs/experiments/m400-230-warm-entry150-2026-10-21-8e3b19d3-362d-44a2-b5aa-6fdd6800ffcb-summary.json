@@ -1,0 +1,22 @@
+{
+  "source": "m400-230-warm-entry150-2026-10-21-8e3b19d3-362d-44a2-b5aa-6fdd6800ffcb.json",
+  "sensor": "chamberTemperatureC",
+  "samples": 96,
+  "cyclesObserved": [1],
+  "shelves": [
+    {
+      "cycle": 1,
+      "targetC": 150,
+      "count": 30,
+      "meanErrorC": -0.042,
+      "minErrorC": -2,
+      "maxErrorC": 1.25,
+      "lastErrorC": 0,
+      "afterFirst5Seconds": {
+        "meanErrorC": 0.24,
+        "minErrorC": -1.5,
+        "maxErrorC": 1.25
+      }
+    }
+  ]
+}

@@ -6,6 +6,7 @@ import {
   Card,
   CardContent,
   Stack,
+  SvgIcon,
   Typography,
 } from '@mui/material';
 import { KeyboardTextField } from './OnScreenKeyboard';
@@ -131,8 +132,16 @@ export function WifiPage({ status, onStatusChange, onBack }: WifiPageProps) {
   return (
     <Stack spacing={0.75}>
       <Stack direction="row" alignItems="center" spacing={1}>
-        <Button onClick={onBack} sx={{ minHeight: 44, minWidth: 84 }}>
-          ← Назад
+        <Button
+          onClick={onBack}
+          sx={{ minHeight: 44, minWidth: 84 }}
+          startIcon={
+            <SvgIcon>
+              <path d="m20 11-12 0 5-5-1.4-1.4L4.2 12l7.4 7.4L13 18l-5-5h12v-2Z" />
+            </SvgIcon>
+          }
+        >
+          Назад
         </Button>
         <Typography variant="h6">Wi-Fi</Typography>
       </Stack>
@@ -247,10 +256,35 @@ export function WifiPage({ status, onStatusChange, onBack }: WifiPageProps) {
               <Typography variant="body2" noWrap sx={{ maxWidth: '75%' }}>
                 {network.ssid}
               </Typography>
-              <Box component="span" sx={{ fontSize: 12 }}>
-                {network.security && network.security !== '--' ? '🔒 ' : ''}
-                {network.signal}%
-              </Box>
+              <Stack
+                component="span"
+                direction="row"
+                spacing={0.5}
+                alignItems="center"
+              >
+                {network.security && network.security !== '--' && (
+                  <SvgIcon sx={{ fontSize: 16 }} titleAccess="Защищённая сеть">
+                    <path d="M17 8h-1V6a4 4 0 0 0-8 0v2H7a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V10a2 2 0 0 0-2-2ZM10 6a2 2 0 0 1 4 0v2h-4V6Zm2 11a2 2 0 1 1 0-4 2 2 0 0 1 0 4Z" />
+                  </SvgIcon>
+                )}
+                <SvgIcon
+                  sx={{ fontSize: 18 }}
+                  titleAccess={`Сигнал ${network.signal}%`}
+                >
+                  <path
+                    d="M1 9l2 2c5-5 13-5 18 0l2-2C17 3 7 3 1 9Z"
+                    opacity={network.signal >= 65 ? 1 : 0.25}
+                  />
+                  <path
+                    d="m5 13 2 2c2.76-2.76 7.24-2.76 10 0l2-2c-3.86-3.86-10.14-3.86-14 0Z"
+                    opacity={network.signal >= 35 ? 1 : 0.25}
+                  />
+                  <path d="m9 17 3 3 3-3c-1.65-1.65-4.35-1.65-6 0Z" />
+                </SvgIcon>
+                <Box component="span" sx={{ fontSize: 12 }}>
+                  {network.signal}%
+                </Box>
+              </Stack>
             </Button>
           ))}
           {!scanning && networks.length === 0 && status.enabled && (

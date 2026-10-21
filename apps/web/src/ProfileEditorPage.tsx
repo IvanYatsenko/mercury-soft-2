@@ -1,5 +1,7 @@
+import type { TemperatureRate } from '@mercury/shared';
 import {
   Box,
+  Alert,
   Button,
   Card,
   CardContent,
@@ -18,6 +20,7 @@ import {
 } from '@mui/material';
 import {
   convertProfileMode,
+  manualCoolingWarnings,
   type EasyProfile,
   type ManualProfile,
   type Profile,
@@ -31,6 +34,9 @@ type ProfileEditorPageProps = {
   onChange: (profile: Profile) => void;
   onCancel: () => void;
   onSave: () => void;
+  onDelete?: () => void;
+  heatingRate?: TemperatureRate;
+  coolingRate?: TemperatureRate;
 };
 
 export function ProfileEditorPage({
@@ -38,6 +44,9 @@ export function ProfileEditorPage({
   onChange,
   onCancel,
   onSave,
+  onDelete,
+  heatingRate = 0.7,
+  coolingRate = 0.4,
 }: ProfileEditorPageProps) {
   const [pendingMode, setPendingMode] = useState<'easy' | 'manual' | null>(
     null,
@@ -106,6 +115,12 @@ export function ProfileEditorPage({
         </Button>
       </Stack>
 
+      {onDelete && (
+        <Button color="error" variant="outlined" onClick={onDelete}>
+          Удалить профиль
+        </Button>
+      )}
+
       <Card variant="outlined">
         <CardContent>
           <Stack spacing={1.25}>
@@ -130,7 +145,14 @@ export function ProfileEditorPage({
                   if (profile.mode === 'manual' && nextMode === 'easy') {
                     setPendingMode(nextMode);
                   } else if (nextMode !== profile.mode) {
-                    onChange(convertProfileMode(profile, nextMode));
+                    onChange(
+                      convertProfileMode(
+                        profile,
+                        nextMode,
+                        heatingRate,
+                        coolingRate,
+                      ),
+                    );
                   }
                 }}
                 sx={{ minWidth: 190 }}
@@ -177,6 +199,16 @@ export function ProfileEditorPage({
         </CardContent>
       </Card>
 
+      {manualCoolingWarnings(profile, coolingRate).map(
+        ({ index, requiredSeconds }) => (
+          <Alert severity="warning" key={index}>
+            Участок {index}: охлаждение слишком быстрое. Для линейного спуска
+            нужно примерно {Math.floor(requiredSeconds / 60)} мин{' '}
+            {requiredSeconds % 60} с. Раздели участок по температурным
+            диапазонам или увеличь время.
+          </Alert>
+        ),
+      )}
       {profile.mode === 'easy' && (
         <>
           <Typography variant="subtitle1" fontWeight={700}>
@@ -312,7 +344,14 @@ export function ProfileEditorPage({
             variant="contained"
             onClick={() => {
               if (pendingMode)
-                onChange(convertProfileMode(profile, pendingMode));
+                onChange(
+                  convertProfileMode(
+                    profile,
+                    pendingMode,
+                    heatingRate,
+                    coolingRate,
+                  ),
+                );
               setPendingMode(null);
             }}
           >
