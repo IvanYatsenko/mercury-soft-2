@@ -35,6 +35,8 @@ import { ProfileEditorPage } from './ProfileEditorPage';
 import { ProfileChart } from './ProfileChart';
 import { HistoryPage } from './HistoryPage';
 import { RunProcessWindow } from './RunProcessWindow';
+import { usePcLayout } from './usePcLayout';
+import { PcWorkspace } from './PcWorkspace';
 import { fanWarning } from './fanWarning';
 import {
   criticalBoardError,
@@ -178,6 +180,7 @@ function boardIndicator(status: ControllerStatus | null) {
 }
 
 export function App({ mode, onToggleMode }: AppProps) {
+  const pcLayout = usePcLayout();
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [profileTemplates, setProfileTemplates] = useState<Profile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -1218,12 +1221,96 @@ export function App({ mode, onToggleMode }: AppProps) {
       criticalBoardState(controllerStatus.state)) ||
     criticalBoardError(runStatus?.error);
 
+  const sectionContent =
+    activeSection === 'settings' ? (
+      <>
+        {configurationError && (
+          <Alert severity="error">{configurationError}</Alert>
+        )}
+        <SettingsPage
+          advancedAccess={advancedSettingsUnlocked}
+          combinedRoles={combinedRoles}
+          combinedRolesChanging={combinedRolesChanging}
+          onCombinedRolesChange={(enabled) => void changeCombinedRoles(enabled)}
+          onSoundOnErrorsChange={(enabled) => void changeSoundOnErrors(enabled)}
+          soundOnErrorsChanging={soundOnErrorsChanging}
+          thermalProtectionChanging={thermalProtectionChanging}
+          onThermalProtectionChange={(enabled) =>
+            void changeThermalProtection(enabled)
+          }
+          fanWarning={currentFanWarning?.message ?? null}
+          onFanWarningsChange={(enabled) => void changeFanWarnings(enabled)}
+          fanWarningsChanging={fanWarningsChanging}
+          settings={{
+            ...settings,
+            convectionEnabled:
+              controllerStatus?.telemetry?.convection ??
+              settings.convectionEnabled,
+          }}
+          onChange={setSettings}
+          fanHz={fanHz ?? null}
+          referenceHz={controllerStatus?.fanReferenceHz ?? 50}
+          onConfirmFanReference={() => void confirmFanReference()}
+          savingFanReference={savingFanReference}
+          ovenModels={ovenConfiguration.models}
+          ovenSelection={selectionDraft}
+          savedOvenSelection={ovenConfiguration.selected}
+          onOvenSelectionChange={setSelectionDraft}
+          onSaveOvenSelection={() => void saveOvenSelection()}
+          savingOvenSelection={savingSelection || runActive || holdingActive}
+          detectedBoardType={controllerStatus?.boardType}
+          controllerConnected={controllerStatus?.connected === true}
+          controllerReady={
+            controllerStatus?.ready === true && !runActive && !holdingActive
+          }
+          controllerSimulated={controllerStatus?.simulated === true}
+          onConvectionChange={(enabled) => void changeConvection(enabled)}
+          convectionChanging={convectionChanging}
+          onBack={closeSettings}
+          onHistory={() => {
+            if (advancedSettingsUnlocked) setActiveSection('history');
+          }}
+          runActive={runActive || holdingActive}
+        />
+      </>
+    ) : activeSection === 'history' ? (
+      <HistoryPage onBack={() => setActiveSection('settings')} />
+    ) : activeSection === 'wifi' ? (
+      <WifiPage
+        status={wifiStatus}
+        onStatusChange={setWifiStatus}
+        onBack={() => setActiveSection('profiles')}
+      />
+    ) : draftProfile ? (
+      <ProfileEditorPage
+        profile={draftProfile}
+        heatingRate={
+          ovenConfiguration.models.find(
+            (model) => model.model === ovenConfiguration.selected?.ovenModel,
+          )?.heatingRate ?? 0.7
+        }
+        coolingRate={
+          ovenConfiguration.models.find(
+            (model) => model.model === ovenConfiguration.selected?.ovenModel,
+          )?.coolingRate ?? 0.4
+        }
+        onChange={setDraftProfile}
+        onCancel={cancelEditing}
+        onSave={() => void saveDraft()}
+        {...(draftProfile.id && editingIndex !== null
+          ? { onDelete: () => void deleteDraft() }
+          : {})}
+      />
+    ) : (
+      <Alert severity="warning">Профиль не выбран</Alert>
+    );
+
   return (
     <Box
       sx={{
         height: '100dvh',
         minHeight: 320,
-        p: { xs: 0, sm: 2 },
+        p: pcLayout ? 0 : { xs: 0, sm: 2 },
         bgcolor: 'background.default',
       }}
     >
@@ -1255,7 +1342,7 @@ export function App({ mode, onToggleMode }: AppProps) {
         criticalBoard={criticalBoard}
         fanWarning={currentFanWarning}
         indicators={ovenIndicators}
-        open={runWindowOpen}
+        open={!pcLayout && runWindowOpen}
         status={runStatus}
         busy={runBusy}
         onStop={() => void changeRun()}
@@ -1273,584 +1360,586 @@ export function App({ mode, onToggleMode }: AppProps) {
           )?.coolingRate
         }
       />
-      <Box
-        sx={{
-          width: '100%',
-          maxWidth: { xs: 1000, md: 1440 },
-          height: '100%',
-          minHeight: 320,
-          mx: 'auto',
-          display: 'grid',
-          gridTemplateRows: isFullPage
-            ? 'minmax(0, 1fr)'
-            : { xs: '36px minmax(0, 1fr)', md: '56px minmax(0, 1fr)' },
-          overflow: 'hidden',
-          bgcolor: 'background.paper',
-          border: { xs: 0, sm: 1 },
-          borderColor: 'divider',
-          borderRadius: { xs: 0, sm: 1 },
-        }}
-      >
-        {!isFullPage && (
-          <Box
-            component="header"
-            sx={{
-              px: 1.25,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 1,
-              bgcolor: 'action.hover',
-            }}
-          >
-            <Box
-              role="img"
-              aria-label={boardConnection.label}
-              title={
-                controllerStatus?.connected === false
-                  ? `${boardConnection.label}. Переподключение выполняется автоматически.${controllerStatus.error ? ` ${controllerStatus.error}` : ''}`
-                  : boardConnection.label
-              }
-              sx={{
-                width: 14,
-                height: 14,
-                borderRadius: '50%',
-                bgcolor: boardConnection.color,
-                flexShrink: 0,
-              }}
-            />
-            <ButtonBase
-              component="button"
-              aria-label={`О программе ${selectedOvenName}`}
-              onClick={() => setAboutDialogOpen(true)}
-              sx={{
-                flex: 1,
-                minWidth: 0,
-                justifyContent: 'flex-start',
-                textAlign: 'left',
-              }}
-            >
-              <Typography variant="subtitle2" noWrap sx={{ fontWeight: 700 }}>
-                {selectedOvenName}
-              </Typography>
-            </ButtonBase>
-            <FormControlLabel
-              label="100 °C"
-              title="Поддерживать 100 °C"
-              sx={{
-                m: 0,
-                mr: 2,
-                flexShrink: 0,
-                minHeight: 32,
-                '& .MuiFormControlLabel-label': {
-                  fontSize: 12,
-                  whiteSpace: 'nowrap',
-                },
-              }}
-              control={
-                <Switch
-                  size="small"
-                  checked={keepHeatEnabled}
-                  disabled={keepHeatChanging}
-                  onChange={(_event, checked) => void changeKeepHeat(checked)}
-                  slotProps={{ input: { 'aria-label': 'Поддерживать 100 °C' } }}
-                />
-              }
-            />
-            <IconButton
-              aria-label={
-                wifiStatus?.connected
-                  ? `Wi-Fi: ${wifiStatus.ssid ?? 'подключено'}`
-                  : 'Настроить Wi-Fi'
-              }
-              title={
-                wifiStatus?.connected
-                  ? `Wi-Fi: ${wifiStatus.ssid ?? 'подключено'}`
-                  : (wifiStatus?.error ?? 'Wi-Fi не подключён')
-              }
-              onClick={() => setActiveSection('wifi')}
-              size="small"
-              sx={{
-                p: 0.5,
-                color: wifiStatus?.connected
-                  ? 'success.main'
-                  : wifiStatus?.available
-                    ? 'text.secondary'
-                    : 'text.disabled',
-              }}
-            >
-              <SvgIcon fontSize="small">
-                <path d="M1 9l2 2c5-5 13-5 18 0l2-2C17 3 7 3 1 9zm8 8 3 3 3-3c-1.65-1.65-4.35-1.65-6 0zm-4-4 2 2c2.76-2.76 7.24-2.76 10 0l2-2c-3.86-3.86-10.14-3.86-14 0z" />
-              </SvgIcon>
-            </IconButton>
-            <IconButton
-              aria-label="Переключить тему"
-              onClick={onToggleMode}
-              size="small"
-              sx={{ ml: 0.5 }}
-            >
-              <Typography component="span" variant="caption">
-                {mode === 'dark' ? '☀' : '☾'}
-              </Typography>
-            </IconButton>
-          </Box>
-        )}
-
+      {pcLayout ? (
+        <PcWorkspace
+          mode={mode}
+          onToggleMode={onToggleMode}
+          section={activeSection}
+          onSection={setActiveSection}
+          name={selectedOvenName}
+          connectionLabel={boardConnection.label}
+          connected={controllerStatus?.connected === true}
+          ready={controllerStatus?.ready === true}
+          profiles={profiles}
+          selected={activeProfile}
+          draft={draftProfile}
+          run={runStatus}
+          busy={runBusy}
+          runActive={runActive}
+          windowOpen={runWindowOpen}
+          onReady={() => void finishRunWindow()}
+          temperature={displayedTemperature}
+          chamber={controllerStatus?.telemetry?.chamberTemperatureC}
+          board={controllerStatus?.telemetry?.boardTemperatureC}
+          doorOpen={controllerStatus?.doorOpen}
+          lamps={controllerStatus?.telemetry?.lamps}
+          heaters={controllerStatus?.telemetry?.heaters}
+          fans={controllerStatus?.telemetry?.fans}
+          convection={controllerStatus?.telemetry?.convection}
+          canEdit={canEditProfiles}
+          unlocked={settingsUnlocked}
+          advanced={advancedSettingsUnlocked}
+          onSelect={(profile) => setSelectedProfile(profile.name)}
+          onEdit={beginEditing}
+          onCreate={createProfile}
+          onSettings={openSettings}
+          onAdvancedAccess={() => setPinOpen(true)}
+          onLock={() => void lockSettings()}
+          onStart={() => void changeRun()}
+          onPause={() => void changePause('pause')}
+          onResume={() => void changePause('resume')}
+          onStop={() => void changeRun()}
+          keepHeat={keepHeatEnabled}
+          keepHeatBusy={keepHeatChanging}
+          onKeepHeat={(enabled) => void changeKeepHeat(enabled)}
+          heatingRate={
+            ovenConfiguration.models.find(
+              (m) => m.model === ovenConfiguration.selected?.ovenModel,
+            )?.heatingRate ?? 0.7
+          }
+          coolingRate={
+            ovenConfiguration.models.find(
+              (m) => m.model === ovenConfiguration.selected?.ovenModel,
+            )?.coolingRate ?? 0.4
+          }
+          content={sectionContent}
+          warning={currentFanWarning?.message ?? null}
+          critical={criticalBoard}
+        />
+      ) : (
         <Box
-          component="main"
           sx={{
+            width: '100%',
+            maxWidth: pcLayout ? 1760 : { xs: 1000, md: 1440 },
             height: '100%',
-            minHeight: 0,
+            minHeight: 320,
+            mx: 'auto',
+            display: 'grid',
+            gridTemplateRows: isFullPage
+              ? 'minmax(0, 1fr)'
+              : { xs: '36px minmax(0, 1fr)', md: '56px minmax(0, 1fr)' },
             overflow: 'hidden',
-            display: isFullPage ? 'block' : 'grid',
-            gridTemplateColumns: isFullPage
-              ? undefined
-              : {
-                  xs: 'minmax(176px, 0.82fr) minmax(0, 1fr)',
-                  sm: 'minmax(230px, 0.78fr) minmax(0, 1fr)',
-                  md: 'minmax(0, 1.6fr) minmax(320px, 1fr)',
-                },
+            bgcolor: 'background.paper',
+            border: { xs: 0, sm: 1 },
+            borderColor: 'divider',
+            borderRadius: { xs: 0, sm: 1 },
           }}
         >
           {!isFullPage && (
-            <Stack
-              component="section"
-              aria-label="Состояние печи"
-              spacing={0.6}
+            <Box
+              component="header"
               sx={{
-                p: { xs: 0.75, md: 2 },
-                minWidth: 0,
-                minHeight: 0,
-                height: '100%',
-                borderRight: 1,
-                borderColor: 'divider',
+                px: pcLayout ? 3 : 1.25,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+                bgcolor: 'action.hover',
               }}
             >
-              <Card variant="outlined" sx={{ flex: '0 0 auto' }}>
-                <CardContent
+              <Box
+                role="img"
+                aria-label={boardConnection.label}
+                title={
+                  controllerStatus?.connected === false
+                    ? `${boardConnection.label}. Переподключение выполняется автоматически.${controllerStatus.error ? ` ${controllerStatus.error}` : ''}`
+                    : boardConnection.label
+                }
+                sx={{
+                  width: 14,
+                  height: 14,
+                  borderRadius: '50%',
+                  bgcolor: boardConnection.color,
+                  flexShrink: 0,
+                }}
+              />
+              <ButtonBase
+                component="button"
+                aria-label={`О программе ${selectedOvenName}`}
+                onClick={() => setAboutDialogOpen(true)}
+                sx={{
+                  flex: 1,
+                  minWidth: 0,
+                  justifyContent: 'flex-start',
+                  textAlign: 'left',
+                }}
+              >
+                <Typography
+                  variant="subtitle2"
+                  noWrap
                   sx={{
-                    p: '3px 7px !important',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 0,
+                    fontWeight: 700,
+                    ...(pcLayout ? { fontSize: 20 } : {}),
                   }}
                 >
-                  <Typography
-                    sx={{
-                      color: temperatureColor(displayedTemperature),
-                      fontSize: { xs: '1.65rem', md: '3rem' },
-                      fontWeight: 700,
-                      lineHeight: 1,
-                    }}
-                  >
-                    {displayedTemperature == null
-                      ? '—°'
-                      : `${Math.round(displayedTemperature)}°`}
-                  </Typography>
-                  <Typography
-                    variant="caption"
-                    color="text.secondary"
-                    sx={{ fontSize: { xs: 10, md: 14 } }}
-                  >
-                    {profileUsesBoardSensor
-                      ? 'Датчик на плате'
-                      : 'Температура камеры'}
-                  </Typography>
-                </CardContent>
-              </Card>
-
-              {activeProfile ? (
-                <ProfileChart
-                  profile={activeProfile}
-                  heatingRate={
-                    ovenConfiguration.models.find(
-                      (model) =>
-                        model.model === ovenConfiguration.selected?.ovenModel,
-                    )?.heatingRate ?? 0.7
-                  }
-                  coolingRate={
-                    ovenConfiguration.models.find(
-                      (model) =>
-                        model.model === ovenConfiguration.selected?.ovenModel,
-                    )?.coolingRate ?? 0.4
-                  }
-                />
-              ) : (
-                <Box sx={{ flex: 1 }} />
-              )}
-              {runStatus?.state !== 'idle' && runStatus && !criticalBoard && (
+                  {selectedOvenName}
+                </Typography>
+              </ButtonBase>
+              {pcLayout && (
                 <Typography
-                  sx={{ fontSize: 10, lineHeight: 1.2 }}
-                  color={runStatus.error ? 'error.main' : 'text.secondary'}
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ mr: 3 }}
                 >
-                  {(runStatus.error ? userError(runStatus.error) : null) ??
-                    (holdingActive
-                      ? 'Поддержание 100 °C'
-                      : runActive
-                        ? (runStatus.state === 'cooling'
-                            ? 'Охлаждение'
-                            : 'Цель: ' +
-                              Math.round(runStatus.targetTemperatureC ?? 0) +
-                              '°') +
-                          ' · ' +
-                          runStatus.cycle +
-                          '/' +
-                          runStatus.cycles +
-                          ' · ' +
-                          Math.floor(runStatus.elapsedSeconds / 60) +
-                          ' мин ' +
-                          (runStatus.elapsedSeconds % 60) +
-                          ' с'
-                        : runStatus.state === 'completed'
-                          ? 'Завершено'
-                          : runStatus.state === 'stopped'
-                            ? 'Остановлено'
-                            : 'Ошибка')}
+                  {window.location.host}
                 </Typography>
               )}
-              {currentFanWarning && (
-                <Typography
-                  role="status"
-                  color="warning.main"
-                  sx={{ fontSize: 11, lineHeight: 1.25 }}
-                >
-                  {currentFanWarning.message}
-                </Typography>
-              )}
-              <Stack spacing={0.6}>
-                <Button
-                  fullWidth
-                  variant="contained"
-                  color="success"
-                  onClick={() =>
-                    runActive ? setRunWindowOpen(true) : void changeRun()
-                  }
-                  disabled={
-                    runBusy ||
-                    (!runActive && (!activeProfile || !controllerStatus?.ready))
-                  }
-                  sx={{ minHeight: 42, color: 'common.black', fontWeight: 700 }}
-                >
-                  ▶ ПУСК
-                </Button>
-                <Button
-                  fullWidth
-                  variant="outlined"
-                  onClick={openSettings}
-                  sx={{ minHeight: 34 }}
-                >
-                  <Box
-                    component="span"
-                    aria-hidden="true"
-                    sx={{
-                      mr: 1,
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      lineHeight: 1,
+              <FormControlLabel
+                label="100 °C"
+                title="Поддерживать 100 °C"
+                sx={{
+                  m: 0,
+                  mr: 2,
+                  flexShrink: 0,
+                  minHeight: 32,
+                  '& .MuiFormControlLabel-label': {
+                    fontSize: 12,
+                    whiteSpace: 'nowrap',
+                  },
+                }}
+                control={
+                  <Switch
+                    size="small"
+                    checked={keepHeatEnabled}
+                    disabled={keepHeatChanging}
+                    onChange={(_event, checked) => void changeKeepHeat(checked)}
+                    slotProps={{
+                      input: { 'aria-label': 'Поддерживать 100 °C' },
                     }}
-                  >
-                    {settingsUnlocked ? (
-                      '⚙'
-                    ) : (
-                      <SvgIcon fontSize="small">
-                        <path d="M12.65 10C11.83 7.67 9.61 6 7 6a6 6 0 1 0 5.65 8H17v4h4v-4h2v-4H12.65ZM7 14a2 2 0 1 1 0-4 2 2 0 0 1 0 4Z" />
-                      </SvgIcon>
-                    )}
-                  </Box>{' '}
-                  НАСТРОЙКИ
-                </Button>
-              </Stack>
-            </Stack>
+                  />
+                }
+              />
+              <IconButton
+                aria-label={
+                  wifiStatus?.connected
+                    ? `Wi-Fi: ${wifiStatus.ssid ?? 'подключено'}`
+                    : 'Настроить Wi-Fi'
+                }
+                title={
+                  wifiStatus?.connected
+                    ? `Wi-Fi: ${wifiStatus.ssid ?? 'подключено'}`
+                    : (wifiStatus?.error ?? 'Wi-Fi не подключён')
+                }
+                onClick={() => setActiveSection('wifi')}
+                size="small"
+                sx={{
+                  p: 0.5,
+                  color: wifiStatus?.connected
+                    ? 'success.main'
+                    : wifiStatus?.available
+                      ? 'text.secondary'
+                      : 'text.disabled',
+                }}
+              >
+                <SvgIcon fontSize="small">
+                  <path d="M1 9l2 2c5-5 13-5 18 0l2-2C17 3 7 3 1 9zm8 8 3 3 3-3c-1.65-1.65-4.35-1.65-6 0zm-4-4 2 2c2.76-2.76 7.24-2.76 10 0l2-2c-3.86-3.86-10.14-3.86-14 0z" />
+                </SvgIcon>
+              </IconButton>
+              <IconButton
+                aria-label="Переключить тему"
+                onClick={onToggleMode}
+                size="small"
+                sx={{ ml: 0.5 }}
+              >
+                <Typography component="span" variant="caption">
+                  {mode === 'dark' ? '☀' : '☾'}
+                </Typography>
+              </IconButton>
+            </Box>
           )}
 
           <Box
+            component="main"
             sx={{
-              minWidth: 0,
-              minHeight: 0,
               height: '100%',
-              display: 'flex',
+              minHeight: 0,
               overflow: 'hidden',
+              display: isFullPage ? 'block' : 'grid',
+              gridTemplateColumns: isFullPage
+                ? undefined
+                : pcLayout
+                  ? 'minmax(0, 1.7fr) minmax(360px, 1fr)'
+                  : {
+                      xs: 'minmax(176px, 0.82fr) minmax(0, 1fr)',
+                      sm: 'minmax(230px, 0.78fr) minmax(0, 1fr)',
+                      md: 'minmax(0, 1.6fr) minmax(320px, 1fr)',
+                    },
             }}
           >
+            {!isFullPage && (
+              <Stack
+                component="section"
+                aria-label="Состояние печи"
+                spacing={0.6}
+                sx={{
+                  p: { xs: 0.75, md: 2 },
+                  minWidth: 0,
+                  minHeight: 0,
+                  height: '100%',
+                  borderRight: 1,
+                  borderColor: 'divider',
+                }}
+              >
+                <Card variant="outlined" sx={{ flex: '0 0 auto' }}>
+                  <CardContent
+                    sx={{
+                      p: pcLayout ? '18px !important' : '3px 7px !important',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 0,
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        color: temperatureColor(displayedTemperature),
+                        fontSize: { xs: '1.65rem', md: '3rem' },
+                        fontWeight: 700,
+                        lineHeight: 1,
+                      }}
+                    >
+                      {displayedTemperature == null
+                        ? '—°'
+                        : `${Math.round(displayedTemperature)}°`}
+                    </Typography>
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                      sx={{ fontSize: { xs: 10, md: 14 } }}
+                    >
+                      {profileUsesBoardSensor
+                        ? 'Датчик на плате'
+                        : 'Температура камеры'}
+                    </Typography>
+                  </CardContent>
+                </Card>
+
+                {activeProfile ? (
+                  <ProfileChart
+                    profile={activeProfile}
+                    heatingRate={
+                      ovenConfiguration.models.find(
+                        (model) =>
+                          model.model === ovenConfiguration.selected?.ovenModel,
+                      )?.heatingRate ?? 0.7
+                    }
+                    coolingRate={
+                      ovenConfiguration.models.find(
+                        (model) =>
+                          model.model === ovenConfiguration.selected?.ovenModel,
+                      )?.coolingRate ?? 0.4
+                    }
+                  />
+                ) : (
+                  <Box sx={{ flex: 1 }} />
+                )}
+                {runStatus?.state !== 'idle' && runStatus && !criticalBoard && (
+                  <Typography
+                    sx={{ fontSize: 10, lineHeight: 1.2 }}
+                    color={runStatus.error ? 'error.main' : 'text.secondary'}
+                  >
+                    {(runStatus.error ? userError(runStatus.error) : null) ??
+                      (holdingActive
+                        ? 'Поддержание 100 °C'
+                        : runActive
+                          ? (runStatus.state === 'cooling'
+                              ? 'Охлаждение'
+                              : 'Цель: ' +
+                                Math.round(runStatus.targetTemperatureC ?? 0) +
+                                '°') +
+                            ' · ' +
+                            runStatus.cycle +
+                            '/' +
+                            runStatus.cycles +
+                            ' · ' +
+                            Math.floor(runStatus.elapsedSeconds / 60) +
+                            ' мин ' +
+                            (runStatus.elapsedSeconds % 60) +
+                            ' с'
+                          : runStatus.state === 'completed'
+                            ? 'Завершено'
+                            : runStatus.state === 'stopped'
+                              ? 'Остановлено'
+                              : 'Ошибка')}
+                  </Typography>
+                )}
+                {currentFanWarning && (
+                  <Typography
+                    role="status"
+                    color="warning.main"
+                    sx={{ fontSize: 11, lineHeight: 1.25 }}
+                  >
+                    {currentFanWarning.message}
+                  </Typography>
+                )}
+                <Stack spacing={0.6}>
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    color="success"
+                    onClick={() =>
+                      runActive ? setRunWindowOpen(true) : void changeRun()
+                    }
+                    disabled={
+                      runBusy ||
+                      (!runActive &&
+                        (!activeProfile || !controllerStatus?.ready))
+                    }
+                    sx={{
+                      minHeight: pcLayout ? 52 : 42,
+                      color: 'common.black',
+                      fontWeight: 700,
+                    }}
+                  >
+                    ▶ ПУСК
+                  </Button>
+                  <Button
+                    fullWidth
+                    variant="outlined"
+                    onClick={openSettings}
+                    sx={{ minHeight: pcLayout ? 44 : 34 }}
+                  >
+                    <Box
+                      component="span"
+                      aria-hidden="true"
+                      sx={{
+                        mr: 1,
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        lineHeight: 1,
+                      }}
+                    >
+                      {settingsUnlocked ? (
+                        '⚙'
+                      ) : (
+                        <SvgIcon fontSize="small">
+                          <path d="M12.65 10C11.83 7.67 9.61 6 7 6a6 6 0 1 0 5.65 8H17v4h4v-4h2v-4H12.65ZM7 14a2 2 0 1 1 0-4 2 2 0 0 1 0 4Z" />
+                        </SvgIcon>
+                      )}
+                    </Box>{' '}
+                    НАСТРОЙКИ
+                  </Button>
+                </Stack>
+              </Stack>
+            )}
+
             <Box
-              component="section"
-              ref={contentRef}
               sx={{
                 minWidth: 0,
                 minHeight: 0,
-                flex: 1,
                 height: '100%',
-                overflowY: 'auto',
-                overflowX: 'hidden',
-                overscrollBehavior: 'contain',
-                p: isFullPage ? { xs: 1.25, sm: 2 } : { xs: 0.75, md: 2 },
+                display: 'flex',
+                overflow: 'hidden',
               }}
             >
-              {activeSection === 'profiles' ? (
-                <Stack spacing={0.65}>
-                  <Typography
-                    variant="overline"
-                    sx={{
-                      minHeight: 26,
-                      display: 'flex',
-                      alignItems: 'center',
-                    }}
-                  >
-                    Термопрофили
-                  </Typography>
-
-                  {isLoading && <LinearProgress />}
-                  {error && <Alert severity="error">{error}</Alert>}
-
-                  {profiles.map((profile, index) => {
-                    let duration = profile.points.reduce(
-                      (total, point) => total + point.second,
-                      0,
-                    );
-                    try {
-                      const model = ovenConfiguration.models.find(
-                        (item) =>
-                          item.model === ovenConfiguration.selected?.ovenModel,
-                      );
-                      duration = buildRunPlan(
-                        profile,
-                        model?.heatingRate ?? 0.7,
-                        model?.coolingRate ?? 0.4,
-                      ).durationSeconds;
-                    } catch {
-                      /* Drafts without a 50 °C heating section cannot run yet. */
-                    }
-                    const isSelected = selectedProfile === profile.name;
-
-                    return (
-                      <Card
-                        key={`${index}-${profile.name}`}
-                        variant="outlined"
-                        sx={{
-                          borderLeft: 3,
-                          borderLeftColor: isSelected
-                            ? 'success.main'
-                            : 'info.main',
-                          bgcolor: isSelected
-                            ? 'action.selected'
-                            : 'background.paper',
-                        }}
-                      >
-                        <CardContent sx={{ p: '7px 9px !important' }}>
-                          <Stack
-                            direction="row"
-                            alignItems="center"
-                            justifyContent="space-between"
-                            spacing={0.5}
-                          >
-                            <ButtonBase
-                              disabled={runActive}
-                              onClick={() => setSelectedProfile(profile.name)}
-                              sx={{ minWidth: 0, flex: 1, textAlign: 'left' }}
-                            >
-                              <Box sx={{ minWidth: 0, width: '100%' }}>
-                                <Typography
-                                  variant="body2"
-                                  noWrap
-                                  sx={{ fontWeight: 600 }}
-                                >
-                                  {profile.name}
-                                </Typography>
-                                <Typography
-                                  variant="caption"
-                                  color="text.secondary"
-                                  noWrap
-                                >
-                                  {profile.mode === 'manual'
-                                    ? 'Ручной'
-                                    : 'Простой'}
-                                  {' • '}
-                                  {formatDuration(duration)}
-                                </Typography>
-                              </Box>
-                            </ButtonBase>
-                            {canEditProfiles && (
-                              <IconButton
-                                disabled={runActive}
-                                aria-label={`Редактировать профиль ${profile.name}`}
-                                onClick={() => beginEditing(profile, index)}
-                                size="small"
-                              >
-                                <Typography aria-hidden color="text.secondary">
-                                  ✎
-                                </Typography>
-                              </IconButton>
-                            )}
-                          </Stack>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
-
-                  {canEditProfiles && (
-                    <Button
-                      fullWidth
-                      variant="outlined"
-                      onClick={createProfile}
-                      startIcon={
-                        <SvgIcon sx={{ fontSize: 16 }}>
-                          <path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6V5Z" />
-                        </SvgIcon>
-                      }
+              <Box
+                component="section"
+                ref={contentRef}
+                sx={{
+                  minWidth: 0,
+                  minHeight: 0,
+                  flex: 1,
+                  height: '100%',
+                  overflowY: 'auto',
+                  overflowX: 'hidden',
+                  overscrollBehavior: 'contain',
+                  p: isFullPage ? { xs: 1.25, sm: 2 } : { xs: 0.75, md: 2 },
+                }}
+              >
+                {activeSection === 'profiles' ? (
+                  <Stack spacing={pcLayout ? 1.5 : 0.65}>
+                    <Typography
+                      variant="overline"
                       sx={{
-                        minHeight: 48,
-                        justifyContent: 'flex-start',
-                        textAlign: 'left',
+                        minHeight: 26,
+                        display: 'flex',
+                        alignItems: 'center',
                       }}
                     >
-                      Новый профиль
-                    </Button>
-                  )}
-                </Stack>
-              ) : activeSection === 'settings' ? (
-                <>
-                  {configurationError && (
-                    <Alert severity="error">{configurationError}</Alert>
-                  )}
-                  <SettingsPage
-                    advancedAccess={advancedSettingsUnlocked}
-                    combinedRoles={combinedRoles}
-                    combinedRolesChanging={combinedRolesChanging}
-                    onCombinedRolesChange={(enabled) =>
-                      void changeCombinedRoles(enabled)
-                    }
-                    onSoundOnErrorsChange={(enabled) =>
-                      void changeSoundOnErrors(enabled)
-                    }
-                    soundOnErrorsChanging={soundOnErrorsChanging}
-                    thermalProtectionChanging={thermalProtectionChanging}
-                    onThermalProtectionChange={(enabled) =>
-                      void changeThermalProtection(enabled)
-                    }
-                    fanWarning={currentFanWarning?.message ?? null}
-                    onFanWarningsChange={(enabled) =>
-                      void changeFanWarnings(enabled)
-                    }
-                    fanWarningsChanging={fanWarningsChanging}
-                    settings={{
-                      ...settings,
-                      convectionEnabled:
-                        controllerStatus?.telemetry?.convection ??
-                        settings.convectionEnabled,
-                    }}
-                    onChange={setSettings}
-                    fanHz={fanHz ?? null}
-                    referenceHz={controllerStatus?.fanReferenceHz ?? 50}
-                    onConfirmFanReference={() => void confirmFanReference()}
-                    savingFanReference={savingFanReference}
-                    ovenModels={ovenConfiguration.models}
-                    ovenSelection={selectionDraft}
-                    savedOvenSelection={ovenConfiguration.selected}
-                    onOvenSelectionChange={setSelectionDraft}
-                    onSaveOvenSelection={() => void saveOvenSelection()}
-                    savingOvenSelection={
-                      savingSelection || runActive || holdingActive
-                    }
-                    detectedBoardType={controllerStatus?.boardType}
-                    controllerConnected={controllerStatus?.connected === true}
-                    controllerReady={
-                      controllerStatus?.ready === true &&
-                      !runActive &&
-                      !holdingActive
-                    }
-                    controllerSimulated={controllerStatus?.simulated === true}
-                    onConvectionChange={(enabled) =>
-                      void changeConvection(enabled)
-                    }
-                    convectionChanging={convectionChanging}
-                    onBack={closeSettings}
-                    onHistory={() => {
-                      if (advancedSettingsUnlocked) setActiveSection('history');
-                    }}
-                    runActive={runActive || holdingActive}
-                  />
-                </>
-              ) : activeSection === 'history' ? (
-                <HistoryPage onBack={() => setActiveSection('settings')} />
-              ) : activeSection === 'wifi' ? (
-                <WifiPage
-                  status={wifiStatus}
-                  onStatusChange={setWifiStatus}
-                  onBack={() => setActiveSection('profiles')}
-                />
-              ) : draftProfile ? (
-                <ProfileEditorPage
-                  profile={draftProfile}
-                  heatingRate={
-                    ovenConfiguration.models.find(
-                      (model) =>
-                        model.model === ovenConfiguration.selected?.ovenModel,
-                    )?.heatingRate ?? 0.7
-                  }
-                  coolingRate={
-                    ovenConfiguration.models.find(
-                      (model) =>
-                        model.model === ovenConfiguration.selected?.ovenModel,
-                    )?.coolingRate ?? 0.4
-                  }
-                  onChange={setDraftProfile}
-                  onCancel={cancelEditing}
-                  onSave={() => void saveDraft()}
-                  {...(draftProfile.id && editingIndex !== null
-                    ? { onDelete: () => void deleteDraft() }
-                    : {})}
-                />
-              ) : (
-                <Alert severity="warning">Профиль не выбран</Alert>
-              )}
-            </Box>
-            <Stack
-              aria-label="Прокрутка страницы"
-              sx={{
-                width: 38,
-                flexShrink: 0,
-                borderLeft: 1,
-                borderColor: 'divider',
-                bgcolor: 'action.hover',
-              }}
-              justifyContent="space-between"
-            >
-              <Button
-                aria-label="Прокрутить вверх"
-                onClick={() => scrollContent(-1)}
-                sx={{ minWidth: 38, minHeight: 54, fontSize: 24 }}
-              >
-                ↑
-              </Button>
-              {activeSection === 'profiles' && ovenIndicators}
-              {activeSection === 'settings' && (
-                <IconButton
-                  aria-label="Заблокировать настройки"
-                  title="Заблокировать настройки"
-                  disabled={lockingSettings}
-                  onClick={() => void lockSettings()}
-                  sx={{ minWidth: 38, minHeight: 48, color: 'primary.main' }}
-                >
-                  <SvgIcon>
-                    <path d="M12.65 10C11.83 7.67 9.61 6 7 6a6 6 0 1 0 5.65 8H17v4h4v-4h2v-4H12.65ZM7 14a2 2 0 1 1 0-4 2 2 0 0 1 0 4Z" />
-                  </SvgIcon>
-                </IconButton>
-              )}
+                      Термопрофили
+                    </Typography>
 
-              <Button
-                aria-label="Прокрутить вниз"
-                onClick={() => scrollContent(1)}
-                sx={{ minWidth: 38, minHeight: 54, fontSize: 24 }}
+                    {isLoading && <LinearProgress />}
+                    {error && <Alert severity="error">{error}</Alert>}
+
+                    {profiles.map((profile, index) => {
+                      let duration = profile.points.reduce(
+                        (total, point) => total + point.second,
+                        0,
+                      );
+                      try {
+                        const model = ovenConfiguration.models.find(
+                          (item) =>
+                            item.model ===
+                            ovenConfiguration.selected?.ovenModel,
+                        );
+                        duration = buildRunPlan(
+                          profile,
+                          model?.heatingRate ?? 0.7,
+                          model?.coolingRate ?? 0.4,
+                        ).durationSeconds;
+                      } catch {
+                        /* Drafts without a 50 °C heating section cannot run yet. */
+                      }
+                      const isSelected = selectedProfile === profile.name;
+
+                      return (
+                        <Card
+                          key={`${index}-${profile.name}`}
+                          variant="outlined"
+                          sx={{
+                            borderLeft: 3,
+                            borderLeftColor: isSelected
+                              ? 'success.main'
+                              : 'info.main',
+                            bgcolor: isSelected
+                              ? 'action.selected'
+                              : 'background.paper',
+                          }}
+                        >
+                          <CardContent
+                            sx={{
+                              p: pcLayout
+                                ? '16px !important'
+                                : '7px 9px !important',
+                            }}
+                          >
+                            <Stack
+                              direction="row"
+                              alignItems="center"
+                              justifyContent="space-between"
+                              spacing={0.5}
+                            >
+                              <ButtonBase
+                                disabled={runActive}
+                                onClick={() => setSelectedProfile(profile.name)}
+                                sx={{ minWidth: 0, flex: 1, textAlign: 'left' }}
+                              >
+                                <Box sx={{ minWidth: 0, width: '100%' }}>
+                                  <Typography
+                                    variant="body2"
+                                    noWrap
+                                    sx={{
+                                      fontWeight: 600,
+                                      ...(pcLayout ? { fontSize: 17 } : {}),
+                                    }}
+                                  >
+                                    {profile.name}
+                                  </Typography>
+                                  <Typography
+                                    variant="caption"
+                                    color="text.secondary"
+                                    noWrap
+                                  >
+                                    {profile.mode === 'manual'
+                                      ? 'Ручной'
+                                      : 'Простой'}
+                                    {' • '}
+                                    {formatDuration(duration)}
+                                  </Typography>
+                                </Box>
+                              </ButtonBase>
+                              {canEditProfiles && (
+                                <IconButton
+                                  disabled={runActive}
+                                  aria-label={`Редактировать профиль ${profile.name}`}
+                                  onClick={() => beginEditing(profile, index)}
+                                  size="small"
+                                >
+                                  <Typography
+                                    aria-hidden
+                                    color="text.secondary"
+                                  >
+                                    ✎
+                                  </Typography>
+                                </IconButton>
+                              )}
+                            </Stack>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+
+                    {canEditProfiles && (
+                      <Button
+                        fullWidth
+                        variant="outlined"
+                        onClick={createProfile}
+                        startIcon={
+                          <SvgIcon sx={{ fontSize: 16 }}>
+                            <path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6V5Z" />
+                          </SvgIcon>
+                        }
+                        sx={{
+                          minHeight: 48,
+                          justifyContent: 'flex-start',
+                          textAlign: 'left',
+                        }}
+                      >
+                        Новый профиль
+                      </Button>
+                    )}
+                  </Stack>
+                ) : (
+                  sectionContent
+                )}
+              </Box>
+              <Stack
+                aria-label="Прокрутка страницы"
+                sx={{
+                  width: pcLayout ? 76 : 38,
+                  flexShrink: 0,
+                  borderLeft: 1,
+                  borderColor: 'divider',
+                  bgcolor: 'action.hover',
+                }}
+                justifyContent="space-between"
               >
-                ↓
-              </Button>
-            </Stack>
+                <Button
+                  aria-label="Прокрутить вверх"
+                  onClick={() => scrollContent(-1)}
+                  sx={{ minWidth: 38, minHeight: 54, fontSize: 24 }}
+                >
+                  ↑
+                </Button>
+                {activeSection === 'profiles' && ovenIndicators}
+                {activeSection === 'settings' && (
+                  <IconButton
+                    aria-label="Заблокировать настройки"
+                    title="Заблокировать настройки"
+                    disabled={lockingSettings}
+                    onClick={() => void lockSettings()}
+                    sx={{ minWidth: 38, minHeight: 48, color: 'primary.main' }}
+                  >
+                    <SvgIcon>
+                      <path d="M12.65 10C11.83 7.67 9.61 6 7 6a6 6 0 1 0 5.65 8H17v4h4v-4h2v-4H12.65ZM7 14a2 2 0 1 1 0-4 2 2 0 0 1 0 4Z" />
+                    </SvgIcon>
+                  </IconButton>
+                )}
+
+                <Button
+                  aria-label="Прокрутить вниз"
+                  onClick={() => scrollContent(1)}
+                  sx={{ minWidth: 38, minHeight: 54, fontSize: 24 }}
+                >
+                  ↓
+                </Button>
+              </Stack>
+            </Box>
           </Box>
         </Box>
-      </Box>
-
+      )}
       <Snackbar
         open={notice !== ''}
         autoHideDuration={3000}

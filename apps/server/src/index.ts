@@ -1,4 +1,5 @@
 import { createSettingsAccessRouter } from './settingsAccess.js';
+import { createWebClientsRouter } from './webClients.js';
 import { fileURLToPath } from 'node:url';
 import { networkInterfaces } from 'node:os';
 import express from 'express';
@@ -568,9 +569,12 @@ server.put('/api/controller/convection', async (request, response) => {
   }
 });
 
-// After building, the browser and Electron use the same UI and API origin.
+// Both clients share the API, but Electron keeps its separately installed bundle.
 server.use(
-  express.static(fileURLToPath(new URL('../../web/dist/', import.meta.url))),
+  createWebClientsRouter(
+    fileURLToPath(new URL('../../web/dist/', import.meta.url)),
+    fileURLToPath(new URL('../../web/pc-dist/', import.meta.url)),
+  ),
 );
 
 server.use((_request, response) => {

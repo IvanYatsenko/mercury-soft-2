@@ -1,6 +1,7 @@
 import type { TemperatureRate } from '@mercury/shared';
 import type { ProfilePlan } from '@mercury/shared';
 import { Box, Stack } from '@mui/material';
+import { usePcLayout } from './usePcLayout';
 import {
   buildProfilePlan,
   type Profile,
@@ -37,6 +38,7 @@ export function RunProcessChart({
   coolingRate: TemperatureRate;
   savedPlan?: ProfilePlan | null | undefined;
 }) {
+  const pcLayout = usePcLayout();
   const plan = savedPlan ?? buildProfilePlan(profile, heatingRate, coolingRate);
   const current = samples.filter((sample) => sample.cycle === cycle);
   const previous = samples.filter((sample) => sample.cycle < cycle).at(-1);
@@ -57,8 +59,12 @@ export function RunProcessChart({
         current.reduce((max, sample) => Math.max(max, sample[actualField]), 0),
       ) / 10,
     ) * 10;
-  const x = (second: number) => 42 + (second / duration) * 388;
-  const y = (temperature: number) => 132 - (temperature / maximum) * 108;
+  const left = pcLayout ? 64 : 42;
+  const right = pcLayout ? 960 : 430;
+  const bottom = pcLayout ? 400 : 132;
+  const x = (second: number) => left + (second / duration) * (right - left);
+  const y = (temperature: number) =>
+    bottom - (temperature / maximum) * (pcLayout ? 350 : 108);
   const planned = plan.points
     .map((point) => `${x(point.second)},${y(point.temperature)}`)
     .join(' ');
@@ -88,7 +94,7 @@ export function RunProcessChart({
     <Stack sx={{ flex: 1, minHeight: 100, overflow: 'hidden' }}>
       <Box
         component="svg"
-        viewBox="0 0 450 160"
+        viewBox={pcLayout ? '0 0 1000 440' : '0 0 450 160'}
         preserveAspectRatio="xMidYMid meet"
         role="img"
         aria-label="График профиля и фактической температуры текущего цикла"
@@ -103,19 +109,19 @@ export function RunProcessChart({
         {[0, maximum / 2, maximum].map((temperature) => (
           <g key={temperature}>
             <line
-              x1="42"
-              x2="430"
+              x1={left}
+              x2={right}
               y1={y(temperature)}
               y2={y(temperature)}
               stroke="currentColor"
               opacity="0.2"
             />
             <text
-              x="37"
+              x={left - 5}
               y={y(temperature) + 5}
               textAnchor="end"
               fill="currentColor"
-              fontSize="15"
+              fontSize={pcLayout ? 20 : 15}
             >
               {temperature}°
             </text>
@@ -138,15 +144,20 @@ export function RunProcessChart({
           vectorEffect="non-scaling-stroke"
         />
         {last && <circle cx={last.x} cy={last.y} r="4" fill="#ffb74d" />}
-        <text x="42" y="155" fill="currentColor" fontSize="14">
+        <text
+          x={left}
+          y={pcLayout ? 435 : 155}
+          fill="currentColor"
+          fontSize={pcLayout ? 18 : 14}
+        >
           0 с
         </text>
         <text
-          x="430"
-          y="155"
+          x={right}
+          y={pcLayout ? 435 : 155}
           textAnchor="end"
           fill="currentColor"
-          fontSize="14"
+          fontSize={pcLayout ? 18 : 14}
         >
           {formatTime(duration)}
         </text>

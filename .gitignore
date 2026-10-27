@@ -1,5 +1,6 @@
 node_modules/
 dist/
+pc-dist/
 coverage/
 .env
 .env.*

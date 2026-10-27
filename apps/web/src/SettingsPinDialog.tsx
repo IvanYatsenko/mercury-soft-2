@@ -9,6 +9,7 @@ import {
   useMediaQuery,
 } from '@mui/material';
 import { OnScreenKeyboard } from './OnScreenKeyboard';
+import { usePcLayout } from './usePcLayout';
 
 export function SettingsPinDialog({
   open,
@@ -23,6 +24,7 @@ export function SettingsPinDialog({
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const compact = useMediaQuery('(max-width:600px)');
+  const pcLayout = usePcLayout();
   useEffect(() => {
     if (open) {
       setPin('');
@@ -62,10 +64,18 @@ export function SettingsPinDialog({
       }}
       aria-labelledby="settings-pin-title"
       slotProps={{
-        paper: { sx: { height: compact ? '100%' : 440, minHeight: 320 } },
+        paper: {
+          sx: {
+            height: pcLayout ? 'auto' : compact ? '100%' : 440,
+            minHeight: pcLayout ? 0 : 320,
+          },
+        },
       }}
     >
-      <Stack sx={{ p: 0.5, height: '100%', minHeight: 0 }} spacing={0.5}>
+      <Stack
+        sx={{ p: pcLayout ? 3 : 0.5, height: '100%', minHeight: 0 }}
+        spacing={pcLayout ? 2 : 0.5}
+      >
         <Stack direction="row" alignItems="center" spacing={1}>
           <Button disabled={busy} onClick={onClose} sx={{ minHeight: 36 }}>
             ← Назад
@@ -97,23 +107,33 @@ export function SettingsPinDialog({
           }}
           sx={{ '& .MuiInputBase-root': { minHeight: 48, fontSize: 24 } }}
         />
-        <Box
-          sx={{
-            display: 'flex',
-            flex: 1,
-            minHeight: 0,
-            pointerEvents: busy ? 'none' : 'auto',
-          }}
-        >
-          <OnScreenKeyboard
-            value={pin}
-            onChange={change}
-            onClose={() => void submit()}
-            numericOnly
-            integerOnly
-            fullScreen
-          />
-        </Box>
+        {pcLayout ? (
+          <Button
+            variant="contained"
+            disabled={busy}
+            onClick={() => void submit()}
+          >
+            Открыть настройки
+          </Button>
+        ) : (
+          <Box
+            sx={{
+              display: 'flex',
+              flex: 1,
+              minHeight: 0,
+              pointerEvents: busy ? 'none' : 'auto',
+            }}
+          >
+            <OnScreenKeyboard
+              value={pin}
+              onChange={change}
+              onClose={() => void submit()}
+              numericOnly
+              integerOnly
+              fullScreen
+            />
+          </Box>
+        )}
       </Stack>
     </Dialog>
   );

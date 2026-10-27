@@ -9,6 +9,7 @@ import type {
 } from '@mercury/shared';
 import { RunProcessChart } from './RunProcessChart';
 import { userError } from './boardError';
+import { usePcLayout } from './usePcLayout';
 
 function time(seconds: number) {
   const total = Math.max(0, Math.round(seconds));
@@ -54,6 +55,7 @@ export function RunProcessWindow({
   criticalBoard: boolean;
   advancedAccess: boolean;
 }) {
+  const pcLayout = usePcLayout();
   const [details, setDetails] = useState<{
     id: string;
     profile: Profile;
@@ -163,8 +165,20 @@ export function RunProcessWindow({
       }}
     >
       <Stack direction="row" sx={{ height: '100%', minHeight: 320 }}>
-        <Stack sx={{ flex: 1, minWidth: 0, p: 1, gap: 0.5 }}>
-          <Typography id="run-window-title" fontWeight={700} noWrap>
+        <Stack
+          sx={{
+            flex: 1,
+            minWidth: 0,
+            p: pcLayout ? 3 : 1,
+            gap: pcLayout ? 2 : 0.5,
+          }}
+        >
+          <Typography
+            id="run-window-title"
+            fontWeight={700}
+            noWrap
+            sx={pcLayout ? { fontSize: 24 } : undefined}
+          >
             {status?.profileName ?? 'Запуск профиля'}
           </Typography>
           {fanWarning && active && (
@@ -295,7 +309,7 @@ export function RunProcessWindow({
           aria-label="Состояние элементов печи"
           justifyContent="center"
           sx={{
-            width: 38,
+            width: pcLayout ? 100 : 38,
             flexShrink: 0,
             borderLeft: 1,
             borderColor: 'divider',

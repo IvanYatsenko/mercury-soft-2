@@ -1,5 +1,6 @@
 import type { TemperatureRate } from '@mercury/shared';
 import { Box, Typography, useMediaQuery } from '@mui/material';
+import { usePcLayout } from './usePcLayout';
 import {
   buildRunPlan,
   profileDurationPoints,
@@ -25,12 +26,15 @@ export function ProfileChart({
   profile,
   heatingRate = 0.7,
   coolingRate = 0.4,
+  showTitle = true,
 }: {
   profile: Profile;
   heatingRate?: TemperatureRate;
   coolingRate?: TemperatureRate;
+  showTitle?: boolean;
 }) {
   const desktop = useMediaQuery('(min-width: 900px)');
+  const pcLayout = usePcLayout();
   let points = profileDurationPoints(profile, heatingRate, coolingRate);
   try {
     const planned = buildRunPlan(profile, heatingRate, coolingRate).points;
@@ -49,8 +53,13 @@ export function ProfileChart({
   const duration = Math.max(1, elapsed);
   const maximum = Math.max(0, ...points.map((point) => point.temperature));
   const ceiling = Math.max(1, maximum);
-  const x = (time: number) => 29 + (time / duration) * 170;
-  const y = (temperature: number) => 96 - (temperature / ceiling) * 65;
+  const left = pcLayout ? 54 : 29;
+  const right = pcLayout ? 880 : 199;
+  const x = (time: number) => left + (time / duration) * (right - left);
+  const y = (temperature: number) =>
+    pcLayout
+      ? 330 - (temperature / ceiling) * 290
+      : 96 - (temperature / ceiling) * 65;
   const line = curve
     .map((point) => `${x(point.time)},${y(point.temperature)}`)
     .join(' ');
@@ -65,16 +74,18 @@ export function ProfileChart({
         p: 0,
       }}
     >
-      <Typography
-        noWrap
-        title={profile.name}
-        sx={{ fontSize: { xs: 14, md: 22 }, fontWeight: 700 }}
-      >
-        {profile.name}
-      </Typography>
+      {showTitle && (
+        <Typography
+          noWrap
+          title={profile.name}
+          sx={{ fontSize: { xs: 14, md: 22 }, fontWeight: 700 }}
+        >
+          {profile.name}
+        </Typography>
+      )}
       <Box
         component="svg"
-        viewBox="0 0 202 100"
+        viewBox={pcLayout ? '0 0 900 360' : '0 0 202 100'}
         preserveAspectRatio={desktop ? 'xMidYMid meet' : 'none'}
         role="img"
         aria-label={`График профиля ${profile.name}: температура по времени`}
@@ -85,40 +96,46 @@ export function ProfileChart({
           (temperature) => (
             <g key={temperature}>
               <line
-                x1="29"
-                x2="199"
+                x1={left}
+                x2={right}
                 y1={y(temperature)}
                 y2={y(temperature)}
                 stroke="currentColor"
                 opacity="0.2"
               />
               <text
-                x="26"
+                x={left - (pcLayout ? 10 : 3)}
                 y={y(temperature) + 3}
                 textAnchor="end"
                 fill="currentColor"
-                fontSize="12"
+                fontSize={pcLayout ? 18 : 12}
               >
                 {Math.round(temperature)}
               </text>
             </g>
           ),
         )}
-        <text x="3" y="12" fill="currentColor" fontSize="12">
+        <text
+          x="3"
+          y={pcLayout ? 20 : 12}
+          fill="currentColor"
+          fontSize={pcLayout ? 18 : 12}
+        >
           °C
         </text>
         {curve.length > 1 && elapsed > 0 ? (
           <polyline
             points={line}
             fill="none"
-            stroke="#ffb74d"
+            stroke={pcLayout ? '#66bb6a' : '#ffb74d'}
             strokeWidth="2.5"
             strokeLinejoin="round"
+            vectorEffect={pcLayout ? 'non-scaling-stroke' : undefined}
           />
         ) : (
           <text
-            x="111"
-            y="60"
+            x={pcLayout ? 450 : 111}
+            y={pcLayout ? 180 : 60}
             textAnchor="middle"
             fill="currentColor"
             fontSize="13"
