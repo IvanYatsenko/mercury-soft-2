@@ -278,3 +278,64 @@ export async function saveFanReferenceHz(value: unknown): Promise<number> {
   await updateConfig({ fanReferenceHz: value });
   return value;
 }
+
+export function readFanWarningsEnabled(): boolean {
+  if (!existsSync(configPath)) return true;
+  const parsed = JSON.parse(readFileSync(configPath, 'utf8'));
+  const value = parsed.reactToFanErrors ?? parsed.errorOnFan;
+  return typeof value === 'boolean' ? value : true;
+}
+
+export async function saveFanWarningsEnabled(value: unknown): Promise<boolean> {
+  if (typeof value !== 'boolean')
+    throw new Error('Параметр предупреждений должен быть логическим.');
+  await updateConfig({ reactToFanErrors: value });
+  return value;
+}
+
+export function readSoundOnErrors(): boolean {
+  if (!existsSync(configPath)) return true;
+  const value = JSON.parse(readFileSync(configPath, 'utf8')).soundOnErrors;
+  return typeof value === 'boolean' ? value : true;
+}
+
+export async function saveSoundOnErrors(value: unknown): Promise<boolean> {
+  if (typeof value !== 'boolean')
+    throw new Error('Параметр звуковых сигналов должен быть логическим.');
+  await updateConfig({ soundOnErrors: value });
+  return value;
+}
+
+export function readThermalProtection(): boolean {
+  if (!existsSync(configPath)) return true;
+  const value = JSON.parse(readFileSync(configPath, 'utf8')).thermalProtection;
+  return typeof value === 'boolean' ? value : true;
+}
+
+export function readProtectionLimits() {
+  return readThermalProtection()
+    ? { maximumTemperatureC: 285, holdingTemperatureC: 130 }
+    : { maximumTemperatureC: 300, holdingTemperatureC: 150 };
+}
+
+export async function saveThermalProtection(value: unknown): Promise<boolean> {
+  if (typeof value !== 'boolean')
+    throw new Error('Параметр термозащиты должен быть логическим.');
+  await updateConfig({ thermalProtection: value });
+  return value;
+}
+
+export function readCombinedRoles(): boolean {
+  if (!existsSync(configPath)) return true;
+  const value = JSON.parse(
+    readFileSync(configPath, 'utf8'),
+  ).combineOperatorEngineerRoles;
+  return typeof value === 'boolean' ? value : true;
+}
+
+export async function saveCombinedRoles(value: unknown): Promise<boolean> {
+  if (typeof value !== 'boolean')
+    throw new Error('Параметр объединения ролей должен быть логическим.');
+  await updateConfig({ combineOperatorEngineerRoles: value });
+  return value;
+}

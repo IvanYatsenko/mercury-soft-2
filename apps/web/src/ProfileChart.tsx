@@ -99,7 +99,7 @@ export function ProfileChart({
                 fill="currentColor"
                 fontSize="12"
               >
-                {temperature}
+                {Math.round(temperature)}
               </text>
             </g>
           ),

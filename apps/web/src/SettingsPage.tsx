@@ -1,5 +1,6 @@
 import {
   Card,
+  Alert,
   CardContent,
   Button,
   FormControlLabel,
@@ -19,10 +20,20 @@ export interface OvenSettings {
   reactToFanErrors: boolean;
   soundOnErrors: boolean;
   thermalProtection: boolean;
-  thermocoupleCorrection: boolean;
 }
 
 type SettingsPageProps = {
+  advancedAccess: boolean;
+  combinedRoles: boolean;
+  combinedRolesChanging: boolean;
+  onCombinedRolesChange: (enabled: boolean) => void;
+  onThermalProtectionChange: (enabled: boolean) => void;
+  thermalProtectionChanging: boolean;
+  onSoundOnErrorsChange: (enabled: boolean) => void;
+  soundOnErrorsChanging: boolean;
+  fanWarning: string | null;
+  onFanWarningsChange: (enabled: boolean) => void;
+  fanWarningsChanging: boolean;
   settings: OvenSettings;
   onChange: (settings: OvenSettings) => void;
   ovenModels: { model: OvenModel; name: string }[];
@@ -47,6 +58,17 @@ type SettingsPageProps = {
 };
 
 export function SettingsPage({
+  advancedAccess,
+  combinedRoles,
+  combinedRolesChanging,
+  onCombinedRolesChange,
+  onThermalProtectionChange,
+  thermalProtectionChanging,
+  onSoundOnErrorsChange,
+  soundOnErrorsChanging,
+  fanWarning,
+  onFanWarningsChange,
+  fanWarningsChanging,
   settings,
   onChange,
   ovenModels,
@@ -82,28 +104,54 @@ export function SettingsPage({
         <Typography variant="h6">Настройки печи</Typography>
       </Stack>
 
-      <Button variant="outlined" onClick={onHistory} sx={{ minHeight: 44 }}>
-        История запусков
-      </Button>
+      {advancedAccess && (
+        <Button variant="outlined" onClick={onHistory} sx={{ minHeight: 44 }}>
+          История запусков
+        </Button>
+      )}
       <SoftwareUpdatePanel disabled={runActive} />
+      <Card variant="outlined">
+        <CardContent>
+          <Stack spacing={0.5}>
+            <Typography fontWeight={700}>Доступ</Typography>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={combinedRoles}
+                  disabled={combinedRolesChanging || runActive}
+                  onChange={(_, checked) => onCombinedRolesChange(checked)}
+                />
+              }
+              label="Объединять роль оператора и инженера"
+            />
+            <Typography variant="caption" color="text.secondary">
+              Если выключено, создание и редактирование профилей доступны только
+              после ввода PIN-кода настроек.
+            </Typography>
+          </Stack>
+        </CardContent>
+      </Card>
+
       {runActive && (
         <Typography color="warning.main">
           Профиль выполняется. Изменение оборудования недоступно.
         </Typography>
       )}
 
-      <Card variant="outlined">
-        <CardContent>
-          <OvenSelectionForm
-            models={ovenModels}
-            value={ovenSelection}
-            onChange={onOvenSelectionChange}
-            onSave={onSaveOvenSelection}
-            saving={savingOvenSelection}
-            detectedBoardType={detectedBoardType}
-          />
-        </CardContent>
-      </Card>
+      {advancedAccess && (
+        <Card variant="outlined">
+          <CardContent>
+            <OvenSelectionForm
+              models={ovenModels}
+              value={ovenSelection}
+              onChange={onOvenSelectionChange}
+              onSave={onSaveOvenSelection}
+              saving={savingOvenSelection}
+              detectedBoardType={detectedBoardType}
+            />
+          </CardContent>
+        </Card>
+      )}
 
       <ElementTestPanel
         selected={savedOvenSelection}
@@ -139,52 +187,61 @@ export function SettingsPage({
               Текущая частота: {fanHz == null ? '—' : fanHz + ' Гц'} · Износ:{' '}
               {fanWear == null ? '—' : fanWear + '%'}
             </Typography>
-            <KeyboardTextField
-              label="Эталонная частота, Гц"
-              type="number"
-              value={String(settings.fanReferenceHz)}
-              onChange={(value) =>
-                onChange({ ...settings, fanReferenceHz: Number(value) })
-              }
-            />
-            <Button
-              variant="outlined"
-              onClick={() =>
-                fanHz != null &&
-                onChange({ ...settings, fanReferenceHz: fanHz })
-              }
-              disabled={
-                !settings.convectionEnabled ||
-                fanHz == null ||
-                fanHz < 1 ||
-                savingFanReference
-              }
-            >
-              Использовать текущую частоту
-            </Button>
-            <Button
-              variant="contained"
-              onClick={onConfirmFanReference}
-              disabled={
-                savingFanReference ||
-                !Number.isFinite(settings.fanReferenceHz) ||
-                settings.fanReferenceHz < 1 ||
-                settings.fanReferenceHz > 1000
-              }
-            >
-              Подтвердить эталон
-            </Button>
+            {advancedAccess && (
+              <>
+                <KeyboardTextField
+                  label="Эталонная частота, Гц"
+                  type="number"
+                  value={String(settings.fanReferenceHz)}
+                  onChange={(value) =>
+                    onChange({ ...settings, fanReferenceHz: Number(value) })
+                  }
+                />
+                <Button
+                  variant="outlined"
+                  onClick={() =>
+                    fanHz != null &&
+                    onChange({ ...settings, fanReferenceHz: fanHz })
+                  }
+                  disabled={
+                    !settings.convectionEnabled ||
+                    fanHz == null ||
+                    fanHz < 1 ||
+                    savingFanReference
+                  }
+                >
+                  Использовать текущую частоту
+                </Button>
+                <Button
+                  variant="contained"
+                  onClick={onConfirmFanReference}
+                  disabled={
+                    savingFanReference ||
+                    !Number.isFinite(settings.fanReferenceHz) ||
+                    settings.fanReferenceHz < 1 ||
+                    settings.fanReferenceHz > 1000
+                  }
+                >
+                  Подтвердить эталон
+                </Button>
+              </>
+            )}
             <FormControlLabel
               control={
                 <Switch
                   checked={settings.reactToFanErrors}
-                  onChange={(_, checked) =>
-                    onChange({ ...settings, reactToFanErrors: checked })
-                  }
+                  disabled={fanWarningsChanging}
+                  onChange={(_, checked) => onFanWarningsChange(checked)}
                 />
               }
               label="Реагировать на ошибку оборотов"
             />
+            <Typography variant="caption" color="text.secondary">
+              Ниже 50% эталона — предупреждение о точности профиля. Ниже 20% —
+              дополнительно жёлтое мерцание при выполнении. Профиль не
+              останавливается.
+            </Typography>
+            {fanWarning && <Alert severity="warning">{fanWarning}</Alert>}
           </Stack>
         </CardContent>
       </Card>
@@ -199,35 +256,32 @@ export function SettingsPage({
               control={
                 <Switch
                   checked={settings.soundOnErrors}
-                  onChange={(_, checked) =>
-                    onChange({ ...settings, soundOnErrors: checked })
-                  }
+                  disabled={soundOnErrorsChanging}
+                  onChange={(_, checked) => onSoundOnErrorsChange(checked)}
                 />
               }
               label="Звуковые сигналы при ошибках"
             />
+            <Typography variant="caption" color="text.secondary">
+              Сигнал открытой двери и программных ошибок. Звуки включения и
+              завершения профиля не отключаются. Аварийный звук самой платы
+              независим.
+            </Typography>
             <FormControlLabel
               control={
                 <Switch
                   checked={settings.thermalProtection}
-                  onChange={(_, checked) =>
-                    onChange({ ...settings, thermalProtection: checked })
-                  }
+                  disabled={thermalProtectionChanging || runActive}
+                  onChange={(_, checked) => onThermalProtectionChange(checked)}
                 />
               }
               label="Термозащита"
             />
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={settings.thermocoupleCorrection}
-                  onChange={(_, checked) =>
-                    onChange({ ...settings, thermocoupleCorrection: checked })
-                  }
-                />
-              }
-              label="Коррекция задней термопары"
-            />
+            <Typography variant="caption" color="text.secondary">
+              Общий перегрев: {settings.thermalProtection ? 285 : 300} °C. При
+              поддержании 100 °C: {settings.thermalProtection ? 130 : 150} °C.
+              Защита платы работает независимо.
+            </Typography>
           </Stack>
         </CardContent>
       </Card>

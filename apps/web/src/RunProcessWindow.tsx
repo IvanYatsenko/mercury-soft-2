@@ -8,6 +8,7 @@ import type {
   RunStatus,
 } from '@mercury/shared';
 import { RunProcessChart } from './RunProcessChart';
+import { userError } from './boardError';
 
 function time(seconds: number) {
   const total = Math.max(0, Math.round(seconds));
@@ -35,6 +36,8 @@ export function RunProcessWindow({
   heatingRate = 0.7,
   coolingRate = 0.4,
   indicators,
+  fanWarning,
+  criticalBoard,
 }: {
   open: boolean;
   status: RunStatus | null;
@@ -46,6 +49,8 @@ export function RunProcessWindow({
   heatingRate?: TemperatureRate | undefined;
   coolingRate?: TemperatureRate | undefined;
   indicators: ReactNode;
+  fanWarning: { message: string; blink: boolean } | null;
+  criticalBoard: boolean;
 }) {
   const [details, setDetails] = useState<{
     id: string;
@@ -117,7 +122,9 @@ export function RunProcessWindow({
               : status?.state === 'stopped'
                 ? 'Профиль остановлен'
                 : status?.state === 'failed'
-                  ? 'Ошибка'
+                  ? criticalBoard
+                    ? ''
+                    : 'Ошибка'
                   : 'Запуск…';
   return (
     <Dialog
@@ -128,12 +135,44 @@ export function RunProcessWindow({
         if (finished) onClose();
       }}
       aria-labelledby="run-window-title"
+      slotProps={{
+        paper: {
+          sx: {
+            position: 'relative',
+            '&::after':
+              !criticalBoard && fanWarning?.blink && active && !status?.paused
+                ? {
+                    content: '""',
+                    position: 'absolute',
+                    inset: 0,
+                    pointerEvents: 'none',
+                    zIndex: 1,
+                    animation: 'fan-warning-pulse 2s ease-in-out infinite',
+                  }
+                : undefined,
+            '@keyframes fan-warning-pulse': {
+              '0%, 100%': {
+                boxShadow: 'inset 0 0 20px 4px rgba(255, 193, 7, 0.15)',
+              },
+              '50%': { boxShadow: 'inset 0 0 32px 8px rgba(255, 193, 7, 0.8)' },
+            },
+          },
+        },
+      }}
     >
       <Stack direction="row" sx={{ height: '100%', minHeight: 320 }}>
         <Stack sx={{ flex: 1, minWidth: 0, p: 1, gap: 0.5 }}>
           <Typography id="run-window-title" fontWeight={700} noWrap>
             {status?.profileName ?? 'Запуск профиля'}
           </Typography>
+          {fanWarning && active && (
+            <Alert
+              severity="warning"
+              sx={{ py: 0, '& .MuiAlert-message': { fontSize: 12 } }}
+            >
+              {fanWarning.message}
+            </Alert>
+          )}
           {(status?.state !== 'running' || status?.paused) && (
             <Typography
               color={
@@ -195,9 +234,9 @@ export function RunProcessWindow({
               {chartError}
             </Typography>
           )}
-          {status?.error && (
+          {(status?.error || criticalBoard) && (
             <Alert severity="error" sx={{ maxHeight: 90, overflowY: 'auto' }}>
-              {status.error}
+              {criticalBoard ? 'Критическая ошибка' : userError(status!.error!)}
             </Alert>
           )}
           {finished ? (

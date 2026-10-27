@@ -20,6 +20,7 @@ import {
 } from '@mui/material';
 import {
   convertProfileMode,
+  validateProfile,
   manualCoolingWarnings,
   type EasyProfile,
   type ManualProfile,
@@ -28,6 +29,7 @@ import {
 } from '@mercury/shared';
 import { useState } from 'react';
 import { KeyboardTextField } from './OnScreenKeyboard';
+import { ProfileNumberField } from './ProfileNumberField';
 
 type ProfileEditorPageProps = {
   profile: Profile;
@@ -51,6 +53,14 @@ export function ProfileEditorPage({
   const [pendingMode, setPendingMode] = useState<'easy' | 'manual' | null>(
     null,
   );
+
+  let validationError: string | null = null;
+  try {
+    validateProfile(profile);
+  } catch (error) {
+    validationError =
+      error instanceof Error ? error.message : 'Исправьте значения профиля.';
+  }
 
   const updatePoint = (
     index: number,
@@ -102,7 +112,10 @@ export function ProfileEditorPage({
         </Box>
         <Button
           variant="contained"
-          onClick={onSave}
+          disabled={validationError !== null}
+          onClick={() => {
+            if (!validationError) onSave();
+          }}
           title="Сохранить профиль"
           sx={{ minWidth: { xs: 38, sm: 64 }, px: { xs: 1, sm: 2 } }}
         >
@@ -114,6 +127,8 @@ export function ProfileEditorPage({
           </Box>
         </Button>
       </Stack>
+
+      {validationError && <Alert severity="error">{validationError}</Alert>}
 
       {onDelete && (
         <Button color="error" variant="outlined" onClick={onDelete}>
@@ -137,6 +152,7 @@ export function ProfileEditorPage({
             >
               <TextField
                 select
+                disabled={validationError !== null}
                 label="Режим профиля"
                 size="small"
                 value={profile.mode}
@@ -184,12 +200,14 @@ export function ProfileEditorPage({
               />
               {profile.repeat !== undefined && (
                 <Box sx={{ width: 110 }}>
-                  <KeyboardTextField
+                  <ProfileNumberField
                     label="Повторов"
-                    type="number"
-                    value={String(profile.repeat)}
+                    min={1}
+                    max={20}
+                    integer
+                    value={profile.repeat}
                     onChange={(value) =>
-                      onChange({ ...profile, repeat: Number(value) })
+                      onChange({ ...profile, repeat: value })
                     }
                   />
                 </Box>
@@ -228,25 +246,28 @@ export function ProfileEditorPage({
                       {shelfName}
                     </Typography>
                     <Stack direction="row" spacing={1}>
-                      <KeyboardTextField
+                      <ProfileNumberField
+                        min={0}
+                        max={99999}
+                        integer
                         label={
                           calculatedCooling
                             ? 'Охлаждение рассчитывает печь'
                             : 'Время, с'
                         }
-                        type="number"
-                        value={String(shelf.second)}
+                        value={shelf.second}
                         disabled={calculatedCooling}
                         onChange={(value) =>
-                          updateShelf(index, 'second', Number(value))
+                          updateShelf(index, 'second', value)
                         }
                       />
-                      <KeyboardTextField
+                      <ProfileNumberField
                         label="Температура, °C"
-                        type="number"
-                        value={String(shelf.temperature)}
+                        min={0}
+                        max={280}
+                        value={shelf.temperature}
                         onChange={(value) =>
-                          updateShelf(index, 'temperature', Number(value))
+                          updateShelf(index, 'temperature', value)
                         }
                       />
                     </Stack>
@@ -290,21 +311,20 @@ export function ProfileEditorPage({
                 <Typography variant="caption" sx={{ width: 22 }}>
                   {index + 1}
                 </Typography>
-                <KeyboardTextField
+                <ProfileNumberField
                   label="Время, с"
-                  type="number"
-                  value={String(point.second)}
-                  onChange={(value) =>
-                    updatePoint(index, 'second', Number(value))
-                  }
+                  min={index === 0 ? 0 : 1}
+                  max={index === 0 ? 0 : 99999}
+                  integer
+                  value={point.second}
+                  onChange={(value) => updatePoint(index, 'second', value)}
                 />
-                <KeyboardTextField
+                <ProfileNumberField
                   label="Температура, °C"
-                  type="number"
-                  value={String(point.temperature)}
-                  onChange={(value) =>
-                    updatePoint(index, 'temperature', Number(value))
-                  }
+                  min={0}
+                  max={280}
+                  value={point.temperature}
+                  onChange={(value) => updatePoint(index, 'temperature', value)}
                 />
                 <Button
                   aria-label={`Удалить участок ${index + 1}`}
@@ -334,7 +354,7 @@ export function ProfileEditorPage({
             При переходе в простой режим подробные участки будут объединены в
             полки, поэтому часть данных может потеряться. Полки и новый профиль
             будут рассчитаны с учётом максимальной температуры{' '}
-            {`${Math.max(...profile.points.map((point) => point.temperature), 0)} °C`}
+            {`${Math.round(Math.max(...profile.points.map((point) => point.temperature), 0))} °C`}
             . Продолжить?
           </DialogContentText>
         </DialogContent>

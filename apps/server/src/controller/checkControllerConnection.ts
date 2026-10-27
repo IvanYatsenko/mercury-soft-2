@@ -4,6 +4,7 @@ import {
   getOvenModel,
   readOvenSelection,
   readThermalSettings,
+  readSoundOnErrors,
 } from '../ovenSettings.js';
 import { heatOutputs } from '@mercury/shared';
 import { virtualBoard } from './virtualBoard.js';
@@ -154,6 +155,17 @@ export async function playBoardCompletionSound(matchesProfile: boolean) {
     Array.from({ length: matchesProfile ? 2 : 3 }, () => [700, 250]),
   );
 }
+export async function playBoardErrorSound() {
+  return playBoardSignal(
+    [
+      [150, 150],
+      [150, 150],
+      [150, 0],
+    ],
+    readSoundOnErrors,
+    true,
+  );
+}
 let doorWarning = false;
 let doorWarningGeneration = 0;
 let doorWarningTimer: ReturnType<typeof setTimeout> | undefined;
@@ -167,7 +179,11 @@ export function setDoorWarning(open: boolean) {
     try {
       await playBoardSignal(
         [[150, 0]],
-        () => doorWarning && generation === doorWarningGeneration,
+        () =>
+          doorWarning &&
+          generation === doorWarningGeneration &&
+          readSoundOnErrors(),
+        true,
       );
     } catch (error) {
       console.warn('Сигнал открытой двери:', getErrorMessage(error));
@@ -178,7 +194,11 @@ export function setDoorWarning(open: boolean) {
   };
   void pulse();
 }
-async function playBoardSignal(rhythm: number[][], shouldPlay = () => true) {
+async function playBoardSignal(
+  rhythm: number[][],
+  shouldPlay = () => true,
+  quietIfUnavailable = false,
+) {
   return runExclusive(async () => {
     if (!shouldPlay()) return;
     const simulated = isSimulationMode();
@@ -196,8 +216,10 @@ async function playBoardSignal(rhythm: number[][], shouldPlay = () => true) {
         (state & (STARTING | 2 | 4 | 8 | 32 | 64 | 128)) === 0
       );
     };
-    if (!(await healthy()))
+    if (!(await healthy())) {
+      if (quietIfUnavailable) return;
       throw new Error('Плата не готова к стартовому сигналу.');
+    }
     const original = await call('setLV');
     if (!Array.isArray(original) || original.length !== 6)
       throw new Error('Неверный ответ setLV.');

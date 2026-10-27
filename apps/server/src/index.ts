@@ -1,3 +1,4 @@
+import { createSettingsAccessRouter } from './settingsAccess.js';
 import { fileURLToPath } from 'node:url';
 import { networkInterfaces } from 'node:os';
 import express from 'express';
@@ -48,6 +49,14 @@ import {
   saveOvenSelection,
   readFanReferenceHz,
   saveFanReferenceHz,
+  readFanWarningsEnabled,
+  saveFanWarningsEnabled,
+  readSoundOnErrors,
+  saveCombinedRoles,
+  readThermalProtection,
+  readProtectionLimits,
+  saveThermalProtection,
+  saveSoundOnErrors,
   flushConfigWrites,
   readThermalSettings,
   saveThermalSettings,
@@ -75,6 +84,8 @@ server.use((_request, response, next) => {
   next();
 });
 
+server.use(createSettingsAccessRouter());
+
 server.use((request, response, next) => {
   if (
     updateBusy() &&
@@ -86,7 +97,9 @@ server.use((request, response, next) => {
   }
   if (
     profileRunner.controlling() &&
-    request.path !== '/api/settings/keep-heat' &&
+    !['/api/settings/keep-heat', '/api/settings/sound-on-errors'].includes(
+      request.path,
+    ) &&
     request.method !== 'GET' &&
     (request.path.startsWith('/api/controller/') ||
       request.path.startsWith('/api/settings/') ||
@@ -410,9 +423,73 @@ server.put('/api/config', async (request, response) => {
 
 server.get('/api/controller/check', async (_request, response) => {
   const result = await checkControllerConnection();
-  response
-    .status(result.connected ? 200 : 503)
-    .json({ ...result, fanReferenceHz: readFanReferenceHz() });
+  response.status(result.connected ? 200 : 503).json({
+    ...result,
+    fanReferenceHz: readFanReferenceHz(),
+    reactToFanErrors: readFanWarningsEnabled(),
+    soundOnErrors: readSoundOnErrors(),
+    thermalProtection: readThermalProtection(),
+    protectionLimits: readProtectionLimits(),
+  });
+});
+
+server.put('/api/settings/combined-roles', async (request, response) => {
+  try {
+    response.json({ enabled: await saveCombinedRoles(request.body?.enabled) });
+  } catch (error) {
+    response
+      .status(400)
+      .json({
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Не удалось сохранить объединение ролей.',
+      });
+  }
+});
+
+server.put('/api/settings/fan-warnings', async (request, response) => {
+  try {
+    response.json({
+      enabled: await saveFanWarningsEnabled(request.body?.enabled),
+    });
+  } catch (error) {
+    response.status(400).json({
+      error:
+        error instanceof Error
+          ? error.message
+          : 'Не удалось сохранить предупреждения.',
+    });
+  }
+});
+
+server.put('/api/settings/sound-on-errors', async (request, response) => {
+  try {
+    response.json({ enabled: await saveSoundOnErrors(request.body?.enabled) });
+  } catch (error) {
+    response.status(400).json({
+      error:
+        error instanceof Error
+          ? error.message
+          : 'Не удалось сохранить звуковые сигналы.',
+    });
+  }
+});
+
+server.put('/api/settings/thermal-protection', async (request, response) => {
+  try {
+    response.json({
+      enabled: await saveThermalProtection(request.body?.enabled),
+      limits: readProtectionLimits(),
+    });
+  } catch (error) {
+    response.status(400).json({
+      error:
+        error instanceof Error
+          ? error.message
+          : 'Не удалось сохранить термозащиту.',
+    });
+  }
 });
 
 server.put('/api/settings/fan-reference', async (request, response) => {

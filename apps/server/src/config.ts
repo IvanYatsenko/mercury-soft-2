@@ -24,10 +24,10 @@ const hardwareTemperatureLimit = Number(
 if (
   !Number.isFinite(hardwareTemperatureLimit) ||
   hardwareTemperatureLimit < 1 ||
-  hardwareTemperatureLimit > 280
+  hardwareTemperatureLimit > 300
 )
   throw new Error(
-    'MERCURY_HARDWARE_MAX_TEMPERATURE_C: укажи предел от 1 до 280 °C.',
+    'MERCURY_HARDWARE_MAX_TEMPERATURE_C: укажи предел от 1 до 300 °C.',
   );
 if (controllerMode !== 'simulation' && controllerMode !== 'hardware') {
   throw new Error('MERCURY_CONTROLLER_MODE: укажи simulation или hardware.');

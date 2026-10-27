@@ -16,6 +16,7 @@ type OnScreenKeyboardProps = {
   onChange: (value: string) => void;
   onClose: () => void;
   numericOnly?: boolean;
+  integerOnly?: boolean;
   fullScreen?: boolean;
   initialLayout?: KeyboardLayout;
 };
@@ -37,6 +38,7 @@ export function OnScreenKeyboard({
   onChange,
   onClose,
   numericOnly = false,
+  integerOnly = false,
   fullScreen = false,
   initialLayout,
 }: OnScreenKeyboardProps) {
@@ -64,64 +66,68 @@ export function OnScreenKeyboard({
         spacing={fullScreen ? 0.5 : 0.75}
         sx={{ flex: fullScreen ? 1 : undefined, minHeight: 0 }}
       >
-        <Stack direction="row" spacing={0.5} sx={{ flexShrink: 0 }}>
-          {!numericOnly && (
-            <Button
-              fullWidth
-              variant={layout === 'ru' ? 'contained' : 'outlined'}
-              onClick={() => setLayout('ru')}
-              sx={{ minHeight: fullScreen ? 36 : 40 }}
-            >
-              РУС
-            </Button>
-          )}
-          {!numericOnly && (
-            <Button
-              fullWidth
-              variant={layout === 'en' ? 'contained' : 'outlined'}
-              onClick={() => setLayout('en')}
-              sx={{ minHeight: fullScreen ? 36 : 40 }}
-            >
-              ENG
-            </Button>
-          )}
-          <Button
-            fullWidth
-            variant={layout === 'numbers' ? 'contained' : 'outlined'}
-            onClick={() => setLayout('numbers')}
-            sx={{ minHeight: fullScreen ? 36 : 40 }}
-          >
-            123
-          </Button>
-          {!numericOnly && (
-            <Button
-              fullWidth
-              variant={layout === 'symbols' ? 'contained' : 'outlined'}
-              onClick={() => setLayout('symbols')}
-              sx={{ minHeight: fullScreen ? 36 : 40 }}
-            >
-              #+=
-            </Button>
-          )}
-          {!numericOnly && (
-            <Button
-              variant={uppercase ? 'contained' : 'outlined'}
-              onClick={() => setUppercase(!uppercase)}
-              sx={{ minWidth: 44, minHeight: fullScreen ? 36 : 40 }}
-            >
-              ⇧
-            </Button>
-          )}
-          {!fullScreen && (
-            <Button
-              variant="outlined"
-              onClick={onClose}
-              sx={{ minWidth: 48, minHeight: 40 }}
-            >
-              ✓
-            </Button>
-          )}
-        </Stack>
+        {(!numericOnly || !fullScreen) && (
+          <Stack direction="row" spacing={0.5} sx={{ flexShrink: 0 }}>
+            {!numericOnly && (
+              <Button
+                fullWidth
+                variant={layout === 'ru' ? 'contained' : 'outlined'}
+                onClick={() => setLayout('ru')}
+                sx={{ minHeight: fullScreen ? 36 : 40 }}
+              >
+                РУС
+              </Button>
+            )}
+            {!numericOnly && (
+              <Button
+                fullWidth
+                variant={layout === 'en' ? 'contained' : 'outlined'}
+                onClick={() => setLayout('en')}
+                sx={{ minHeight: fullScreen ? 36 : 40 }}
+              >
+                ENG
+              </Button>
+            )}
+            {!numericOnly && (
+              <Button
+                fullWidth
+                variant={layout === 'numbers' ? 'contained' : 'outlined'}
+                onClick={() => setLayout('numbers')}
+                sx={{ minHeight: fullScreen ? 36 : 40 }}
+              >
+                123
+              </Button>
+            )}
+            {!numericOnly && (
+              <Button
+                fullWidth
+                variant={layout === 'symbols' ? 'contained' : 'outlined'}
+                onClick={() => setLayout('symbols')}
+                sx={{ minHeight: fullScreen ? 36 : 40 }}
+              >
+                #+=
+              </Button>
+            )}
+            {!numericOnly && (
+              <Button
+                variant={uppercase ? 'contained' : 'outlined'}
+                onClick={() => setUppercase(!uppercase)}
+                sx={{ minWidth: 44, minHeight: fullScreen ? 36 : 40 }}
+              >
+                ⇧
+              </Button>
+            )}
+            {!fullScreen && (
+              <Button
+                variant="outlined"
+                onClick={onClose}
+                sx={{ minWidth: 48, minHeight: 40 }}
+              >
+                ✓
+              </Button>
+            )}
+          </Stack>
+        )}
 
         <Stack
           spacing={0.5}
@@ -135,23 +141,26 @@ export function OnScreenKeyboard({
               justifyContent="center"
               sx={{ flex: fullScreen ? 1 : undefined, minHeight: 0 }}
             >
-              {row.split(' ').map((key) => (
-                <Button
-                  key={key}
-                  variant="outlined"
-                  onClick={() => add(uppercase ? key.toUpperCase() : key)}
-                  sx={{
-                    flex: 1,
-                    minWidth: 0,
-                    minHeight: fullScreen ? 24 : 42,
-                    height: fullScreen ? '100%' : undefined,
-                    px: 0.5,
-                    fontSize: 18,
-                  }}
-                >
-                  {uppercase ? key.toUpperCase() : key}
-                </Button>
-              ))}
+              {row
+                .split(' ')
+                .filter((key) => !integerOnly || (key !== '.' && key !== '-'))
+                .map((key) => (
+                  <Button
+                    key={key}
+                    variant="outlined"
+                    onClick={() => add(uppercase ? key.toUpperCase() : key)}
+                    sx={{
+                      flex: 1,
+                      minWidth: 0,
+                      minHeight: fullScreen ? 24 : 42,
+                      height: fullScreen ? '100%' : undefined,
+                      px: 0.5,
+                      fontSize: 18,
+                    }}
+                  >
+                    {uppercase ? key.toUpperCase() : key}
+                  </Button>
+                ))}
               {layout !== 'numbers' && index === 2 && (
                 <Button
                   variant="outlined"
@@ -221,12 +230,18 @@ export function KeyboardTextField({
   onChange,
   type = 'text',
   disabled = false,
+  error = false,
+  integerOnly = false,
+  helperText,
 }: {
   label: string;
   value: string;
   onChange: (value: string) => void;
   type?: 'text' | 'number' | 'password';
   disabled?: boolean;
+  error?: boolean;
+  helperText?: string | undefined;
+  integerOnly?: boolean;
 }) {
   const [open, setOpen] = useState(false);
 
@@ -236,6 +251,8 @@ export function KeyboardTextField({
     return (
       <TextField
         label={label}
+        error={error}
+        helperText={helperText}
         type={type === 'password' ? 'password' : 'text'}
         size="small"
         fullWidth
@@ -252,6 +269,8 @@ export function KeyboardTextField({
     <>
       <TextField
         label={label}
+        error={error}
+        helperText={helperText}
         type={type === 'password' ? 'password' : 'text'}
         size="small"
         fullWidth
@@ -292,6 +311,8 @@ export function KeyboardTextField({
             </Stack>
             <TextField
               value={value}
+              error={error}
+              helperText={helperText}
               type={type === 'password' ? 'password' : 'text'}
               fullWidth
               inputProps={{
@@ -309,6 +330,7 @@ export function KeyboardTextField({
               onChange={onChange}
               onClose={() => setOpen(false)}
               numericOnly={type === 'number'}
+              integerOnly={integerOnly}
               {...(type === 'password' ? { initialLayout: 'en' as const } : {})}
               fullScreen
             />

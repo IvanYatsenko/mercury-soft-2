@@ -51,7 +51,7 @@ export function validateProfile(value: unknown): asserts value is Profile {
     Number.isInteger(point.second) &&
     point.second >= 0 &&
     point.second <= 99999 &&
-    Number.isFinite(point.temperature) &&
+    Number.isInteger(point.temperature) &&
     point.temperature >= 0 &&
     point.temperature <= 280;
   if (
@@ -60,7 +60,9 @@ export function validateProfile(value: unknown): asserts value is Profile {
     p.points.length > 200 ||
     !p.points.every(validPoint)
   )
-    throw new Error('Участки: время 0–99999 с, температура 0–280 °C.');
+    throw new Error(
+      'Участки: время 0–99999 с, температура 0–280 °C; только целые числа.',
+    );
   if (
     p.points[0]?.second !== 0 ||
     p.points.slice(1).some((point) => point.second <= 0)
@@ -85,9 +87,9 @@ export function validateProfile(value: unknown): asserts value is Profile {
     );
   if (
     p.repeat !== undefined &&
-    (!Number.isInteger(p.repeat) || p.repeat < 1 || p.repeat > 100)
+    (!Number.isInteger(p.repeat) || p.repeat < 1 || p.repeat > 20)
   )
-    throw new Error('Число циклов: от 1 до 100.');
+    throw new Error('Число циклов: целое число от 1 до 20.');
 }
 
 /** A manual ramp is linear: even its slowest temperature band must be feasible. */

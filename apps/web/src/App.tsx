@@ -1,3 +1,4 @@
+import { SettingsPinDialog } from './SettingsPinDialog';
 import type { TemperatureRate } from '@mercury/shared';
 import { buildRunPlan } from '@mercury/shared';
 import { useEffect, useRef, useState } from 'react';
@@ -34,6 +35,12 @@ import { ProfileEditorPage } from './ProfileEditorPage';
 import { ProfileChart } from './ProfileChart';
 import { HistoryPage } from './HistoryPage';
 import { RunProcessWindow } from './RunProcessWindow';
+import { fanWarning } from './fanWarning';
+import {
+  criticalBoardError,
+  criticalBoardState,
+  userError,
+} from './boardError';
 import { SettingsPage, type OvenSettings } from './SettingsPage';
 import { WifiPage, type WifiStatus } from './WifiPage';
 
@@ -57,6 +64,9 @@ type ControllerStatus = {
   doorOpen?: boolean;
   connected: boolean;
   fanReferenceHz?: number;
+  reactToFanErrors?: boolean;
+  soundOnErrors?: boolean;
+  thermalProtection?: boolean;
   boardType?: '220V' | '230V' | '380V' | 'unknown';
   ready?: boolean;
   state?: number;
@@ -157,6 +167,8 @@ function boardIndicator(status: ControllerStatus | null) {
     return { color: 'warning.main', label: 'Проверка связи с платой' };
   if (!status.connected)
     return { color: 'error.main', label: 'Нет связи с платой' };
+  if (criticalBoardState(status.state))
+    return { color: 'error.main', label: 'Критическая ошибка' };
   if (status.ready && status.state !== undefined && (status.state & 1) !== 0)
     return { color: 'success.main', label: 'Плата готова к работе' };
   return {
@@ -174,6 +186,124 @@ export function App({ mode, onToggleMode }: AppProps) {
   const [activeSection, setActiveSection] = useState<
     'profiles' | 'settings' | 'editor' | 'wifi' | 'history'
   >('profiles');
+  const [settingsUnlocked, setSettingsUnlocked] = useState(false);
+  const [advancedSettingsUnlocked, setAdvancedSettingsUnlocked] =
+    useState(false);
+  const [combinedRoles, setCombinedRoles] = useState(false);
+  const [combinedRolesChanging, setCombinedRolesChanging] = useState(false);
+  const canEditProfiles = combinedRoles || settingsUnlocked;
+
+  const [pinOpen, setPinOpen] = useState(false);
+  const [lockingSettings, setLockingSettings] = useState(false);
+  const accessEpoch = useRef(0);
+  useEffect(() => {
+    const controller = new AbortController();
+    let timer: number | undefined;
+    const read = async () => {
+      const epoch = accessEpoch.current;
+      try {
+        const response = await fetch('/api/settings-access', {
+          signal: controller.signal,
+          cache: 'no-store',
+        });
+        if (!response.ok) throw new Error('Settings access unavailable');
+        const result = await response.json();
+        if (!controller.signal.aborted && epoch === accessEpoch.current) {
+          setSettingsUnlocked(result.unlocked === true);
+          setAdvancedSettingsUnlocked(result.advancedUnlocked === true);
+          setCombinedRoles(result.combineOperatorEngineerRoles === true);
+        }
+      } catch {
+        if (!controller.signal.aborted && epoch === accessEpoch.current) {
+          setSettingsUnlocked(false);
+          setAdvancedSettingsUnlocked(false);
+          setCombinedRoles(false);
+        }
+      } finally {
+        if (!controller.signal.aborted)
+          timer = window.setTimeout(() => void read(), 1000);
+      }
+    };
+    void read();
+    return () => {
+      controller.abort();
+      window.clearTimeout(timer);
+    };
+  }, []);
+  useEffect(() => {
+    if (!settingsUnlocked)
+      setActiveSection((current) =>
+        current === 'settings' || current === 'history' ? 'profiles' : current,
+      );
+  }, [settingsUnlocked]);
+  useEffect(() => {
+    if (!advancedSettingsUnlocked)
+      setActiveSection((current) =>
+        current === 'history' ? 'settings' : current,
+      );
+  }, [advancedSettingsUnlocked]);
+  const unlockSettings = async (pin: string) => {
+    accessEpoch.current++;
+    const response = await fetch('/api/settings-access/unlock', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pin }),
+    });
+    const result = await response.json();
+    if (!response.ok || result.unlocked !== true)
+      throw new Error(result.error ?? 'Не удалось разблокировать настройки');
+    setSettingsUnlocked(true);
+    setAdvancedSettingsUnlocked(result.advancedUnlocked === true);
+    setCombinedRoles(result.combineOperatorEngineerRoles === true);
+    setPinOpen(false);
+    setActiveSection('settings');
+  };
+  const lockSettings = async () => {
+    accessEpoch.current++;
+    setLockingSettings(true);
+    try {
+      const response = await fetch('/api/settings-access/lock', {
+        method: 'POST',
+      });
+      if (!response.ok) throw new Error('Не удалось заблокировать настройки');
+      setSettingsUnlocked(false);
+      setAdvancedSettingsUnlocked(false);
+      setActiveSection('profiles');
+    } catch (e) {
+      setNotice(e instanceof Error ? e.message : String(e));
+    } finally {
+      setLockingSettings(false);
+    }
+  };
+  const changeCombinedRoles = async (enabled: boolean) => {
+    accessEpoch.current++;
+    setCombinedRolesChanging(true);
+    try {
+      const response = await fetch('/api/settings/combined-roles', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enabled }),
+      });
+      const result = await response.json();
+      if (!response.ok)
+        throw new Error(
+          result.error ?? 'Не удалось сохранить объединение ролей.',
+        );
+      setCombinedRoles(result.enabled === true);
+    } catch (e) {
+      setNotice(e instanceof Error ? e.message : String(e));
+    } finally {
+      setCombinedRolesChanging(false);
+    }
+  };
+  useEffect(() => {
+    if (!canEditProfiles) {
+      setTemplatePickerOpen(false);
+      setActiveSection((current) =>
+        current === 'editor' ? 'profiles' : current,
+      );
+    }
+  }, [canEditProfiles]);
   const [draftProfile, setDraftProfile] = useState<Profile | null>(null);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [settings, setSettings] = useState<OvenSettings>({
@@ -182,8 +312,89 @@ export function App({ mode, onToggleMode }: AppProps) {
     reactToFanErrors: true,
     soundOnErrors: true,
     thermalProtection: true,
-    thermocoupleCorrection: false,
   });
+  const [fanWarningsChanging, setFanWarningsChanging] = useState(false);
+  const [thermalProtectionChanging, setThermalProtectionChanging] =
+    useState(false);
+  const changeThermalProtection = async (enabled: boolean) => {
+    setThermalProtectionChanging(true);
+    try {
+      const response = await fetch('/api/settings/thermal-protection', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enabled }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error);
+      setSettings((current) => ({
+        ...current,
+        thermalProtection: result.enabled,
+      }));
+      setControllerStatus((current) =>
+        current ? { ...current, thermalProtection: result.enabled } : current,
+      );
+    } catch (error) {
+      setNotice(
+        error instanceof Error
+          ? error.message
+          : 'Не удалось сохранить термозащиту.',
+      );
+    } finally {
+      setThermalProtectionChanging(false);
+    }
+  };
+  const [soundOnErrorsChanging, setSoundOnErrorsChanging] = useState(false);
+  const changeSoundOnErrors = async (enabled: boolean) => {
+    setSoundOnErrorsChanging(true);
+    try {
+      const response = await fetch('/api/settings/sound-on-errors', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enabled }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error);
+      setSettings((current) => ({ ...current, soundOnErrors: result.enabled }));
+      setControllerStatus((current) =>
+        current ? { ...current, soundOnErrors: result.enabled } : current,
+      );
+    } catch (error) {
+      setNotice(
+        error instanceof Error
+          ? error.message
+          : 'Не удалось сохранить звуковые сигналы.',
+      );
+    } finally {
+      setSoundOnErrorsChanging(false);
+    }
+  };
+  const changeFanWarnings = async (enabled: boolean) => {
+    setFanWarningsChanging(true);
+    try {
+      const response = await fetch('/api/settings/fan-warnings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enabled }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error);
+      setSettings((current) => ({
+        ...current,
+        reactToFanErrors: result.enabled,
+      }));
+      setControllerStatus((current) =>
+        current ? { ...current, reactToFanErrors: result.enabled } : current,
+      );
+    } catch (error) {
+      setNotice(
+        error instanceof Error
+          ? error.message
+          : 'Не удалось сохранить предупреждения.',
+      );
+    } finally {
+      setFanWarningsChanging(false);
+    }
+  };
   const [savingFanReference, setSavingFanReference] = useState(false);
   const [runStatus, setRunStatus] = useState<RunStatus | null>(null);
   const [runBusy, setRunBusy] = useState(false);
@@ -357,6 +568,10 @@ export function App({ mode, onToggleMode }: AppProps) {
   };
 
   const saveOvenSelection = async () => {
+    if (!settingsUnlocked) {
+      setPinOpen(true);
+      return;
+    }
     if (!selectionDraft.ovenModel || !selectionDraft.connectionVoltage) return;
     setSavingSelection(true);
     try {
@@ -397,6 +612,10 @@ export function App({ mode, onToggleMode }: AppProps) {
   };
 
   const openSettings = () => {
+    if (!settingsUnlocked) {
+      setPinOpen(true);
+      return;
+    }
     if (ovenConfiguration?.selected)
       setSelectionDraft(ovenConfiguration.selected);
     setConfigurationError(null);
@@ -435,6 +654,7 @@ export function App({ mode, onToggleMode }: AppProps) {
   };
 
   const beginEditing = (profile: Profile, index: number | null) => {
+    if (!canEditProfiles) return;
     setDraftProfile(structuredClone(profile));
     setEditingIndex(index);
     if (index !== null) setSelectedProfile(profile.name);
@@ -442,11 +662,13 @@ export function App({ mode, onToggleMode }: AppProps) {
   };
 
   const createProfile = () => {
+    if (!canEditProfiles) return;
     setSelectedTemplate(-1);
     setTemplatePickerOpen(true);
   };
 
   const continueWithTemplate = () => {
+    if (!canEditProfiles) return;
     const blankProfile: Profile = {
       mode: 'manual',
       name: 'Новый профиль',
@@ -473,6 +695,7 @@ export function App({ mode, onToggleMode }: AppProps) {
   };
 
   const saveDraft = async () => {
+    if (!canEditProfiles) return;
     if (!draftProfile) return;
     try {
       const existing = editingIndex === null ? null : profiles[editingIndex];
@@ -506,6 +729,7 @@ export function App({ mode, onToggleMode }: AppProps) {
     }
   };
   const deleteDraft = async () => {
+    if (!canEditProfiles) return;
     if (!draftProfile?.id) return;
     try {
       const response = await fetch('/api/profiles/' + draftProfile.id, {
@@ -725,6 +949,33 @@ export function App({ mode, onToggleMode }: AppProps) {
     }
   }, [controllerStatus?.fanReferenceHz]);
   useEffect(() => {
+    if (
+      !fanWarningsChanging &&
+      controllerStatus?.reactToFanErrors !== undefined
+    )
+      setSettings((current) => ({
+        ...current,
+        reactToFanErrors: controllerStatus.reactToFanErrors!,
+      }));
+  }, [controllerStatus?.reactToFanErrors, fanWarningsChanging]);
+  useEffect(() => {
+    if (!soundOnErrorsChanging && controllerStatus?.soundOnErrors !== undefined)
+      setSettings((current) => ({
+        ...current,
+        soundOnErrors: controllerStatus.soundOnErrors!,
+      }));
+  }, [controllerStatus?.soundOnErrors, soundOnErrorsChanging]);
+  useEffect(() => {
+    if (
+      !thermalProtectionChanging &&
+      controllerStatus?.thermalProtection !== undefined
+    )
+      setSettings((current) => ({
+        ...current,
+        thermalProtection: controllerStatus.thermalProtection!,
+      }));
+  }, [controllerStatus?.thermalProtection, thermalProtectionChanging]);
+  useEffect(() => {
     if (isLoading || error) return;
     const selected = profiles.find(
       (profile) => profile.name === selectedProfile,
@@ -753,6 +1004,11 @@ export function App({ mode, onToggleMode }: AppProps) {
         }}
       >
         <Stack spacing={1.25}>
+          <SettingsPinDialog
+            open={pinOpen}
+            onClose={() => setPinOpen(false)}
+            onUnlock={unlockSettings}
+          />
           <Typography variant="h6">Первый запуск</Typography>
           {configurationError && (
             <Alert severity="error">{configurationError}</Alert>
@@ -791,6 +1047,14 @@ export function App({ mode, onToggleMode }: AppProps) {
   const boardConnection = boardIndicator(controllerStatus);
   const fanHz = controllerStatus?.connected
     ? controllerStatus.telemetry?.convectionFanHz
+    : null;
+  const currentFanWarning = controllerStatus?.connected
+    ? fanWarning(
+        fanHz,
+        controllerStatus.fanReferenceHz ?? 50,
+        settings.reactToFanErrors,
+        controllerStatus.telemetry?.convection === true,
+      )
     : null;
   const fanWear =
     controllerStatus?.telemetry?.convection &&
@@ -834,8 +1098,8 @@ export function App({ mode, onToggleMode }: AppProps) {
   ) => (
     <Typography
       variant="caption"
-      title={`${label}: ${value == null ? 'нет данных' : `${value} °C`}`}
-      aria-label={`${label}: ${value == null ? 'нет данных' : `${value} °C`}`}
+      title={`${label}: ${value == null ? 'нет данных' : `${Math.round(value)} °C`}`}
+      aria-label={`${label}: ${value == null ? 'нет данных' : `${Math.round(value)} °C`}`}
       sx={{
         color: temperatureColor(value),
         fontSize: 10,
@@ -843,7 +1107,7 @@ export function App({ mode, onToggleMode }: AppProps) {
         whiteSpace: 'nowrap',
       }}
     >
-      {shortLabel} {value == null ? '—' : `${value}°`}
+      {shortLabel} {value == null ? '—' : `${Math.round(value)}°`}
     </Typography>
   );
 
@@ -949,6 +1213,11 @@ export function App({ mode, onToggleMode }: AppProps) {
     </Stack>
   );
 
+  const criticalBoard =
+    (controllerStatus?.connected === true &&
+      criticalBoardState(controllerStatus.state)) ||
+    criticalBoardError(runStatus?.error);
+
   return (
     <Box
       sx={{
@@ -958,7 +1227,32 @@ export function App({ mode, onToggleMode }: AppProps) {
         bgcolor: 'background.default',
       }}
     >
+      {criticalBoard && (
+        <Box
+          aria-hidden="true"
+          sx={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 2000,
+            pointerEvents: 'none',
+            boxShadow: 'inset 0 0 36px 10px rgba(244, 67, 54, 0.8)',
+          }}
+        />
+      )}
+      <Snackbar
+        open={criticalBoard && !runWindowOpen}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert severity="error">Критическая ошибка</Alert>
+      </Snackbar>
+      <SettingsPinDialog
+        open={pinOpen}
+        onClose={() => setPinOpen(false)}
+        onUnlock={unlockSettings}
+      />
       <RunProcessWindow
+        criticalBoard={criticalBoard}
+        fanWarning={currentFanWarning}
         indicators={ovenIndicators}
         open={runWindowOpen}
         status={runStatus}
@@ -1151,7 +1445,7 @@ export function App({ mode, onToggleMode }: AppProps) {
                   >
                     {displayedTemperature == null
                       ? '—°'
-                      : `${displayedTemperature}°`}
+                      : `${Math.round(displayedTemperature)}°`}
                   </Typography>
                   <Typography
                     variant="caption"
@@ -1184,12 +1478,12 @@ export function App({ mode, onToggleMode }: AppProps) {
               ) : (
                 <Box sx={{ flex: 1 }} />
               )}
-              {runStatus?.state !== 'idle' && runStatus && (
+              {runStatus?.state !== 'idle' && runStatus && !criticalBoard && (
                 <Typography
                   sx={{ fontSize: 10, lineHeight: 1.2 }}
                   color={runStatus.error ? 'error.main' : 'text.secondary'}
                 >
-                  {runStatus.error ??
+                  {(runStatus.error ? userError(runStatus.error) : null) ??
                     (holdingActive
                       ? 'Поддержание 100 °C'
                       : runActive
@@ -1214,6 +1508,15 @@ export function App({ mode, onToggleMode }: AppProps) {
                             : 'Ошибка')}
                 </Typography>
               )}
+              {currentFanWarning && (
+                <Typography
+                  role="status"
+                  color="warning.main"
+                  sx={{ fontSize: 11, lineHeight: 1.25 }}
+                >
+                  {currentFanWarning.message}
+                </Typography>
+              )}
               <Stack spacing={0.6}>
                 <Button
                   fullWidth
@@ -1236,7 +1539,26 @@ export function App({ mode, onToggleMode }: AppProps) {
                   onClick={openSettings}
                   sx={{ minHeight: 34 }}
                 >
-                  ⚙ &nbsp; НАСТРОЙКИ
+                  <Box
+                    component="span"
+                    aria-hidden="true"
+                    sx={{
+                      mr: 1,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      lineHeight: 1,
+                    }}
+                  >
+                    {settingsUnlocked ? (
+                      '⚙'
+                    ) : (
+                      <SvgIcon fontSize="small">
+                        <path d="M12.65 10C11.83 7.67 9.61 6 7 6a6 6 0 1 0 5.65 8H17v4h4v-4h2v-4H12.65ZM7 14a2 2 0 1 1 0-4 2 2 0 0 1 0 4Z" />
+                      </SvgIcon>
+                    )}
+                  </Box>{' '}
+                  НАСТРОЙКИ
                 </Button>
               </Stack>
             </Stack>
@@ -1348,39 +1670,43 @@ export function App({ mode, onToggleMode }: AppProps) {
                                 </Typography>
                               </Box>
                             </ButtonBase>
-                            <IconButton
-                              disabled={runActive}
-                              aria-label={`Редактировать профиль ${profile.name}`}
-                              onClick={() => beginEditing(profile, index)}
-                              size="small"
-                            >
-                              <Typography aria-hidden color="text.secondary">
-                                ✎
-                              </Typography>
-                            </IconButton>
+                            {canEditProfiles && (
+                              <IconButton
+                                disabled={runActive}
+                                aria-label={`Редактировать профиль ${profile.name}`}
+                                onClick={() => beginEditing(profile, index)}
+                                size="small"
+                              >
+                                <Typography aria-hidden color="text.secondary">
+                                  ✎
+                                </Typography>
+                              </IconButton>
+                            )}
                           </Stack>
                         </CardContent>
                       </Card>
                     );
                   })}
 
-                  <Button
-                    fullWidth
-                    variant="outlined"
-                    onClick={createProfile}
-                    startIcon={
-                      <SvgIcon sx={{ fontSize: 16 }}>
-                        <path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6V5Z" />
-                      </SvgIcon>
-                    }
-                    sx={{
-                      minHeight: 48,
-                      justifyContent: 'flex-start',
-                      textAlign: 'left',
-                    }}
-                  >
-                    Новый профиль
-                  </Button>
+                  {canEditProfiles && (
+                    <Button
+                      fullWidth
+                      variant="outlined"
+                      onClick={createProfile}
+                      startIcon={
+                        <SvgIcon sx={{ fontSize: 16 }}>
+                          <path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6V5Z" />
+                        </SvgIcon>
+                      }
+                      sx={{
+                        minHeight: 48,
+                        justifyContent: 'flex-start',
+                        textAlign: 'left',
+                      }}
+                    >
+                      Новый профиль
+                    </Button>
+                  )}
                 </Stack>
               ) : activeSection === 'settings' ? (
                 <>
@@ -1388,6 +1714,25 @@ export function App({ mode, onToggleMode }: AppProps) {
                     <Alert severity="error">{configurationError}</Alert>
                   )}
                   <SettingsPage
+                    advancedAccess={advancedSettingsUnlocked}
+                    combinedRoles={combinedRoles}
+                    combinedRolesChanging={combinedRolesChanging}
+                    onCombinedRolesChange={(enabled) =>
+                      void changeCombinedRoles(enabled)
+                    }
+                    onSoundOnErrorsChange={(enabled) =>
+                      void changeSoundOnErrors(enabled)
+                    }
+                    soundOnErrorsChanging={soundOnErrorsChanging}
+                    thermalProtectionChanging={thermalProtectionChanging}
+                    onThermalProtectionChange={(enabled) =>
+                      void changeThermalProtection(enabled)
+                    }
+                    fanWarning={currentFanWarning?.message ?? null}
+                    onFanWarningsChange={(enabled) =>
+                      void changeFanWarnings(enabled)
+                    }
+                    fanWarningsChanging={fanWarningsChanging}
                     settings={{
                       ...settings,
                       convectionEnabled:
@@ -1420,7 +1765,9 @@ export function App({ mode, onToggleMode }: AppProps) {
                     }
                     convectionChanging={convectionChanging}
                     onBack={closeSettings}
-                    onHistory={() => setActiveSection('history')}
+                    onHistory={() => {
+                      if (advancedSettingsUnlocked) setActiveSection('history');
+                    }}
                     runActive={runActive || holdingActive}
                   />
                 </>
@@ -1477,6 +1824,20 @@ export function App({ mode, onToggleMode }: AppProps) {
                 ↑
               </Button>
               {activeSection === 'profiles' && ovenIndicators}
+              {activeSection === 'settings' && (
+                <IconButton
+                  aria-label="Заблокировать настройки"
+                  title="Заблокировать настройки"
+                  disabled={lockingSettings}
+                  onClick={() => void lockSettings()}
+                  sx={{ minWidth: 38, minHeight: 48, color: 'primary.main' }}
+                >
+                  <SvgIcon>
+                    <path d="M12.65 10C11.83 7.67 9.61 6 7 6a6 6 0 1 0 5.65 8H17v4h4v-4h2v-4H12.65ZM7 14a2 2 0 1 1 0-4 2 2 0 0 1 0 4Z" />
+                  </SvgIcon>
+                </IconButton>
+              )}
+
               <Button
                 aria-label="Прокрутить вниз"
                 onClick={() => scrollContent(1)}
@@ -1493,7 +1854,7 @@ export function App({ mode, onToggleMode }: AppProps) {
         open={notice !== ''}
         autoHideDuration={3000}
         onClose={() => setNotice('')}
-        message={notice}
+        message={userError(notice)}
       />
 
       <Dialog

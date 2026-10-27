@@ -1,3 +1,4 @@
+import { userError } from './boardError';
 import { useEffect, useState } from 'react';
 import { Alert, Box, Button, Stack, Typography } from '@mui/material';
 import type { Profile, RunRecord, RunSample } from '@mercury/shared';
@@ -84,7 +85,9 @@ export function HistoryPage({ onBack }: { onBack: () => void }) {
           <Typography fontWeight={700}>
             {selected.profileName} · {stateNames[selected.state]}
           </Typography>
-          {selected.error && <Alert severity="error">{selected.error}</Alert>}
+          {selected.error && (
+            <Alert severity="error">{userError(selected.error)}</Alert>
+          )}
           <Typography variant="caption">
             {selected.simulated ? 'Виртуальная плата' : 'Реальная печь'} ·{' '}
             {new Date(selected.startedAt).toLocaleString('ru-RU')}

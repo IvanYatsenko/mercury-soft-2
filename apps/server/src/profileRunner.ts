@@ -11,12 +11,12 @@ import {
 import { config } from './config.js';
 import {
   getOvenModel,
-  readFanReferenceHz,
   readOvenSelection,
   readThermalSettings,
   getProfileRates,
   getMeasuredResponse,
   readKeepHeatEnabled,
+  readProtectionLimits,
 } from './ovenSettings.js';
 import {
   createRun,
@@ -31,6 +31,7 @@ import {
   setProfileControl,
   initializeControllerConnection,
   playBoardCompletionSound,
+  playBoardErrorSound,
   setDoorWarning,
 } from './controller/checkControllerConnection.js';
 import { virtualBoard } from './controller/virtualBoard.js';
@@ -82,8 +83,10 @@ export class ProfileRunner {
       board.telemetry.boardTemperatureC == null ||
       board.telemetry.chamberTemperatureC < 0 ||
       board.telemetry.boardTemperatureC < 0 ||
-      board.telemetry.chamberTemperatureC >= 280 ||
-      board.telemetry.boardTemperatureC >= 280
+      board.telemetry.chamberTemperatureC >=
+        readProtectionLimits().maximumTemperatureC ||
+      board.telemetry.boardTemperatureC >=
+        readProtectionLimits().maximumTemperatureC
     )
       throw new Error('Плата не готова к поддержанию.');
     this.powerBudgetW =
@@ -257,7 +260,6 @@ export class ProfileRunner {
     this.holdingWarmSince = null;
     this.coolAfterStop = false;
     this.previous = this.clock();
-    this.lowFanSince = null;
     setProfileControl(true);
     if (this.status.id)
       addRunEvent(this.status.id, 'Поддержание 100 °C включено.');
@@ -348,7 +350,6 @@ export class ProfileRunner {
   private hottestTemperature = 0;
   private stopped = false;
   private operation: Promise<void> = Promise.resolve();
-  private lowFanSince: number | null = null;
   private phaseStartedAt = 0;
   private timer: ReturnType<typeof setTimeout> | undefined;
   private starting = false;
@@ -503,7 +504,6 @@ export class ProfileRunner {
       this.totalSecond = 0;
       this.heating = false;
       this.cooling = false;
-      this.lowFanSince = null;
       this.previous = this.clock();
       this.hottestTemperature = Math.max(
         board.telemetry?.boardTemperatureC ?? 0,
@@ -604,8 +604,8 @@ export class ProfileRunner {
         t2 == null ||
         t1 < 0 ||
         t2 < 0 ||
-        t1 >= 280 ||
-        t2 >= 280
+        t1 >= readProtectionLimits().maximumTemperatureC ||
+        t2 >= readProtectionLimits().maximumTemperatureC
       )
         throw new Error('Ошибка датчика или перегрев.');
       if (
@@ -617,12 +617,7 @@ export class ProfileRunner {
         );
       if (board.doorOpen && !this.boundary50)
         throw new Error('Дверь открыта. Нагрев остановлен.');
-      const fan = board.telemetry?.convectionFanHz;
-      if (fan == null || fan < readFanReferenceHz() * 0.2)
-        this.lowFanSince ??= now;
-      else this.lowFanSince = null;
-      if (this.lowFanSince !== null && now - this.lowFanSince > 10000)
-        throw new Error('Недостаточные обороты конвекционного вентилятора.');
+      // Fan speed is advisory; temperature and board faults remain interlocks.
       const measured = this.profile.board ? t1 : t2;
       if (this.pausedAt !== null) {
         this.status.measuredTemperatureC = measured;
@@ -1012,6 +1007,13 @@ export class ProfileRunner {
     } finally {
       setProfileControl(false);
     }
+    if (this.status.state === 'failed') {
+      try {
+        await playBoardErrorSound();
+      } catch (soundError) {
+        console.warn('Сигнал ошибки:', String(soundError));
+      }
+    }
     if (holdNow && this.status.state === 'completed') {
       if (deferHoldUntilCompletionSound) this.holdAfterCompletionSound = true;
       else this.beginHolding();
@@ -1044,8 +1046,8 @@ export class ProfileRunner {
         !Number.isFinite(t2) ||
         t1 < 0 ||
         t2 < 0 ||
-        t1 >= 280 ||
-        t2 >= 280
+        t1 >= readProtectionLimits().maximumTemperatureC ||
+        t2 >= readProtectionLimits().maximumTemperatureC
       )
         throw new Error('Ошибка датчика или перегрев при поддержании.');
       this.hottestTemperature = Math.max(t1, t2);
@@ -1063,13 +1065,8 @@ export class ProfileRunner {
         throw new Error('Превышен предел испытаний при поддержании.');
       if (board.doorOpen)
         throw new Error('Дверь открыта. Поддержание остановлено.');
-      const fan = board.telemetry?.convectionFanHz;
-      if (fan == null || fan < readFanReferenceHz() * 0.2)
-        this.lowFanSince ??= now;
-      else this.lowFanSince = null;
-      if (this.lowFanSince !== null && now - this.lowFanSince > 10000)
-        throw new Error('Недостаточные обороты вентилятора при поддержании.');
-      if (this.heating && t2 > 130)
+      // Low fan speed warns in the UI without cancelling temperature holding.
+      if (this.heating && t2 >= readProtectionLimits().holdingTemperatureC)
         throw new Error('Перегрев при поддержании 100 °C.');
       const wasWarming = this.holdingWarmup;
       if (t2 <= 90) this.holdingWarmup = true;
@@ -1115,6 +1112,11 @@ export class ProfileRunner {
     };
     if (this.status.id) addRunEvent(this.status.id, this.status.error!);
     checkpointDatabase();
+    try {
+      await playBoardErrorSound();
+    } catch (soundError) {
+      console.warn('Сигнал ошибки поддержания:', String(soundError));
+    }
   }
   async stop() {
     setDoorWarning(false);

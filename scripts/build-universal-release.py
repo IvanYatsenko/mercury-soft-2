@@ -14,7 +14,7 @@ version = json.loads((root / 'package.json').read_text(encoding='utf-8'))['versi
 archive = output / f'{version}_linux-arm64-unpacked.tar.gz'
 env = '''MERCURY_CONTROLLER_MODE=hardware
 MERCURY_SERIAL_PORT=/dev/serial0
-MERCURY_HARDWARE_MAX_TEMPERATURE_C=280
+MERCURY_HARDWARE_MAX_TEMPERATURE_C=300
 MERCURY_API_HOST=0.0.0.0
 MERCURY_API_PORT=3001
 MERCURY_WEB_PORT=5173

@@ -39,6 +39,8 @@ const {
   checkControllerConnection,
   initializeControllerConnection,
   playBoardStartupSound,
+  playBoardCompletionSound,
+  playBoardErrorSound,
   applyProfileOutputs,
   setDoorWarning,
 } = await import('../dist/controller/checkControllerConnection.js');
@@ -629,6 +631,29 @@ test('database CRUD, unique names, atomic import and restart persistence', () =>
   const edited = db.saveProfile({ ...profile, name: 'Изменён' }, profile.id);
   assert.equal(db.findProfile(profile.id).name, edited.name);
   const count = db.listProfiles().length;
+  const invalidDrafts = [
+    ...[0, -1, 1.5, 21].map((repeat) => ({ ...fixture(), repeat })),
+    ...[-200, 305, 30000, 50.5].map((temperature) => ({
+      ...fixture(),
+      points: [{ second: 0, temperature }],
+    })),
+    ...[-1, 0, 1.5, 100000].map((second) => ({
+      ...fixture(),
+      points: [
+        { second: 0, temperature: 50 },
+        { second, temperature: 100 },
+      ],
+    })),
+  ];
+  for (const invalid of invalidDrafts) {
+    assert.throws(() => db.saveProfile(invalid));
+    assert.throws(() => db.saveProfile(invalid, profile.id));
+    assert.throws(() =>
+      db.importProfiles([fixture('Valid before invalid'), invalid]),
+    );
+    assert.equal(db.listProfiles().length, count);
+    assert.deepEqual(db.findProfile(profile.id), edited);
+  }
   assert.throws(() =>
     db.importProfiles([fixture('Valid import'), { ...fixture(), repeat: -1 }]),
   );
@@ -939,6 +964,65 @@ test('timed completion gives two long beeps for matching and three for mismatch'
   }
 });
 
+test('fan warnings persist without replacing other oven configuration', async () => {
+  await settings.saveFanWarningsEnabled(false);
+  assert.equal(settings.readFanWarningsEnabled(), false);
+  await settings.saveFanReferenceHz(53);
+  assert.equal(settings.readFanWarningsEnabled(), false);
+  const stored = JSON.parse(
+    await readFile(process.env.MERCURY_CONFIG_PATH, 'utf8'),
+  );
+  assert.equal(stored.reactToFanErrors, false);
+  assert.equal(stored.fanReferenceHz, 53);
+  await assert.rejects(settings.saveFanWarningsEnabled('false'));
+  await settings.saveFanWarningsEnabled(true);
+  await settings.saveFanReferenceHz(50);
+});
+
+test('frequency below 20 percent stays advisory during a profile and holding; sensor faults still stop heat', async () => {
+  await settings.saveFanReferenceHz(300); // Virtual fan is 50 Hz: below 20%.
+  await settings.saveKeepHeatEnabled(false);
+  virtualBoard.reset();
+  let now = 0;
+  const runner = new ProfileRunner(() => now, true);
+  try {
+    await runner.start({
+      ...fixture('Low fan advisory'),
+      points: [
+        { second: 0, temperature: 50 },
+        { second: 60, temperature: 70 },
+        { second: 30, temperature: 70 },
+      ],
+    });
+    for (let i = 0; i < 13; i++) {
+      now += 1000;
+      await runner.step();
+    }
+    assert.notEqual(runner.snapshot().state, 'failed');
+    assert.equal(runner.snapshot().error, null);
+    await runner.stop();
+    virtualBoard.reset();
+    await settings.saveKeepHeatEnabled(true);
+    await runner.startTemperatureHold();
+    for (let i = 0; i < 13; i++) {
+      now += 1000;
+      await runner.step();
+    }
+    assert.equal(runner.snapshot().holdingTemperatureC, 100);
+    virtualBoard.setFault('sensor');
+    now += 1000;
+    await runner.step();
+    assert.equal(runner.snapshot().holdingTemperatureC, null);
+    assert.equal((await checkControllerConnection()).telemetry.heaters, false);
+    assert.equal((await checkControllerConnection()).telemetry.lamps, false);
+  } finally {
+    virtualBoard.setFault('none');
+    await settings.saveKeepHeatEnabled(false);
+    await runner.stop();
+    await settings.saveFanReferenceHz(50);
+  }
+});
+
 test('manual stop leaves both heaters off and rejects concurrent tests', async () => {
   virtualBoard.reset();
   let now = 0;
@@ -1107,7 +1191,7 @@ test('board sensor preparation and profile ignore hotter chamber relative to tar
   await runner.step();
   assert.equal(runner.snapshot().state, 'running');
   assert.equal(runner.snapshot().error, null);
-  virtualBoard.setTemperatures(51, 281);
+  virtualBoard.setTemperatures(51, 286);
   now += 1000;
   await runner.step();
   assert.equal(runner.snapshot().state, 'failed');
@@ -1426,7 +1510,7 @@ test('260 C calibration cuts heating at its target and completes at 50 C', async
   assert.equal(runner.snapshot().state, 'completed');
 });
 
-test('270 C response test switches to cooling and retains the absolute 280 C cutoff', async () => {
+test('270 C response test switches to cooling and retains its separate diagnostic 280 C cutoff', async () => {
   await settings.saveThermalSettings(thermalFixture('combined'));
   virtualBoard.reset();
   let now = 0;
@@ -1452,7 +1536,7 @@ test('270 C response test switches to cooling and retains the absolute 280 C cut
   now += 1000;
   await runner.step();
   assert.equal(runner.snapshot().state, 'failed');
-  assert.match(runner.snapshot().error, /перегрев/);
+  assert.match(runner.snapshot().error, /аварийный предел испытания 280/);
   assert.equal((await checkControllerConnection()).telemetry.lamps, false);
 });
 
@@ -2084,6 +2168,94 @@ test('door opening disables heat without freezing time and closing resumes curre
   virtualBoard.setFault('none');
 });
 
+test('sound preference persists and other settings writes preserve it', async () => {
+  await settings.saveSoundOnErrors(false);
+  await settings.saveFanReferenceHz(51);
+  assert.equal(settings.readSoundOnErrors(), false);
+  assert.equal(
+    JSON.parse(await readFile(process.env.MERCURY_CONFIG_PATH, 'utf8'))
+      .soundOnErrors,
+    false,
+  );
+  await assert.rejects(settings.saveSoundOnErrors('false'));
+  await settings.saveSoundOnErrors(true);
+  await settings.saveFanReferenceHz(50);
+});
+
+test('muting error sounds preserves startup and completion chimes and low-voltage outputs', async () => {
+  virtualBoard.reset();
+  await initializeControllerConnection();
+  virtualBoard.call('setLV', [1, 0, 1, 0, 1, 0]);
+  const original = virtualBoard.call.bind(virtualBoard);
+  let pulses = 0;
+  virtualBoard.call = (name, args = []) => {
+    if (name === 'setLV' && args[3] === 1) pulses++;
+    return original(name, args);
+  };
+  try {
+    await settings.saveSoundOnErrors(false);
+    await playBoardErrorSound();
+    assert.equal(pulses, 0);
+    await playBoardStartupSound();
+    assert.equal(pulses, 1);
+    await playBoardCompletionSound(true);
+    assert.equal(pulses, 3);
+    await settings.saveSoundOnErrors(true);
+    await playBoardErrorSound();
+    assert.equal(pulses, 6);
+    assert.deepEqual(virtualBoard.call('setLV'), [1, 0, 1, 0, 1, 0]);
+  } finally {
+    virtualBoard.call = original;
+    await settings.saveSoundOnErrors(true);
+  }
+});
+
+test('door sound follows a changed preference without requiring the door to close', async () => {
+  virtualBoard.reset();
+  await initializeControllerConnection();
+  const original = virtualBoard.call.bind(virtualBoard);
+  let pulses = 0;
+  virtualBoard.call = (name, args = []) => {
+    if (name === 'setLV' && args[3] === 1) pulses++;
+    return original(name, args);
+  };
+  try {
+    await settings.saveSoundOnErrors(false);
+    setDoorWarning(true);
+    await new Promise((resolve) => setTimeout(resolve, 250));
+    assert.equal(pulses, 0);
+    await settings.saveSoundOnErrors(true);
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    assert.ok(pulses >= 1);
+    await settings.saveSoundOnErrors(false);
+    await new Promise((resolve) => setTimeout(resolve, 220));
+    const count = pulses;
+    await new Promise((resolve) => setTimeout(resolve, 850));
+    assert.equal(pulses, count);
+    assert.equal(virtualBoard.snapshot().lowVoltageOutputs[3], 0);
+  } finally {
+    setDoorWarning(false);
+    await new Promise((resolve) => setTimeout(resolve, 180));
+    virtualBoard.call = original;
+    await settings.saveSoundOnErrors(true);
+  }
+});
+
+test('software error sound never clears a firmware fault or silences its buzzer', async () => {
+  virtualBoard.reset();
+  await initializeControllerConnection();
+  virtualBoard.call('setLV', [1, 0, 1, 1, 1, 0]);
+  virtualBoard.setFault('overheat');
+  for (const enabled of [false, true]) {
+    await settings.saveSoundOnErrors(enabled);
+    await playBoardErrorSound();
+    assert.equal(virtualBoard.snapshot().lowVoltageOutputs[3], 1);
+    assert.ok(virtualBoard.snapshot().stateFlags.includes('OVERHEAT'));
+  }
+  virtualBoard.reset();
+  await settings.saveSoundOnErrors(true);
+});
+
 test('door warning repeats short pulses and stops without changing other low-voltage outputs', async () => {
   virtualBoard.reset();
   await initializeControllerConnection();
@@ -2223,4 +2395,164 @@ test('manual profile stop keeps 100 C when enabled, but faults never start holdi
   assert.equal(runner.snapshot().state, 'failed');
   assert.equal(runner.snapshot().holdingTemperatureC, null);
   await settings.saveKeepHeatEnabled(false);
+});
+
+test('thermal protection persists both threshold pairs without changing other settings', async () => {
+  const before = JSON.parse(
+    await readFile(process.env.MERCURY_CONFIG_PATH, 'utf8'),
+  );
+  try {
+    for (const enabled of [false, true]) {
+      await settings.saveThermalProtection(enabled);
+      assert.equal(settings.readThermalProtection(), enabled);
+      assert.deepEqual(settings.readProtectionLimits(), {
+        maximumTemperatureC: enabled ? 285 : 300,
+        holdingTemperatureC: enabled ? 130 : 150,
+      });
+      const saved = JSON.parse(
+        await readFile(process.env.MERCURY_CONFIG_PATH, 'utf8'),
+      );
+      assert.deepEqual(saved, { ...before, thermalProtection: enabled });
+    }
+    await assert.rejects(settings.saveThermalProtection('false'));
+  } finally {
+    await settings.saveThermalProtection(true);
+  }
+});
+
+test('absolute thermal thresholds stop either sensor at 285 or 300 C and keep model targets capped at 280', async () => {
+  const advance = virtualBoard.advance;
+  virtualBoard.advance = () => {};
+  await settings.saveKeepHeatEnabled(false);
+  await settings.saveSoundOnErrors(false);
+  try {
+    for (const enabled of [true, false]) {
+      await settings.saveThermalProtection(enabled);
+      const limit = enabled ? 285 : 300;
+      for (const sensor of ['board', 'chamber']) {
+        virtualBoard.reset();
+        let now = 0;
+        const runner = new ProfileRunner(() => now, true);
+        const profile = {
+          ...fixture('Thermal cap'),
+          points: [
+            { second: 0, temperature: 280 },
+            { second: 100, temperature: 280 },
+          ],
+        };
+        await assert.rejects(
+          runner.start({
+            ...profile,
+            points: [
+              { second: 0, temperature: 281 },
+              { second: 100, temperature: 281 },
+            ],
+          }),
+          /280/,
+        );
+        await runner.start(profile);
+        virtualBoard.setTemperatures(
+          sensor === 'board' ? limit - 0.25 : 25,
+          sensor === 'chamber' ? limit - 0.25 : 280,
+        );
+        now += 1000;
+        await runner.step();
+        assert.equal(runner.snapshot().state, 'running');
+        virtualBoard.setTemperatures(
+          sensor === 'board' ? limit : 25,
+          sensor === 'chamber' ? limit : 280,
+        );
+        now += 1000;
+        await runner.step();
+        assert.equal(runner.snapshot().state, 'failed');
+        assert.equal(
+          (await checkControllerConnection()).telemetry.heaters,
+          false,
+        );
+        assert.equal(
+          (await checkControllerConnection()).telemetry.lamps,
+          false,
+        );
+      }
+    }
+  } finally {
+    virtualBoard.advance = advance;
+    virtualBoard.reset();
+    await settings.saveThermalProtection(true);
+    await settings.saveSoundOnErrors(true);
+  }
+});
+
+test('holding uses 130 or 150 C protection after heating and still permits cooling from a hot oven', async () => {
+  const advance = virtualBoard.advance;
+  virtualBoard.advance = () => {};
+  await settings.saveKeepHeatEnabled(true);
+  await settings.saveSoundOnErrors(false);
+  try {
+    for (const enabled of [true, false]) {
+      await settings.saveThermalProtection(enabled);
+      const limit = enabled ? 130 : 150;
+      virtualBoard.reset();
+      virtualBoard.setTemperatures(25, 70);
+      let now = 0;
+      const runner = new ProfileRunner(() => now, true);
+      await runner.startTemperatureHold();
+      now += 1000;
+      await runner.step();
+      const board = await checkControllerConnection();
+      assert.ok(board.telemetry.heaters || board.telemetry.lamps);
+      virtualBoard.setTemperatures(25, limit);
+      now += 1000;
+      await runner.step();
+      assert.equal(runner.snapshot().holdingTemperatureC, null);
+      assert.match(runner.snapshot().error, /Перегрев/);
+      assert.equal(
+        (await checkControllerConnection()).telemetry.heaters,
+        false,
+      );
+      assert.equal((await checkControllerConnection()).telemetry.lamps, false);
+      virtualBoard.reset();
+      virtualBoard.setTemperatures(25, 260);
+      const cooling = new ProfileRunner(() => now, true);
+      await cooling.startTemperatureHold();
+      now += 1000;
+      await cooling.step();
+      assert.equal(cooling.snapshot().holdingTemperatureC, 100);
+      assert.equal(
+        (await checkControllerConnection()).telemetry.heaters,
+        false,
+      );
+      await cooling.stop();
+    }
+  } finally {
+    virtualBoard.advance = advance;
+    virtualBoard.reset();
+    await settings.saveKeepHeatEnabled(false);
+    await settings.saveThermalProtection(true);
+    await settings.saveSoundOnErrors(true);
+  }
+});
+
+test('combined roles default on, persist off and on, reject invalid input and preserve other configuration', async () => {
+  const before = JSON.parse(
+    await readFile(process.env.MERCURY_CONFIG_PATH, 'utf8'),
+  );
+  try {
+    const missing = { ...before };
+    delete missing.combineOperatorEngineerRoles;
+    await writeFile(process.env.MERCURY_CONFIG_PATH, JSON.stringify(missing));
+    assert.equal(settings.readCombinedRoles(), true);
+    for (const enabled of [false, true]) {
+      await settings.saveCombinedRoles(enabled);
+      assert.equal(settings.readCombinedRoles(), enabled);
+      assert.deepEqual(
+        JSON.parse(await readFile(process.env.MERCURY_CONFIG_PATH, 'utf8')),
+        { ...missing, combineOperatorEngineerRoles: enabled },
+      );
+    }
+    for (const invalid of [0, 1, null, 'true', 'false'])
+      await assert.rejects(settings.saveCombinedRoles(invalid));
+  } finally {
+    await writeFile(process.env.MERCURY_CONFIG_PATH, JSON.stringify(before));
+  }
 });
