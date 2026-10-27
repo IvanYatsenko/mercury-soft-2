@@ -7,10 +7,10 @@ import {
   protectedSettingsRequest,
 } from '../dist/settingsAccess.js';
 
-async function fixture(combinedRoles = () => true) {
+async function fixture(combinedRoles = () => true, currentRunId = () => null) {
   const app = express();
   app.use(express.json());
-  app.use(createSettingsAccessRouter(combinedRoles));
+  app.use(createSettingsAccessRouter(combinedRoles, currentRunId));
   app.use((_req, res) => res.json({ ok: true }));
   const server = app.listen(0, '127.0.0.1');
   await once(server, 'listening');
@@ -224,6 +224,35 @@ test('advanced PIN alone grants model, history and fan reference access; locking
       assert.equal((await f.request('/api/config')).status, 200);
       assert.equal((await f.request('/api/run')).status, 200);
     }
+  } finally {
+    f.server.closeAllConnections();
+    await new Promise((r) => f.server.close(r));
+  }
+});
+
+test('operator can read only the current run chart with both PIN levels locked', async () => {
+  let current = 'current-run';
+  const f = await fixture(
+    () => false,
+    () => current,
+  );
+  try {
+    assert.equal((await f.request('/api/history/current-run')).status, 200);
+    assert.equal((await f.request('/API/HISTORY/CURRENT-RUN/')).status, 200);
+    assert.equal((await f.request('/api/history')).status, 423);
+    assert.equal((await f.request('/api/history/archived-run')).status, 423);
+    assert.equal(
+      (await f.request('/api/history/current-run', 'POST', {})).status,
+      423,
+    );
+    await f.request('/api/settings-access/unlock', 'POST', { pin: '3457' });
+    assert.equal((await f.request('/api/history/current-run')).status, 200);
+    assert.equal((await f.request('/api/history/archived-run')).status, 423);
+    current = 'next-run';
+    assert.equal((await f.request('/api/history/current-run')).status, 423);
+    assert.equal((await f.request('/api/history/next-run')).status, 200);
+    current = null;
+    assert.equal((await f.request('/api/history/next-run')).status, 423);
   } finally {
     f.server.closeAllConnections();
     await new Promise((r) => f.server.close(r));

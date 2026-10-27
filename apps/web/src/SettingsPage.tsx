@@ -49,7 +49,7 @@ type SettingsPageProps = {
   onConvectionChange: (enabled: boolean) => void;
   convectionChanging: boolean;
   fanHz: number | null;
-  fanWear: number | null;
+  referenceHz: number;
   onConfirmFanReference: () => void;
   savingFanReference: boolean;
   onBack: () => void;
@@ -84,7 +84,7 @@ export function SettingsPage({
   onConvectionChange,
   convectionChanging,
   fanHz,
-  fanWear,
+  referenceHz,
   onConfirmFanReference,
   savingFanReference,
   onBack,
@@ -184,8 +184,7 @@ export function SettingsPage({
               label="Конвекционный вентилятор"
             />
             <Typography variant="body2">
-              Текущая частота: {fanHz == null ? '—' : fanHz + ' Гц'} · Износ:{' '}
-              {fanWear == null ? '—' : fanWear + '%'}
+              Текущая частота: {fanHz == null ? '—' : fanHz + ' Гц'}
             </Typography>
             {advancedAccess && (
               <>
@@ -237,9 +236,10 @@ export function SettingsPage({
               label="Реагировать на ошибку оборотов"
             />
             <Typography variant="caption" color="text.secondary">
-              Ниже 50% эталона — предупреждение о точности профиля. Ниже 20% —
-              дополнительно жёлтое мерцание при выполнении. Профиль не
-              останавливается.
+              Ниже {(referenceHz * 0.5).toLocaleString('ru-RU')} Гц —
+              предупреждение о точности профиля. Ниже{' '}
+              {(referenceHz * 0.2).toLocaleString('ru-RU')} Гц — дополнительно
+              жёлтое мерцание при выполнении. Профиль не останавливается.
             </Typography>
             {fanWarning && <Alert severity="warning">{fanWarning}</Alert>}
           </Stack>

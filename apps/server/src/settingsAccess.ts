@@ -26,7 +26,10 @@ export function profileMutationRequest(method: string, path: string): boolean {
 }
 
 /** Appliance access lasts for this server process, never persisted on disk. */
-export function createSettingsAccessRouter(combinedRoles = readCombinedRoles) {
+export function createSettingsAccessRouter(
+  combinedRoles = readCombinedRoles,
+  currentRunId: () => string | null = () => null,
+) {
   const router = Router();
   const bootId = randomUUID();
   let unlocked = false;
@@ -63,9 +66,15 @@ export function createSettingsAccessRouter(combinedRoles = readCombinedRoles) {
   });
   router.use((request, response, next) => {
     const path = request.path.toLowerCase().replace(/\/+$/, '');
+    // The operator must see the current process, even while archive access is locked.
+    const runId = currentRunId();
+    const currentChart =
+      ['GET', 'HEAD'].includes(request.method) &&
+      runId !== null &&
+      path === '/api/history/' + encodeURIComponent(runId).toLowerCase();
     const advancedRequest =
       path === '/api/history' ||
-      path.startsWith('/api/history/') ||
+      (path.startsWith('/api/history/') && !currentChart) ||
       (!['GET', 'HEAD', 'OPTIONS'].includes(request.method) &&
         (path === '/api/config' || path === '/api/settings/fan-reference'));
     if (!advancedUnlocked && advancedRequest) {

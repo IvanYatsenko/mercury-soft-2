@@ -943,12 +943,16 @@ test('timed completion gives two long beeps for matching and three for mismatch'
           { second: 2, temperature: 25 },
         ],
       });
+      assert.equal(runner.snapshot().maximumDeviationC, 0);
       now = 1000;
       await runner.step();
       now = 2000;
       await runner.step();
       assert.equal(runner.snapshot().state, 'completed');
       assert.equal(runner.snapshot().elapsedSeconds, 2);
+      assert.ok(Number.isFinite(runner.snapshot().maximumDeviationC));
+      if (expected === 3) assert.ok(runner.snapshot().maximumDeviationC > 4);
+      else assert.ok(runner.snapshot().maximumDeviationC <= 4);
       assert.equal(beeps, expected);
       assert.equal(virtualBoard.call('setLV')[3], 0);
       assert.ok(

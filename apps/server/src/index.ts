@@ -84,7 +84,9 @@ server.use((_request, response, next) => {
   next();
 });
 
-server.use(createSettingsAccessRouter());
+server.use(
+  createSettingsAccessRouter(undefined, () => profileRunner.snapshot().id),
+);
 
 server.use((request, response, next) => {
   if (
@@ -437,14 +439,12 @@ server.put('/api/settings/combined-roles', async (request, response) => {
   try {
     response.json({ enabled: await saveCombinedRoles(request.body?.enabled) });
   } catch (error) {
-    response
-      .status(400)
-      .json({
-        error:
-          error instanceof Error
-            ? error.message
-            : 'Не удалось сохранить объединение ролей.',
-      });
+    response.status(400).json({
+      error:
+        error instanceof Error
+          ? error.message
+          : 'Не удалось сохранить объединение ролей.',
+    });
   }
 });
 

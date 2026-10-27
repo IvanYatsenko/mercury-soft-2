@@ -289,6 +289,7 @@ export type RunState =
   | 'stopped'
   | 'failed';
 export interface RunStatus {
+  maximumDeviationC?: number;
   paused?: boolean;
   doorOpen?: boolean;
   holdingTemperatureC?: number | null;

@@ -21,7 +21,18 @@ function Root() {
       <CssBaseline />
       <GlobalStyles
         styles={{
-          '*': { scrollbarWidth: 'none', msOverflowStyle: 'none' },
+          '*': {
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none',
+            userSelect: 'none',
+            WebkitUserSelect: 'none',
+            WebkitTouchCallout: 'none',
+          },
+          'input, textarea, [contenteditable="true"]': {
+            userSelect: 'text',
+            WebkitUserSelect: 'text',
+          },
+          'img, svg': { WebkitUserDrag: 'none' },
           '*::-webkit-scrollbar': { display: 'none' },
         }}
       />

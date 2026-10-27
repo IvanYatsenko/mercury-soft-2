@@ -370,6 +370,7 @@ export class ProfileRunner {
   snapshot() {
     return {
       ...this.status,
+      maximumDeviationC: this.maximumDeviationC,
       paused: this.pausedAt !== null,
       doorOpen: this.doorOpen,
       holdingTemperatureC: this.holding ? 100 : null,

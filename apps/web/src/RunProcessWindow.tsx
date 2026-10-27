@@ -38,6 +38,7 @@ export function RunProcessWindow({
   indicators,
   fanWarning,
   criticalBoard,
+  advancedAccess,
 }: {
   open: boolean;
   status: RunStatus | null;
@@ -51,6 +52,7 @@ export function RunProcessWindow({
   indicators: ReactNode;
   fanWarning: { message: string; blink: boolean } | null;
   criticalBoard: boolean;
+  advancedAccess: boolean;
 }) {
   const [details, setDetails] = useState<{
     id: string;
@@ -193,7 +195,9 @@ export function RunProcessWindow({
             />
           ) : (
             <Box sx={{ flex: 1 }}>
-              <Typography variant="caption">Загрузка графика…</Typography>
+              <Typography variant="caption">
+                {chartError ? 'График недоступен' : 'Загрузка графика…'}
+              </Typography>
             </Box>
           )}
           {status?.doorOpen && active && (
@@ -299,6 +303,19 @@ export function RunProcessWindow({
           }}
         >
           {indicators}
+          {advancedAccess && status?.id && (
+            <Box
+              aria-label={`Максимальное отклонение от графика: ${Math.round(status.maximumDeviationC ?? 0)} °C`}
+              sx={{ textAlign: 'center', mt: 1, lineHeight: 1.3 }}
+            >
+              <Typography sx={{ fontSize: 10, color: 'text.secondary' }}>
+                Δ max
+              </Typography>
+              <Typography sx={{ fontSize: 12, fontWeight: 700 }}>
+                {Math.round(status.maximumDeviationC ?? 0)}°
+              </Typography>
+            </Box>
+          )}
         </Stack>
       </Stack>
     </Dialog>

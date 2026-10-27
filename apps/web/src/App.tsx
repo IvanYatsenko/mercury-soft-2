@@ -1251,6 +1251,7 @@ export function App({ mode, onToggleMode }: AppProps) {
         onUnlock={unlockSettings}
       />
       <RunProcessWindow
+        advancedAccess={advancedSettingsUnlocked}
         criticalBoard={criticalBoard}
         fanWarning={currentFanWarning}
         indicators={ovenIndicators}
@@ -1741,7 +1742,7 @@ export function App({ mode, onToggleMode }: AppProps) {
                     }}
                     onChange={setSettings}
                     fanHz={fanHz ?? null}
-                    fanWear={fanWear}
+                    referenceHz={controllerStatus?.fanReferenceHz ?? 50}
                     onConfirmFanReference={() => void confirmFanReference()}
                     savingFanReference={savingFanReference}
                     ovenModels={ovenConfiguration.models}
