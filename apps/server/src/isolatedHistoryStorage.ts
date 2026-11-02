@@ -1,3 +1,6 @@
+/**
+ * Асинхронная граница USB-истории: зависший файловый ввод-вывод отключает worker, а не поток регулирования.
+ */
 import { Worker } from 'node:worker_threads';
 import type { SQLInputValue } from 'node:sqlite';
 
@@ -13,6 +16,9 @@ export class IsolatedHistoryStorage {
       timer: ReturnType<typeof setTimeout>;
     }
   >();
+  /**
+   * Создаёт отдельный worker и сопоставляет ответы с запросами по номеру; worker не удерживает процесс после штатного выхода.
+   */
   constructor(
     root = process.env.MERCURY_LOG_USB_MOUNT ?? '/media/flash',
     workerUrl = new URL('./usbHistoryWorker.js', import.meta.url),
@@ -29,6 +35,9 @@ export class IsolatedHistoryStorage {
     this.worker.on('exit', () => this.disableWorker());
     this.worker.unref();
   }
+  /**
+   * Завершает ожидающие запросы без результата и прекращает использование зависшего worker; не ожидает завершения системного I/O.
+   */
   private disableWorker() {
     const worker = this.worker;
     this.worker = undefined;
@@ -40,6 +49,9 @@ export class IsolatedHistoryStorage {
     // Never await termination: a kernel I/O wait need not finish promptly.
     if (worker) void worker.terminate().catch(() => {});
   }
+  /**
+   * Передаёт операцию с двухсекундным дедлайном и ограничением очереди. После отказа данные не копятся для повторной записи.
+   */
   private request(operation: string, sql?: string, args: SQLInputValue[] = []) {
     if (!this.worker) return Promise.resolve(undefined);
     if (this.requests.size >= 1000) {
@@ -53,6 +65,9 @@ export class IsolatedHistoryStorage {
       this.worker!.postMessage({ id, operation, sql, args });
     });
   }
+  /**
+   * Возвращает неблокирующий интерфейс записи; SQL и параметры остаются внутри доверенного серверного кода.
+   */
   prepare(sql: string) {
     return {
       run: (...args: SQLInputValue[]) => {
@@ -60,21 +75,43 @@ export class IsolatedHistoryStorage {
       },
     };
   }
+  /**
+   * Асинхронно получает строки с USB; undefined означает отказ worker, а не успешный пустой результат.
+   */
   async storedQuery(sql: string, args: SQLInputValue[] = []) {
     const rows = await this.request('all', sql, args);
     return rows as Record<string, any>[] | undefined;
   }
   // Keep maintenance on the same worker, after all preceding writes.
+  /**
+   * Дожидается паузы после предыдущих записей, чтобы фоновой очистке не мешало открытое соединение.
+   */
   async pauseWorkerForMaintenance() {
     return Boolean(await this.request('pause'));
   }
+  /**
+   * Возобновляет работу после очистки на том же worker; отказ не должен задерживать основной цикл.
+   */
   async resumeWorkerAfterMaintenance() {
     await this.request('resume');
   }
+  /**
+   * Ставит FIFO-подтверждение после записей перед выключением; ожидание ограничено watchdog.
+   */
   async flush() {
     // FIFO acknowledgement after every preceding write; bounded by watchdog.
     await this.request('flush');
   }
+  /**
+   * Требует положительное подтверждение совместной очистки истории; при недоступном USB выбрасывает ошибку для интерфейса.
+   */
+  async clearRuns() {
+    if (!(await this.request('clearRuns')))
+      throw new Error('Не удалось очистить историю запусков на USB.');
+  }
+  /**
+   * Отключает worker и ожидающие запросы без синхронного обращения к USB.
+   */
   close() {
     this.disableWorker();
   }

@@ -39,7 +39,7 @@ archive = Path('/home/pi/.mercury-ramp-update.zip')
 files = ['apps/server/src/thermalRegulator.ts', 'apps/server/dist/thermalRegulator.js']
 
 def api(path, method=None):
-    request = urllib.request.Request('http://127.0.0.1:3001/api/' + path, method=method)
+    request = urllib.request.Request('http://127.0.0.1:8075/api/' + path, method=method)
     with urllib.request.urlopen(request, timeout=10) as response:
         return json.load(response)
 

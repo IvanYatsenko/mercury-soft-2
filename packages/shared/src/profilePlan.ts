@@ -1,3 +1,6 @@
+/**
+ * Проверка профиля и расчёт временной траектории; время в секундах, температура в градусах Цельсия.
+ */
 import type { Profile, TemperatureValue } from './index.js';
 
 export interface ProfilePlan {
@@ -19,6 +22,9 @@ export type TemperatureRate =
       bands: readonly ResponseBand[];
     };
 
+/**
+ * Выбирает измеренную скорость для данного температурного диапазона при оценке достижимости траектории.
+ */
 export function rateAtTemperature(
   rate: TemperatureRate,
   temperature: number,
@@ -35,6 +41,9 @@ export function rateAtTemperature(
     : rate.fallback;
 }
 
+/**
+ * Проверяет границы температуры, времени, повторов и структуру выбранного режима до сохранения или запуска.
+ */
 export function validateProfile(value: unknown): asserts value is Profile {
   if (!value || typeof value !== 'object')
     throw new Error('Не указан профиль.');
@@ -46,6 +55,9 @@ export function validateProfile(value: unknown): asserts value is Profile {
     typeof p.board !== 'boolean'
   )
     throw new Error('Некорректный режим или датчик.');
+  /**
+   * Проверяет отдельную целочисленную точку профиля с учётом допустимой первой точки.
+   */
   const validPoint = (point: TemperatureValue) =>
     point &&
     Number.isInteger(point.second) &&
@@ -136,6 +148,9 @@ export function manualCoolingWarnings(
   return warnings;
 }
 
+/**
+ * Разворачивает участки в абсолютную временную последовательность для расчёта длительности и графика.
+ */
 export function profileDurationPoints(
   profile: Profile,
   heatingRate: TemperatureRate = 0.7,
@@ -145,9 +160,11 @@ export function profileDurationPoints(
     return profile.points.map((point) => ({ ...point }));
   const [preheat, peak, cooling] = profile.shelves;
   const points: TemperatureValue[] = [{ second: 0, temperature: 30 }];
+  /** Добавляет следующую абсолютную точку при разворачивании участков профиля. */
   const append = (temperature: number, seconds: number) => {
     if (seconds > 0) points.push({ second: seconds, temperature });
   };
+  /** Рассчитывает длительность перехода к следующей температуре по доступной скорости. */
   const ramp = (from: number, to: number) => {
     const cooling = to < from;
     let rate = cooling ? coolingRate : heatingRate;
@@ -186,6 +203,9 @@ export function profileDurationPoints(
   return points;
 }
 
+/**
+ * Преобразует проверенный профиль в траекторию управления текущей конфигурацией.
+ */
 export function buildProfilePlan(
   profile: Profile,
   heatingRate: TemperatureRate = 0.7,
@@ -209,6 +229,9 @@ export function buildProfilePlan(
   };
 }
 
+/**
+ * Интерполирует заданную температуру в конкретную секунду профиля, включая границы участков.
+ */
 export function targetAt(
   plan: ProfilePlan,
   seconds: number,
@@ -289,6 +312,9 @@ export type RunState =
   | 'stopped'
   | 'failed';
 export interface RunStatus {
+  purpose?: 'calibration';
+  rawMeasuredTemperatureC?: number | null;
+  calibrationStableSeconds?: number;
   maximumDeviationC?: number;
   paused?: boolean;
   doorOpen?: boolean;

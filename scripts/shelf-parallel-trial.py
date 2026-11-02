@@ -11,7 +11,7 @@ STATE = Path('.test-tmp/shelf-parallel-run.json')
 
 def api(model, path, data=None):
     request = urllib.request.Request(
-        f'http://{HOSTS[model]}:3001/api/{path}',
+        f'http://{HOSTS[model]}:8075/api/{path}',
         data=None if data is None else json.dumps(data).encode(),
         headers={'Content-Type': 'application/json'})
     with urllib.request.urlopen(request, timeout=12) as response:

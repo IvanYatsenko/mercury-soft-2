@@ -10,7 +10,7 @@ OVENS = {'M400-230': ('10.10.1.167', '400', '230'),
          'M300-380': ('10.10.1.88', '300', '380')}
 
 def api(label, path, data=None, method=None):
-    req = urllib.request.Request('http://' + OVENS[label][0] + ':3001/api/' + path,
+    req = urllib.request.Request('http://' + OVENS[label][0] + ':8075/api/' + path,
         data=None if data is None else json.dumps(data).encode(),
         headers={'Content-Type': 'application/json'}, method=method)
     return json.load(urllib.request.urlopen(req, timeout=8))

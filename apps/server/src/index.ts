@@ -1,4 +1,41 @@
+/**
+ * Точка сборки HTTP API, управления платой и фоновых служб. Порядок проверок доступа и выключения значим.
+ */
+import { createActiveNotificationsRouter } from './activeNotifications.js';
+import {
+  ovenModelName,
+  ovenModelNumber,
+  supportsConnection,
+} from '@mercury/shared';
+import { detectedBoardType } from './controller/boardIdentity.js';
+import { onOvenEvent, emitOvenEvent } from './ovenEvents.js';
+import { startOptionalHttps } from './httpsServer.js';
+import {
+  flushElementRuntime,
+  readElementRuntime,
+  initializeRuntimeBackup,
+  resetElementRuntime,
+} from './elementRuntime.js';
+import {
+  createProfileOperationsRouter,
+  profileAssessment,
+} from './profileOperations.js';
+import {
+  FleetDirectory,
+  createFleetRouter,
+  startFleetDiscovery,
+  type DeviceInfo,
+} from './fleet.js';
 import { createSettingsAccessRouter } from './settingsAccess.js';
+import { createCalibrationRouter } from './calibration.js';
+import { monitoringCommands } from './monitoringCommands.js';
+import { advancedPin } from './operatorPin.js';
+import {
+  LegacyMonitoring,
+  monitoringRouter,
+  startLegacyMonitoring,
+} from './legacyMonitoring.js';
+import { allowDuringShutdown } from './pinRecovery.js';
 import { createWebClientsRouter } from './webClients.js';
 import { fileURLToPath } from 'node:url';
 import { networkInterfaces } from 'node:os';
@@ -10,6 +47,7 @@ import {
   downloadSoftwareUpdate,
   installSoftwareUpdate,
   updateBusy,
+  updateBlocksRequest,
   updateStatus,
 } from './softwareUpdate.js';
 import { profileRunner } from './profileRunner.js';
@@ -21,11 +59,16 @@ import {
   importProfiles,
   listStoredRuns,
   storedRunDetails,
+  clearStoredRuns,
   getMetadata,
   setMetadata,
   checkpointDatabase,
 } from './database.js';
-import { startRaspberryCooling } from './raspberryCooling.js';
+import {
+  startRaspberryCooling,
+  raspberryCoolingStatus,
+  testRaspberryCooling,
+} from './raspberryCooling.js';
 import {
   handleRaspberryShutdown,
   isShuttingDown,
@@ -35,6 +78,7 @@ import {
   getVirtualBoardSnapshot,
   initializeControllerConnection,
   listTestElements,
+  controllerCoolingStatus,
   powerOffController,
   testOvenElement,
   setConvectionEnabled,
@@ -62,6 +106,7 @@ import {
   readThermalSettings,
   saveThermalSettings,
   readKeepHeatEnabled,
+  readOvenIdentity,
   saveKeepHeatEnabled,
 } from './ovenSettings.js';
 import {
@@ -75,11 +120,52 @@ import {
 startUsbLogger();
 const server = express();
 let terminating = false;
+let resettingRuntime = false;
+const legacyMonitoring = new LegacyMonitoring(
+  () => profileRunner.monitoringSnapshot(),
+  () => ({
+    referenceHz: readFanReferenceHz(),
+    fanWarnings: readFanWarningsEnabled(),
+    coreTemperatureC: raspberryCoolingStatus().temperatureC,
+    controllerTemperatureC: controllerCoolingStatus().temperatureC,
+    version: updateStatus().currentVersion,
+    raspberryFan: raspberryCoolingStatus().enabled,
+    controllerFan: controllerCoolingStatus().enabled,
+  }),
+  Date.now,
+  () => isShuttingDown() || terminating,
+);
+const stopMonitoringEvents = onOvenEvent((event) =>
+  legacyMonitoring.event(event),
+);
+server.use(monitoringRouter(legacyMonitoring));
 server.disable('x-powered-by');
+server.set('trust proxy', 'loopback');
+
 server.use(express.json());
+server.use((request, response, next) => {
+  if (
+    resettingRuntime &&
+    !['GET', 'HEAD', 'OPTIONS'].includes(request.method)
+  ) {
+    response
+      .status(409)
+      .json({ error: 'Дождитесь сброса моточасов и истории.' });
+    return;
+  }
+  next();
+});
 server.use((_request, response, next) => {
-  if (isShuttingDown() || terminating) {
+  if (!allowDuringShutdown(_request.path, isShuttingDown(), terminating)) {
     response.status(503).json({ error: 'Печь выключается.' });
+    return;
+  }
+  next();
+});
+
+server.use((request, response, next) => {
+  if (updateBlocksRequest(request.method, request.path)) {
+    response.status(409).json({ error: 'Выполняется обновление программы.' });
     return;
   }
   next();
@@ -91,18 +177,15 @@ server.use(
 
 server.use((request, response, next) => {
   if (
-    updateBusy() &&
-    request.method !== 'GET' &&
-    !request.path.startsWith('/api/software-update')
-  ) {
-    response.status(409).json({ error: 'Выполняется обновление программы.' });
-    return;
-  }
-  if (
     profileRunner.controlling() &&
-    !['/api/settings/keep-heat', '/api/settings/sound-on-errors'].includes(
-      request.path,
-    ) &&
+    ![
+      '/api/settings/keep-heat',
+      '/api/settings/sound-on-errors',
+      '/api/settings/oven-identity',
+      '/api/settings/calibration/stop',
+    ].includes(request.path) &&
+    request.path !== '/api/settings/fleet' &&
+    !request.path.startsWith('/api/settings/fleet/') &&
     request.method !== 'GET' &&
     (request.path.startsWith('/api/controller/') ||
       request.path.startsWith('/api/settings/') ||
@@ -116,12 +199,39 @@ server.use((request, response, next) => {
   next();
 });
 
+server.use(createCalibrationRouter(profileRunner));
+server.use(createActiveNotificationsRouter());
+const optionalPushRouter = express.Router();
+server.use(optionalPushRouter);
+if (process.env.MERCURY_PUBLIC_URL && process.env.MERCURY_PUSH_SUBJECT) {
+  void import('./pushNotifications.js')
+    .then(({ pushNotifications }) => {
+      optionalPushRouter.use(pushNotifications.createRouter());
+      onOvenEvent((event) => pushNotifications.notify(event));
+    })
+    .catch(() =>
+      console.warn(
+        'Web Push не активирован: проверьте зависимости и настройки.',
+      ),
+    );
+}
+server.get('/api/push/status', (_req, res) =>
+  res.set('Cache-Control', 'no-store').json({
+    enabled: false,
+    reason:
+      'Фоновые push-уведомления отложены. Используйте оповещения открытой панели.',
+  }),
+);
+
+/**
+ * Формирует библиотеку профилей вместе с текущим выбором для клиентского экрана.
+ */
 const profilesResponse = () => ({
   profiles: listProfiles(),
   selectedId: getMetadata('selected-profile') ?? null,
 });
 server.get('/api/software-update', (_request, response) =>
-  response.json(updateStatus()),
+  response.set('Cache-Control', 'no-store').json(updateStatus()),
 );
 server.post('/api/software-update/:action', async (request, response) => {
   try {
@@ -130,7 +240,7 @@ server.post('/api/software-update/:action', async (request, response) => {
     const action = request.params.action;
     if (action === 'check') response.json(await checkSoftwareUpdate());
     else if (action === 'download')
-      response.json(await downloadSoftwareUpdate());
+      response.json(await downloadSoftwareUpdate(request.body));
     else if (action === 'install') {
       const board = await checkControllerConnection();
       if (
@@ -179,6 +289,56 @@ server.put('/api/settings/thermal', async (request, response) => {
     response.status(400).json({ error: String(error) });
   }
 });
+/**
+ * Возвращает описание выбранной конфигурации, имя и сетевые сведения текущей печи.
+ */
+const deviceInfo = async (): Promise<DeviceInfo> => {
+  const board = await checkControllerConnection();
+  const selection = readOvenSelection();
+  const identity = readOvenIdentity();
+  const run = profileRunner.snapshot();
+  return {
+    service: 'mercury-oven',
+    apiVersion: 1,
+    name:
+      identity.name ||
+      ovenModelName(
+        selection?.ovenModel ?? '',
+        board.boardType === 'unknown' || !board.boardType
+          ? detectedBoardType()
+          : board.boardType,
+      ),
+    description: identity.description,
+    model: ovenModelNumber(
+      selection?.ovenModel ?? '',
+      board.boardType === 'unknown' || !board.boardType
+        ? detectedBoardType()
+        : board.boardType,
+    ),
+    connectionVoltage: selection?.connectionVoltage ?? '',
+    version: updateStatus().currentVersion,
+    controller: {
+      connected: board.connected,
+      ready: board.ready === true,
+      temperature: board.telemetry?.chamberTemperatureC ?? null,
+      boardTemperature: board.telemetry?.boardTemperatureC ?? null,
+    },
+    run: {
+      state: run.state,
+      profileName: run.profileName,
+      remainingSeconds: run.remainingSeconds,
+    },
+  };
+};
+const fleetDirectory = new FleetDirectory(deviceInfo);
+let stopFleet: (() => void) | undefined;
+server.use(createFleetRouter(fleetDirectory, deviceInfo));
+server.use(
+  createProfileOperationsRouter(fleetDirectory, () =>
+    profileRunner.controlling(),
+  ),
+);
+
 server.get('/api/profiles', (_request, response) =>
   response.json(profilesResponse()),
 );
@@ -228,6 +388,17 @@ server.get('/api/run', (_request, response) =>
 );
 server.post('/api/run/start', async (request, response) => {
   try {
+    if (request.body?.reviewKey !== undefined) {
+      const profile = findProfile(String(request.body.profileId));
+      const assessment = profileAssessment([profile]);
+      if (!assessment.valid || request.body.reviewKey !== assessment.reviewKey)
+        throw new Error(
+          'Профиль или конфигурация изменились. Повторите проверку перед запуском.',
+        );
+      if (assessment.hasWarnings && request.body.acceptWarnings !== true)
+        throw new Error('Подтвердите предупреждения перед запуском.');
+    }
+
     response.json(
       await profileRunner.startProfile(
         findProfile(String(request.body?.profileId)),
@@ -405,9 +576,12 @@ server.get('/api/config', (_request, response) => {
 });
 
 server.put('/api/config', async (request, response) => {
-  if (!isOvenSelection(request.body)) {
+  if (
+    !isOvenSelection(request.body) ||
+    !supportsConnection(detectedBoardType(), request.body.connectionVoltage)
+  ) {
     response.status(400).json({
-      error: 'Выбери модель печи и подключение 230 или 380 В.',
+      error: 'Выбери серию печи и подключение 220 или 380 В.',
     });
     return;
   }
@@ -520,6 +694,76 @@ server.get('/api/controller/test-elements', (_request, response) => {
   }
 });
 
+server.get('/api/settings/element-runtime', async (_request, response) => {
+  response.setHeader('Cache-Control', 'no-store');
+  response.json(await readElementRuntime());
+});
+server.post(
+  '/api/settings/element-runtime/reset',
+  async (_request, response) => {
+    if (profileRunner.controlling()) {
+      response
+        .status(409)
+        .json({ error: 'Остановите профиль и поддержание перед сбросом.' });
+      return;
+    }
+    resettingRuntime = true;
+    try {
+      await resetElementRuntime();
+      try {
+        await clearStoredRuns();
+      } catch {
+        throw new Error(
+          'Моточасы сброшены, но историю запусков очистить не удалось. Проверьте USB и повторите сброс.',
+        );
+      }
+      response.json(await readElementRuntime());
+    } catch (e) {
+      response.status(409).json({
+        error: e instanceof Error ? e.message : 'Не удалось сбросить моточасы.',
+      });
+    } finally {
+      resettingRuntime = false;
+    }
+  },
+);
+
+server.get('/api/controller/auxiliary-cooling', (_request, response) => {
+  response.json({
+    raspberry: raspberryCoolingStatus(),
+    controller: controllerCoolingStatus(),
+  });
+});
+server.post(
+  '/api/controller/auxiliary-cooling/test',
+  async (request, response) => {
+    if (profileRunner.controlling() || isShuttingDown()) {
+      response
+        .status(409)
+        .json({ error: 'Останови профиль перед проверкой вентиляторов.' });
+      return;
+    }
+    try {
+      const result =
+        request.body?.name === 'raspberry'
+          ? await testRaspberryCooling()
+          : request.body?.name === 'controller'
+            ? await testOvenElement('controllerCooling')
+            : null;
+      if (!result) {
+        response.status(400).json({ error: 'Неизвестный вентилятор.' });
+        return;
+      }
+      response.status(result.success ? 200 : 409).json(result);
+    } catch (error) {
+      response.status(409).json({
+        error:
+          error instanceof Error ? error.message : 'Проверка не выполнена.',
+      });
+    }
+  },
+);
+
 server.post('/api/controller/test-element', async (request, response) => {
   try {
     const result = await testOvenElement(request.body?.name);
@@ -581,9 +825,12 @@ server.use((_request, response) => {
   response.status(404).json({ error: 'Not found' });
 });
 
+const httpsServer = startOptionalHttps(server, config.apiHost, config.apiPort);
 const port = config.apiPort;
 
-const httpServer = server.listen(port, config.apiHost, () => {
+const httpServer = server.listen(port, config.apiHost, async () => {
+  await initializeRuntimeBackup();
+  stopFleet = startFleetDiscovery(fleetDirectory, port);
   void startRaspberryCooling().catch((error: unknown) => {
     console.warn('Raspberry cooling initialization failed:', error);
   });
@@ -593,12 +840,31 @@ const httpServer = server.listen(port, config.apiHost, () => {
   }
 
   let previousStatus = '';
+  let wasConnected = false;
+  let previousFault = 0;
   let startupSoundPlayed = false;
+  /**
+   * Обновляет состояние связи и инициирует восстановление транспорта без автоматического продолжения завершённого профиля.
+   */
   const monitorController = async () => {
     if (isShuttingDown()) return;
     if (!profileRunner.controlling()) advanceIdleSimulation(2);
     try {
       const result = await initializeControllerConnection();
+      legacyMonitoring.observe(result);
+      if (wasConnected && !result.connected)
+        emitOvenEvent({
+          kind: 'connectionLost',
+          message: 'Raspberry потеряла связь с платой управления.',
+        });
+      wasConnected = result.connected;
+      const fault = (result.state ?? 0) & (4 | 8 | 64 | 128);
+      if (fault && fault !== previousFault && !profileRunner.controlling())
+        emitOvenEvent({
+          kind: 'error',
+          message: `Критическая ошибка платы: ${result.state}`,
+        });
+      previousFault = fault;
       setDoorWarning(
         profileRunner.active() &&
           result.connected &&
@@ -669,16 +935,37 @@ const httpServer = server.listen(port, config.apiHost, () => {
   };
   void monitorController();
 });
+const monitoringServer =
+  config.monitoringEnabled && config.monitoringPort !== port
+    ? startLegacyMonitoring(
+        legacyMonitoring,
+        config.apiHost,
+        config.monitoringPort,
+        monitoringCommands({
+          pin: advancedPin,
+          unavailable: () =>
+            isShuttingDown() || terminating || updateBusy() || resettingRuntime,
+          assess: profileAssessment,
+          start: (profile) => profileRunner.startProfile(profile),
+          stop: () => profileRunner.stop(),
+        }),
+      )
+    : undefined;
 
 for (const signal of ['SIGINT', 'SIGTERM'] as const)
   process.once(signal, () => {
+    stopFleet?.();
+    stopMonitoringEvents();
+    if (monitoringServer?.listening) monitoringServer.close();
     setDoorWarning(false);
     terminating = true;
     httpServer.close();
+    httpsServer?.close();
     void flushConfigWrites()
       .then(() => profileRunner.stop())
       .then(async () => {
         await checkpointDatabase();
+        await flushElementRuntime();
         process.exit(0);
       })
       .catch((error: unknown) => {

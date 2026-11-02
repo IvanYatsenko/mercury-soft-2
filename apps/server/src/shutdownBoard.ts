@@ -1,3 +1,4 @@
+/** Отдельный процесс финальной команды питания плате после завершения основного приложения. */
 import {
   powerOffController,
   closeControllerConnection,

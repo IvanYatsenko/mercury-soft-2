@@ -1,0 +1,27 @@
+✔ only private IPv4 addresses on a local interface subnet can be queried (7.1667ms)
+✔ mDNS parser accepts only resolved Mercury IPv4 services on port 3001 (0.3055ms)
+✔ identity is validated, persisted and preserves hardware and calibration (164.7003ms)
+✔ directory merges discovery/manual addresses, keeps stale last-seen and retries without commands (160.1807ms)
+✔ existing PIN levels protect identity and manual writes while fleet discovery is public (247.3637ms)
+✔ review reports sensor, peak, cycles and heating/cooling feasibility (1.8202ms)
+✔ portable copies strip identity and names remain unique within 80 characters (0.3589ms)
+✔ batch imports create independent copies and reject invalid batches atomically (4.6543ms)
+✔ preview/import/receive enforce review freshness, warnings and destination PIN without unlocking settings (399.1507ms)
+✔ only local Electron is the embedded panel; remote User-Agent spoofing cannot bypass the start PIN (23.9893ms)
+✔ settings start locked, reject wrong PIN, unlock with 3457 and relock from another client (634.3379ms)
+✔ a fresh server locks access and changes boot ID (34.2151ms)
+✔ locked settings protect changes and tests without blocking operator start, stop or 100 C switch (0.5207ms)
+✔ separate roles block profile writes but permit operator selection and execution; PIN grants engineering access (380.1633ms)
+✔ advanced PIN alone grants model and fan reference access; locking and regular PIN revoke it (452.4719ms)
+✔ Electron operator can read current chart while locked and all history after ordinary PIN (120.7233ms)
+✔ every web start requires its own exact PIN, regardless of settings unlock; Electron start remains available (239.656ms)
+✔ web network access is inside ordinary PIN settings; Electron history is available with ordinary PIN (137.2416ms)
+✔ browser gets PC bundle, Electron keeps frozen bundle; missing PC build falls back (222.7496ms)
+ℹ tests 19
+ℹ suites 0
+ℹ pass 19
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2850.7203

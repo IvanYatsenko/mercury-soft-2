@@ -1,0 +1,10 @@
+✔ all mounted clients lock on server download, remain locked offline and unlock on completion or error (4.9438ms)
+✔ initiator locks immediately and an older in-flight response cannot unlock it; install restart reloads UI (3.0135ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 474.6446

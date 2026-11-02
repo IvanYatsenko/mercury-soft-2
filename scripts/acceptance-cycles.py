@@ -12,7 +12,7 @@ STATE = Path('.test-tmp/acceptance-cycles.json')
 
 
 def api(model, path, data=None, method=None):
-    request = urllib.request.Request('http://' + HOSTS[model] + ':3001/api/' + path,
+    request = urllib.request.Request('http://' + HOSTS[model] + ':8075/api/' + path,
         data=None if data is None else json.dumps(data).encode(),
         headers={'Content-Type': 'application/json'}, method=method)
     with urllib.request.urlopen(request, timeout=10) as response:

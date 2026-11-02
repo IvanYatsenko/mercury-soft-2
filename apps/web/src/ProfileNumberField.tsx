@@ -1,7 +1,13 @@
+/**
+ * Целочисленное поле профиля с поддержкой сенсорной цифровой клавиатуры.
+ */
 import { useEffect, useState } from 'react';
 import { KeyboardTextField } from './OnScreenKeyboard';
 import { profileNumericInput } from './profileNumericInput';
 
+/**
+ * Отрисовывает ProfileNumberField: представление данных и действий родительского экрана.
+ */
 export function ProfileNumberField({
   label,
   value,

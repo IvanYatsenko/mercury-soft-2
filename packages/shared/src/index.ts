@@ -1,3 +1,4 @@
+/** Публичные типы API и экспорты общих вычислений для сервера и клиентов. */
 /** A temperature point or stage duration in seconds and its target temperature. */
 export interface TemperatureValue {
   second: number;
@@ -67,3 +68,17 @@ export type {
   SpeedLevel,
   SpeedPoint,
 } from './ovens/index.js';
+
+export {
+  reviewProfile,
+  portableProfile,
+  uniqueProfileName,
+} from './profileReview.js';
+export type { ProfileSource } from './profileReview.js';
+export {
+  ovenModelNumber,
+  ovenModelName,
+  connectionVoltageLabel,
+  supportsConnection,
+} from './ovens/identity.js';
+export type { ControllerBoardType } from './ovens/identity.js';

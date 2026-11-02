@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 import urllib.request
 
-BASE = 'http://10.10.1.167:3001/api/'
+BASE = 'http://10.10.1.167:8075/api/'
 RUN_ID = 'e247a5fe-c57e-442b-b8b3-25aeac2851ba'
 
 def api(path, data=None, method=None):

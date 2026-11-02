@@ -5,7 +5,7 @@ import { setTimeout as delay } from 'node:timers/promises';
 const envFile = new URL('../../.env', import.meta.url);
 if (existsSync(envFile)) loadEnvFile(envFile);
 
-const port = process.env.MERCURY_API_PORT ?? 3001;
+const port = process.env.MERCURY_API_PORT ?? 8075;
 const url = `http://127.0.0.1:${port}/api/health`;
 const deadline = Date.now() + 60_000;
 

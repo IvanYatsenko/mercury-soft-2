@@ -1,3 +1,6 @@
+/**
+ * Локальная настройка Wi-Fi Raspberry; не включается в меню ПК и телефона.
+ */
 import { useEffect, useState } from 'react';
 import {
   Alert,
@@ -33,6 +36,7 @@ type WifiPageProps = {
   onBack: () => void;
 };
 
+/** Преобразует сетевой ответ страницы Wi-Fi в данные или пользовательскую ошибку. */
 async function readResponse<T>(response: Response): Promise<T> {
   const result = (await response.json()) as T & { error?: string };
   if (!response.ok)
@@ -40,6 +44,9 @@ async function readResponse<T>(response: Response): Promise<T> {
   return result;
 }
 
+/**
+ * Отрисовывает WifiPage: Локальная настройка Wi-Fi Raspberry; не включается в меню ПК и телефона.
+ */
 export function WifiPage({ status, onStatusChange, onBack }: WifiPageProps) {
   const [networks, setNetworks] = useState<WifiNetwork[]>([]);
   const [selected, setSelected] = useState<WifiNetwork | null>(null);
@@ -48,6 +55,7 @@ export function WifiPage({ status, onStatusChange, onBack }: WifiPageProps) {
   const [scanning, setScanning] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  /** Обновляет список доступных сетей без изменения текущего подключения. */
   const scan = async () => {
     setScanning(true);
     setError(null);
@@ -70,6 +78,7 @@ export function WifiPage({ status, onStatusChange, onBack }: WifiPageProps) {
     if (status?.available && status.enabled) void scan();
   }, [status?.available, status?.enabled]);
 
+  /** Подключает выбранную сеть или отключает текущую по явному действию оператора. */
   const changeConnection = async (action: 'connect' | 'disconnect') => {
     if (action === 'connect' && !selected) return;
     setBusy(true);
@@ -103,6 +112,7 @@ export function WifiPage({ status, onStatusChange, onBack }: WifiPageProps) {
     }
   };
 
+  /** Переключает радиоадаптер Raspberry и обновляет сетевое состояние страницы. */
   const changeRadio = async (enabled: boolean) => {
     setBusy(true);
     setError(null);

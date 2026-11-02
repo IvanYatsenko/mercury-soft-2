@@ -1,0 +1,21 @@
+✔ only private IPv4 addresses on a local interface subnet can be queried (6.7306ms)
+✔ mDNS parser accepts only resolved Mercury IPv4 services on port 8075 (0.2587ms)
+✔ identity is validated, persisted and preserves hardware and calibration (25.3035ms)
+✔ directory merges discovery/manual addresses, keeps stale last-seen and retries without commands (21.0186ms)
+✔ existing PIN levels protect identity and manual writes while fleet discovery is public (221.1901ms)
+✔ two families and detected board produce exactly six supported model/voltage combinations (1.9574ms)
+✔ naming preserves measured new-board data, rejects legacy 380 and isolates legacy calibration (21.155ms)
+✔ review reports sensor, peak, cycles and heating/cooling feasibility (1.9068ms)
+✔ portable copies strip identity and names remain unique within 80 characters (0.3659ms)
+✔ batch imports create independent copies and reject invalid batches atomically (5.7308ms)
+✔ preview/import/receive enforce review freshness and warnings without a destination PIN or unlocking settings (227.1763ms)
+✔ JSON exchange round trip preserves profile data and source but strips database IDs (4.2686ms)
+✔ JSON import rejects unsupported, oversized, fractional and invalid profile files (2.3043ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 713.0108

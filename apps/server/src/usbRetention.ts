@@ -1,3 +1,6 @@
+/**
+ * Фоновая очистка принадлежащих Mercury журналов: при заполнении 80% удаляет старые записи до 50%.
+ */
 import { DatabaseSync } from 'node:sqlite';
 import { lstatSync, readdirSync, rmSync, statSync, statfsSync } from 'node:fs';
 import { join, resolve, sep } from 'node:path';
@@ -9,6 +12,9 @@ import {
 } from 'node:worker_threads';
 import { isMountedUsb } from './usbStorage.js';
 
+/**
+ * Читает фактическое заполнение файловой системы USB, а не размер отдельного каталога.
+ */
 export function usbUsage(root: string) {
   const stats = statfsSync(root);
   return stats.blocks === 0 ? 1 : 1 - stats.bavail / stats.blocks;
@@ -28,6 +34,7 @@ export function cleanUsbLogs(
     lstatSync(directory).isSymbolicLink()
   )
     return 0;
+  /** Повторно подтверждает пригодность USB перед удалением; исчезновение накопителя прерывает очистку. */
   const check = () => {
     if (!available(root) || statSync(root).dev !== device)
       throw new Error('USB disappeared');
@@ -104,6 +111,9 @@ export function cleanUsbLogs(
   return deleted;
 }
 
+/**
+ * Запускает периодическую очистку журналов в фоне, отдельно от потока регулирования.
+ */
 export function startUsbRetention(history: {
   pauseDiskForMaintenance: () => boolean | Promise<boolean>;
   resumeDiskAfterMaintenance: () => void | Promise<void>;
@@ -123,6 +133,7 @@ export function startUsbRetention(history: {
       paused = false;
     }
   });
+  /** Возобновляет доступ истории к USB при ошибке или завершении worker очистки. */
   const resume = () => {
     if (paused) history.resumeDiskAfterMaintenance();
     paused = false;
@@ -135,6 +146,7 @@ export function startUsbRetention(history: {
 if (!isMainThread && workerData?.root) {
   const root = String(workerData.root);
   let busy = false;
+  /** Проверяет доступность USB перед продолжением фоновой файловой операции. */
   const check = () => {
     try {
       if (!busy && isMountedUsb(root) && usbUsage(root) >= 0.8) {

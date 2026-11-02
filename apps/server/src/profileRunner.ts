@@ -1,3 +1,8 @@
+/**
+ * Единый исполнитель профилей, подготовки, паузы и поддержания; все выходы проходят общий транспорт и защиты.
+ */
+import { emitOvenEvent } from './ovenEvents.js';
+import { detectedBoardType } from './controller/boardIdentity.js';
 import { performance } from 'node:perf_hooks';
 import {
   buildProfilePlan,
@@ -7,6 +12,8 @@ import {
   type ProfilePlan,
   type RunStatus,
   heatOutputs,
+  ovenModelNumber,
+  connectionVoltageLabel,
 } from '@mercury/shared';
 import { config } from './config.js';
 import {
@@ -39,15 +46,24 @@ import { ThermalRegulator, type ThermalOutputs } from './thermalRegulator.js';
 import { predictionHorizonSeconds } from './predictiveHeat.js';
 
 export class ProfileRunner {
+  /**
+   * Принимает монотонные часы; ручной режим нужен для детерминированных испытаний виртуальной платы, а не для оборудования.
+   */
   constructor(
     private readonly clock = () => performance.now(),
     private readonly manual = false,
   ) {}
+  /**
+   * Выполняет один такт только в ручном тестовом режиме; в рабочем приложении такты планируются внутри исполнителя.
+   */
   async step() {
     if (!this.manual)
       throw new Error('Manual stepping is only available with a manual clock.');
     await this.tick();
   }
+  /**
+   * Прерывает профиль или поддержание после ошибки фонового опроса; ожидает текущую операцию перед окончательным отключением.
+   */
   async failFromMonitor(message: string) {
     if (this.holding) {
       this.holding = false;
@@ -68,6 +84,10 @@ export class ProfileRunner {
   private doorOpen = false;
   private pausedAt: number | null = null;
   private pauseChanging = false;
+  private calibrationStableSeconds = 0;
+  /**
+   * Явно запускает поддержание 100 °C после проверки двери, датчиков и готовности; активный профиль не подменяется этим режимом.
+   */
   async startTemperatureHold() {
     if (this.status.state === 'failed' || this.status.error)
       throw new Error('Сначала устрани ошибку печи.');
@@ -95,6 +115,9 @@ export class ProfileRunner {
     this.schedule();
     return this.snapshot();
   }
+  /**
+   * Замораживает часы профиля и отключает нагрев; допускает только один переход состояния за раз.
+   */
   async pause() {
     if (this.pauseChanging || this.starting || !this.active())
       throw new Error('Профиль нельзя поставить на паузу.');
@@ -105,6 +128,10 @@ export class ProfileRunner {
       if (!this.active() || this.stopped)
         throw new Error('Профиль уже завершён.');
       this.pausedAt = this.clock();
+      // Даже пауза между двумя tick прерывает непрерывную выдержку калибровки.
+      this.calibrationStableSeconds = 0;
+      if (this.status.purpose === 'calibration')
+        this.status.calibrationStableSeconds = 0;
       this.heating = false;
       this.cooling = false;
       for (const name of heatOutputs) this.heatChannels[name] = false;
@@ -121,6 +148,9 @@ export class ProfileRunner {
       this.pauseChanging = false;
     }
   }
+  /**
+   * Возобновляет ту же точку профиля после паузы и заново привязывает часы, не прибавляя время ожидания.
+   */
   async resume() {
     if (this.pauseChanging || !this.active() || this.pausedAt === null)
       throw new Error('Профиль не находится на паузе.');
@@ -146,6 +176,9 @@ export class ProfileRunner {
   private entryTemperature = 50;
   private entrySecond = 0;
   private warmStartUntil: number | null = null;
+  /**
+   * Находит вход по реальной температуре только на первом участке нагрева; при необходимости добавляет короткую подготовку исполнительных элементов.
+   */
   private selectCycleEntry(measured: number, now: number, prime = true) {
     if (!this.boundary50 || !this.profile || !this.plan) return;
     const selection = readOvenSelection();
@@ -204,19 +237,31 @@ export class ProfileRunner {
   private holdingWarmupRegulator: ThermalRegulator | null = null;
   private holdingWarmup = false;
   private holdingWarmSince: number | null = null;
+  /**
+   * Учитывает как активный профиль, так и фоновое поддержание для блокировки конфликтующих операций оборудования.
+   */
   controlling() {
     return this.active() || this.holding;
   }
+  /**
+   * Отменяет отложенный переход к 100 °C и останавливает уже включённое поддержание.
+   */
   async disableKeepHeat() {
     this.pendingReady = false;
     this.holdAfterCompletionSound = false;
     if (this.holding) await this.stop();
   }
+  /**
+   * Открывает обычный профиль через подготовку и вход от текущей температуры; второй активный процесс запрещён.
+   */
   async startProfile(profile: Profile) {
     if (this.active()) throw new Error('Профиль уже выполняется.');
     if (this.holding) await this.stop();
     return this.start(profile, false, true);
   }
+  /**
+   * Обрабатывает «Готово» только для актуального runId; разрешённое поддержание запускает после завершающего сигнала.
+   */
   async acknowledgeReady(runId: unknown) {
     if (runId !== this.status.id || this.active())
       throw new Error('Испытание уже изменилось или ещё выполняется.');
@@ -228,8 +273,12 @@ export class ProfileRunner {
       }
     }
     this.pendingReady = false;
+    this.monitoringAcknowledged = true;
     return this.snapshot();
   }
+  /**
+   * Создаёт регуляторы разгона и удержания 100 °C, передавая им ограничения мощности выбранной конфигурации.
+   */
   private beginHolding() {
     if (
       config.controllerMode === 'hardware' &&
@@ -265,11 +314,17 @@ export class ProfileRunner {
       addRunEvent(this.status.id, 'Поддержание 100 °C включено.');
   }
   private coolingUntil = 0;
+  /**
+   * Отключает нагрев в простое и выбирает охлаждение по температуре и состоянию завершённого процесса.
+   */
   async resetIdleOutputs(temperature: number) {
     this.coolAfterStop = temperature > 50 || this.clock() < this.coolingUntil;
     await applyProfileOutputs(false, this.coolAfterStop);
     this.needsOutputReset = false;
   }
+  /**
+   * Продолжает безопасное охлаждение уже без активного профиля; ошибка отключения не считается подтверждённым состоянием выходов.
+   */
   async updateIdleCooling(temperature: number | null | undefined) {
     if (this.holding) return;
     if (
@@ -284,6 +339,21 @@ export class ProfileRunner {
     }
   }
   private profile: Profile | null = null;
+  private monitoringAcknowledged = false;
+  /**
+   * Добавляет к текущему состоянию профиль и время текущего цикла для совместимости внешнего мониторинга; историю не читает.
+   */
+  monitoringSnapshot() {
+    return {
+      ...this.snapshot(),
+      profile: this.profile ? structuredClone(this.profile) : {},
+      second: Math.max(0, Math.round(this.currentSecond)),
+      timeHorizon: this.plan
+        ? Math.max(0, Math.ceil(this.plan.durationSeconds - this.currentSecond))
+        : 0,
+      acknowledged: this.monitoringAcknowledged,
+    };
+  }
   private plan: ProfilePlan | null = null;
   private currentSecond = 0;
   private totalSecond = 0;
@@ -311,6 +381,9 @@ export class ProfileRunner {
   private testLimitTemperatureC = 105;
   private testTimeoutSeconds = 1200;
 
+  /**
+   * Создаёт диагностический разгон и охлаждение с отдельными температурными и временными границами; требует свободного исполнителя.
+   */
   async startMaximumResponseTest(targetTemperatureC: unknown = 100) {
     if (
       typeof targetTemperatureC !== 'number' ||
@@ -367,6 +440,9 @@ export class ProfileRunner {
     measuredTemperatureC: null,
     error: null,
   };
+  /**
+   * Возвращает публичный снимок процесса, включая паузу, дверь и возможность «Готово»; не выполняет запросов к плате.
+   */
   snapshot() {
     return {
       ...this.status,
@@ -378,6 +454,9 @@ export class ProfileRunner {
       canAcknowledge: !this.active(),
     };
   }
+  /**
+   * Считает подготовку, выполнение, охлаждение и незавершённый старт занятым исполнителем.
+   */
   active() {
     return (
       this.starting ||
@@ -387,9 +466,18 @@ export class ProfileRunner {
     );
   }
 
-  async start(profile: Profile, maximumResponse = false, prepare50 = false) {
+  /**
+   * Проверяет план и аппаратные ограничения, захватывает управление и создаёт запуск. Флаг calibration запрещает автоматическое поддержание после калибровки.
+   */
+  async start(
+    profile: Profile,
+    maximumResponse = false,
+    prepare50 = false,
+    calibration = false,
+  ) {
     if (this.holding) throw new Error('Останови поддержание перед запуском.');
     if (this.active()) throw new Error('Профиль уже выполняется.');
+    this.calibrationStableSeconds = 0;
     if (this.finishingSound)
       throw new Error('Дождись окончания звукового сигнала.');
     const selection = readOvenSelection();
@@ -467,6 +555,7 @@ export class ProfileRunner {
       id: null,
       state: 'idle',
       profileName: profile.name,
+      ...(calibration ? { purpose: 'calibration' as const } : {}),
       cycle: 0,
       cycles: plan.cycles,
       stage: 0,
@@ -500,6 +589,7 @@ export class ProfileRunner {
       await applyProfileOutputs(false, false);
       if (this.stopped) throw new Error('Запуск прерван.');
       this.profile = structuredClone(profile);
+      this.monitoringAcknowledged = false;
       this.plan = plan;
       this.currentSecond = 0;
       this.totalSecond = 0;
@@ -514,6 +604,7 @@ export class ProfileRunner {
       this.phaseStartedAt = this.previous;
       this.status = {
         id: createRun(profile, config.controllerMode === 'simulation', plan),
+        ...(calibration ? { purpose: 'calibration' as const } : {}),
         state: prepare50 && temperature !== 50 ? 'preparing' : 'running',
         profileName: profile.name,
         cycle: 1,
@@ -529,10 +620,15 @@ export class ProfileRunner {
       if (maximumResponse)
         addRunEvent(
           this.status.id!,
-          `Испытание максимальной скорости: М${selection!.ovenModel}, ${selection!.connectionVoltage} В, оба ТЭНа и ${selection!.connectionVoltage === '380' ? 'все пары ламп вместе' : 'чередование пар ламп'} до ${this.testTargetTemperatureC} °C; затем непрерывное охлаждение до 50 °C. Завершение по температуре; предельное время ${this.testTimeoutSeconds / 60} минут.`,
+          `Испытание максимальной скорости: М${ovenModelNumber(selection!.ovenModel, detectedBoardType())}, ${connectionVoltageLabel(selection!.connectionVoltage)} В, оба ТЭНа и ${selection!.connectionVoltage === '380' ? 'все пары ламп вместе' : 'чередование пар ламп'} до ${this.testTargetTemperatureC} °C; затем непрерывное охлаждение до 50 °C. Завершение по температуре; предельное время ${this.testTimeoutSeconds / 60} минут.`,
         );
       this.selectCycleEntry(temperature, this.previous);
       this.schedule();
+      emitOvenEvent({
+        kind: 'started',
+        runId: this.status.id,
+        profileName: this.status.profileName,
+      });
       return this.snapshot();
     } catch (error) {
       setProfileControl(false);
@@ -541,6 +637,9 @@ export class ProfileRunner {
       this.starting = false;
     }
   }
+  /**
+   * Планирует следующий такт только после завершения текущей операции, предотвращая параллельные команды регулятора.
+   */
   private schedule() {
     if (this.manual) return;
     clearTimeout(this.timer);
@@ -550,6 +649,9 @@ export class ProfileRunner {
       });
     }, 1000);
   }
+  /**
+   * Один такт управления: измерения и абсолютные защиты, подготовка/пауза, цель и прогноз, распределение выходов, USB-выборка и завершение цикла.
+   */
   private async tick() {
     if (this.holding) {
       await this.tickHolding();
@@ -596,6 +698,20 @@ export class ProfileRunner {
       }
       const t1 = board.telemetry?.boardTemperatureC,
         t2 = board.telemetry?.chamberTemperatureC;
+      const rawMaximum = Math.max(
+        board.telemetry?.rawChamberTemperatureC ?? t2 ?? Infinity,
+        board.telemetry?.rawBoardTemperatureC ?? t1 ?? Infinity,
+      );
+      if (
+        rawMaximum >= readProtectionLimits().maximumTemperatureC ||
+        (config.controllerMode === 'hardware' &&
+          rawMaximum > config.hardwareTemperatureLimit)
+      )
+        throw new Error('Ошибка датчика или перегрев по исходным показаниям.');
+      this.status.rawMeasuredTemperatureC =
+        (this.profile.board
+          ? board.telemetry?.rawBoardTemperatureC
+          : board.telemetry?.rawChamberTemperatureC) ?? null;
       this.hottestTemperature = Math.max(
         t1 ?? this.hottestTemperature,
         t2 ?? this.hottestTemperature,
@@ -621,6 +737,9 @@ export class ProfileRunner {
       // Fan speed is advisory; temperature and board faults remain interlocks.
       const measured = this.profile.board ? t1 : t2;
       if (this.pausedAt !== null) {
+        this.calibrationStableSeconds = 0;
+        if (this.status.purpose === 'calibration')
+          this.status.calibrationStableSeconds = 0;
         this.status.measuredTemperatureC = measured;
         await applyProfileOutputs(false, false, this.heatChannels);
         return;
@@ -827,6 +946,18 @@ export class ProfileRunner {
               stage: this.plan.points.length - 1,
             }
           : targetAt(this.plan, this.currentSecond);
+      if (this.status.purpose === 'calibration') {
+        const plateau = this.plan.points.at(-2)?.second ?? Infinity;
+        this.calibrationStableSeconds =
+          !this.doorOpen &&
+          this.currentSecond >= plateau &&
+          Math.abs(measured - target.temperature) <= 2
+            ? this.calibrationStableSeconds + dt
+            : 0;
+        this.status.calibrationStableSeconds = Math.floor(
+          this.calibrationStableSeconds,
+        );
+      }
       if (
         this.status.state === 'running' &&
         measured > Math.max(70, target.temperature + 30)
@@ -895,6 +1026,13 @@ export class ProfileRunner {
       if (this.currentSecond >= this.plan.durationSeconds) {
         if (this.status.cycle < this.plan.cycles) {
           await applyProfileOutputs(false, this.cooling);
+          emitOvenEvent({
+            kind: 'cycleCompleted',
+            runId: this.status.id,
+            profileName: this.status.profileName,
+            cycle: this.status.cycle,
+            matched: this.cycleMatched,
+          });
           this.heating = false;
           for (const name of heatOutputs) this.heatChannels[name] = false;
           try {
@@ -957,6 +1095,9 @@ export class ProfileRunner {
       );
     }
   }
+  /**
+   * Фиксирует результат и отключает выходы до уведомлений. Решение о поддержании учитывает причину завершения, звуковую паузу и вид процесса.
+   */
   private async finish(
     state: 'completed' | 'stopped' | 'failed',
     error: string | null,
@@ -966,12 +1107,14 @@ export class ProfileRunner {
     setDoorWarning(false);
     const holdNow =
       (state === 'completed' || state === 'stopped') &&
+      this.status.purpose !== 'calibration' &&
       this.boundary50 &&
       readKeepHeatEnabled() &&
       (state === 'stopped' ||
         (this.plan?.points.at(-1)?.temperature ?? 0) >= 100);
     this.pendingReady =
       state === 'completed' &&
+      this.status.purpose !== 'calibration' &&
       this.boundary50 &&
       readKeepHeatEnabled() &&
       !holdNow;
@@ -1008,6 +1151,18 @@ export class ProfileRunner {
     } finally {
       setProfileControl(false);
     }
+    emitOvenEvent({
+      kind:
+        this.status.state === 'failed'
+          ? 'error'
+          : state === 'completed'
+            ? 'completed'
+            : 'stopped',
+      runId: this.status.id,
+      profileName: this.status.profileName,
+      ...(state === 'completed' ? { matched: this.profileMatched } : {}),
+      ...(this.status.error ? { message: this.status.error } : {}),
+    });
     if (this.status.state === 'failed') {
       try {
         await playBoardErrorSound();
@@ -1022,6 +1177,9 @@ export class ProfileRunner {
       this.beginHolding();
     }
   }
+  /**
+   * Регулирует 100 °C с отдельными порогами перегрева и таймаутом разгона; проверяет также исходные показания до калибровки.
+   */
   private async tickHolding() {
     const now = this.clock();
     const dt = (now - this.previous) / 1000;
@@ -1038,6 +1196,20 @@ export class ProfileRunner {
         );
       const board = await readProfileController();
       if (!this.holding) return;
+      const rawMaximum = Math.max(
+        board.telemetry?.rawChamberTemperatureC ??
+          board.telemetry?.chamberTemperatureC ??
+          Infinity,
+        board.telemetry?.rawBoardTemperatureC ??
+          board.telemetry?.boardTemperatureC ??
+          Infinity,
+      );
+      if (
+        rawMaximum >= readProtectionLimits().maximumTemperatureC ||
+        (config.controllerMode === 'hardware' &&
+          rawMaximum > config.hardwareTemperatureLimit)
+      )
+        throw new Error('Ошибка датчика или перегрев по исходным показаниям.');
       const t1 = board.telemetry?.boardTemperatureC,
         t2 = board.telemetry?.chamberTemperatureC;
       if (
@@ -1090,6 +1262,9 @@ export class ProfileRunner {
       );
     }
   }
+  /**
+   * Отключает поддержание и включает безопасное охлаждение после ошибки; не переписывает завершённый профиль как новый запуск.
+   */
   private async failHolding(message: string) {
     this.holding = false;
     this.pendingReady = false;
@@ -1111,6 +1286,12 @@ export class ProfileRunner {
       ...this.status,
       error: `Поддержание остановлено: ${message}`,
     };
+    emitOvenEvent({
+      kind: 'error',
+      runId: this.status.id,
+      profileName: this.status.profileName,
+      message: this.status.error ?? message,
+    });
     if (this.status.id) addRunEvent(this.status.id, this.status.error!);
     checkpointDatabase();
     try {
@@ -1119,6 +1300,9 @@ export class ProfileRunner {
       console.warn('Сигнал ошибки поддержания:', String(soundError));
     }
   }
+  /**
+   * Отменяет старт, профиль или поддержание и дожидается текущей операции перед отключением. Остановка не возобновляет процесс автоматически.
+   */
   async stop() {
     setDoorWarning(false);
     this.pendingReady = false;

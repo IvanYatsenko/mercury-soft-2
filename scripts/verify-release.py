@@ -22,15 +22,18 @@ assert (output / 'version').read_text().strip() == version + ' ' + md5.hexdigest
 assert (output / 'SHA256SUMS').read_text().strip() == sha.hexdigest() + '  ' + archive.name
 
 expected = {}
-for name in ('apps/server/dist', 'apps/web/dist', 'apps/panel/dist',
+for name in ('apps/server/dist', 'apps/web/dist', 'apps/web/pc-dist', 'apps/panel/dist',
              'packages/shared/dist', 'packages/shared/ovens'):
     for path in (root / name).rglob('*'):
         if path.is_file():
             expected['mercury-v2/program/' + path.relative_to(root).as_posix()] = path.read_bytes()
-for name in ('package.json', 'apps/server/package.json', 'apps/panel/package.json', 'packages/shared/package.json'):
+for name in ('package.json', 'apps/server/package.json', 'apps/web/package.json', 'apps/panel/package.json', 'packages/shared/package.json'):
     expected['mercury-v2/program/' + name] = (root / name).read_bytes()
 expected['mercury-v2/program/scripts/raspberry-poweroff.sh'] = (
     root / 'deploy/legacy/raspberry-poweroff.sh').read_bytes().replace(b'\r\n', b'\n')
+for name in ('launch.mjs', 'install-update.py', 'migrate-v2.mjs'):
+    expected['mercury-v2/program/release/' + name] = (
+        root / 'deploy/legacy' / name).read_bytes().replace(b'\r\n', b'\n')
 
 seen = set()
 verified = set()
@@ -64,6 +67,7 @@ with tarfile.open(archive, 'r|gz') as tar:
         if member.name == 'mercury-v2/program/.env':
             env = tar.extractfile(member).read().decode()
             assert 'MERCURY_CONTROLLER_MODE=hardware\n' in env
+            assert 'MERCURY_API_PORT=8075\n' in env
             assert 'MERCURY_HARDWARE_MAX_TEMPERATURE_C=280\n' in env
             assert 'MERCURY_LOG_USB_MOUNT=/media/flash\n' in env
             assert 'OVEN_MODEL' not in env and 'CONNECTION_VOLTAGE' not in env

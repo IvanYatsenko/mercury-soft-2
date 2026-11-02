@@ -1,3 +1,6 @@
+/**
+ * Преобразование ручных точек и полок с сохранением исходной временной траектории по возможности.
+ */
 import type {
   EasyProfile,
   ManualProfile,
@@ -102,6 +105,9 @@ export function convertProfileMode(
   };
 }
 
+/**
+ * Строит приближённые ручные точки из полок при смене режима редактора.
+ */
 function buildApproximatePoints(
   shelves: EasyProfile['shelves'],
   heatingRate: TemperatureRate,

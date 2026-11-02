@@ -1,3 +1,6 @@
+/**
+ * Ручные проверки доступных элементов выбранной печи; сервер повторно проверяет допустимость команды.
+ */
 import { useEffect, useState } from 'react';
 import {
   Alert,
@@ -8,6 +11,7 @@ import {
   Typography,
 } from '@mui/material';
 import type { OvenSelection } from '@mercury/shared';
+import { ovenModelName, connectionVoltageLabel } from '@mercury/shared';
 
 type TestElement = { name: string; label: string };
 
@@ -21,6 +25,9 @@ type ElementTestPanelProps = {
   boardType?: '220V' | '230V' | '380V' | 'unknown' | undefined;
 };
 
+/**
+ * Отрисовывает ElementTestPanel: Ручные проверки доступных элементов выбранной печи; сервер повторно проверяет допустимость команды.
+ */
 export function ElementTestPanel({
   selected,
   draft,
@@ -44,6 +51,7 @@ export function ElementTestPanel({
 
   useEffect(() => {
     const controller = new AbortController();
+    /** Загружает разрешённые проверки для текущей аппаратной конфигурации. */
     async function load() {
       try {
         const response = await fetch('/api/controller/test-elements', {
@@ -73,6 +81,7 @@ export function ElementTestPanel({
     return () => controller.abort();
   }, [selected.ovenModel, boardType, simulated]);
 
+  /** Запускает выбранную ограниченную проверку и обновляет состояние кнопок по ответу. */
   async function runTest(element: TestElement) {
     setTesting(true);
     setError('');
@@ -116,8 +125,9 @@ export function ElementTestPanel({
           Один элемент на 3 секунды. После проверки выход выключается.
         </Typography>
         <Typography variant="caption" color="text.secondary" display="block">
-          Печь {selected.ovenModel} · подключение {selected.connectionVoltage} В
-          · плата {simulated ? 'виртуальная' : (boardType ?? 'не определена')}
+          {ovenModelName(selected.ovenModel, boardType)} · подключение{' '}
+          {connectionVoltageLabel(selected.connectionVoltage)} В · плата{' '}
+          {simulated ? 'виртуальная' : (boardType ?? 'не определена')}
         </Typography>
         {unsaved && <Alert severity="info">Сначала сохрани модель печи.</Alert>}
         {!connected && <Alert severity="warning">Нет связи с платой.</Alert>}
@@ -149,7 +159,7 @@ export function ElementTestPanel({
                 onClick={() => void runTest(element)}
                 sx={{ minHeight: 48, fontSize: 11, lineHeight: 1.2 }}
               >
-                {parallelFans && element.name === 'f1'
+                {element.name === 'f1'
                   ? 'Вентиляторы охлаждения'
                   : element.label}
               </Button>

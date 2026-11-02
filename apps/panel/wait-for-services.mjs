@@ -5,7 +5,7 @@ import waitOn from 'wait-on';
 const envFile = new URL('../../.env', import.meta.url);
 if (existsSync(envFile)) loadEnvFile(envFile);
 
-const apiPort = process.env.MERCURY_API_PORT ?? 3001;
+const apiPort = process.env.MERCURY_API_PORT ?? 8075;
 const webPort = process.env.MERCURY_WEB_PORT ?? 5173;
 const resources = [`http-get://127.0.0.1:${apiPort}/api/health`];
 if (process.argv.includes('--dev')) {

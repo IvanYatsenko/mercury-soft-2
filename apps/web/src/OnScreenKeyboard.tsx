@@ -1,3 +1,6 @@
+/**
+ * Сенсорная клавиатура: текстовый и числовой ввод с сохранением фокуса поля.
+ */
 import {
   Box,
   Button,
@@ -5,7 +8,6 @@ import {
   Stack,
   TextField,
   Typography,
-  useMediaQuery,
 } from '@mui/material';
 import { useState } from 'react';
 
@@ -33,6 +35,9 @@ const layouts: Record<KeyboardLayout, string[]> = {
   ],
 };
 
+/**
+ * Отрисовывает OnScreenKeyboard: Сенсорная клавиатура: текстовый и числовой ввод с сохранением фокуса поля.
+ */
 export function OnScreenKeyboard({
   value,
   onChange,
@@ -47,7 +52,11 @@ export function OnScreenKeyboard({
   );
   const [uppercase, setUppercase] = useState(false);
 
+  /**
+   * Добавляет подтверждённую пользователем запись в текущий каталог.
+   */
   const add = (key: string) => onChange(value + key);
+  /** Удаляет символ перед текущей позицией курсора в активном поле. */
   const backspace = () => onChange(value.slice(0, -1));
 
   return (
@@ -224,6 +233,9 @@ export function OnScreenKeyboard({
   );
 }
 
+/**
+ * Отрисовывает KeyboardTextField: представление данных и действий родительского экрана.
+ */
 export function KeyboardTextField({
   label,
   value,
@@ -232,6 +244,7 @@ export function KeyboardTextField({
   disabled = false,
   error = false,
   integerOnly = false,
+  numericOnly = false,
   helperText,
 }: {
   label: string;
@@ -242,10 +255,11 @@ export function KeyboardTextField({
   error?: boolean;
   helperText?: string | undefined;
   integerOnly?: boolean;
+  numericOnly?: boolean;
 }) {
   const [open, setOpen] = useState(false);
 
-  const desktopInput = useMediaQuery('(min-width: 900px) and (pointer: fine)');
+  const desktopInput = !/Electron\//i.test(navigator.userAgent);
 
   if (desktopInput) {
     return (
@@ -259,7 +273,15 @@ export function KeyboardTextField({
         value={value}
         disabled={disabled}
         onChange={(event) => onChange(event.target.value)}
-        inputProps={{ inputMode: type === 'number' ? 'decimal' : 'text' }}
+        inputProps={{
+          inputMode: numericOnly
+            ? 'numeric'
+            : type === 'number'
+              ? integerOnly
+                ? 'numeric'
+                : 'decimal'
+              : 'text',
+        }}
         sx={{ '& .MuiInputBase-root': { minHeight: 48 } }}
       />
     );
@@ -329,7 +351,7 @@ export function KeyboardTextField({
               value={value}
               onChange={onChange}
               onClose={() => setOpen(false)}
-              numericOnly={type === 'number'}
+              numericOnly={type === 'number' || numericOnly}
               integerOnly={integerOnly}
               {...(type === 'password' ? { initialLayout: 'en' as const } : {})}
               fullScreen

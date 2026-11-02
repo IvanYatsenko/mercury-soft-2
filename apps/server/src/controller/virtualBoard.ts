@@ -1,3 +1,6 @@
+/**
+ * Модель протокола платы для автоматических проверок без физического оборудования; не заменяет тепловые испытания.
+ */
 import { getOvenModel, readOvenSelection } from '../ovenSettings.js';
 
 /**
@@ -52,6 +55,13 @@ export class VirtualBoard {
   private doorOpen = false;
   private disconnected = false;
   private sensorFault = false;
+  /** Задаёт внутреннюю температуру электроники для проверки её охлаждения и защиты. */
+  setControllerTemperature(temperature: number) {
+    if (!Number.isFinite(temperature))
+      throw new Error('Invalid controller temperature');
+    this.temperatures.cpu = temperature;
+  }
+  /** Независимо задаёт две термопары для проверки выбора датчика и защиты. */
   setTemperatures(board: number, chamber: number) {
     if (!Number.isFinite(board) || !Number.isFinite(chamber))
       throw new Error('Invalid temperature');
@@ -59,6 +69,7 @@ export class VirtualBoard {
     this.temperatures.t2 = chamber;
   }
 
+  /** Продвигает упрощённую тепловую модель по прошедшему времени и текущим выходам. */
   advance(
     seconds: number,
     heating: boolean,
@@ -75,6 +86,7 @@ export class VirtualBoard {
       (this.temperatures.t2 - this.temperatures.t1) * Math.min(1, seconds / 8);
     this.fanFrequency.fan1 = 50;
   }
+  /** Устанавливает тестовую неисправность для проверки реакции приложения без физической аварии. */
   setFault(fault: 'door' | 'connection' | 'sensor' | 'overheat' | 'none') {
     this.doorOpen = fault === 'door';
     this.disconnected = fault === 'connection';
@@ -84,6 +96,7 @@ export class VirtualBoard {
     if (fault === 'overheat') this.globalState |= boardState.OVERHEAT;
   }
 
+  /** Эмулирует чтение и запись регистров по тому же контракту, что физический транспорт. */
   call(name: string, args: unknown[] = []): unknown {
     this.finishShutdownIfDue();
     if (!this.powered || this.disconnected)
@@ -145,6 +158,9 @@ export class VirtualBoard {
     }
   }
 
+  /**
+   * Возвращает текущий снимок для читателей без отправки команд оборудованию.
+   */
   snapshot(): VirtualBoardSnapshot {
     this.finishShutdownIfDue();
     const flags = Object.entries(boardState)
@@ -167,6 +183,9 @@ export class VirtualBoard {
     };
   }
 
+  /**
+   * Выполняет явный сброс через защищённый серверный маршрут и обновляет отображаемые данные.
+   */
   reset(): void {
     this.cancelShutdown();
     this.powered = true;
@@ -179,6 +198,7 @@ export class VirtualBoard {
     this.setFault('none');
   }
 
+  /** Меняет режим виртуальной платы с согласованием доступности выходов. */
   private setState(value: number): void {
     this.globalState &= ~(value & RESET_MASK);
     if ((this.globalState & boardState.STARTING) !== 0) {
@@ -191,6 +211,7 @@ export class VirtualBoard {
     }
   }
 
+  /** Планирует виртуальное отключение после перехода в режим завершения. */
   private scheduleShutdown(seconds: number): void {
     this.cancelShutdown();
     this.shutdownDelayMs = Math.max(0, seconds * 1000);
@@ -203,11 +224,13 @@ export class VirtualBoard {
     );
   }
 
+  /** Применяет отложенное отключение только после истечения заданного времени. */
   private finishShutdownIfDue(): void {
     if (this.shutdownAt && Date.now() >= this.shutdownAt.getTime())
       this.finishShutdown();
   }
 
+  /** Завершает виртуальное питание и отключает выходы модели. */
   private finishShutdown(): void {
     this.cancelShutdown();
     this.powered = false;
@@ -217,11 +240,13 @@ export class VirtualBoard {
     this.shutdownAt = null;
   }
 
+  /** Отменяет ещё не выполненное отключение виртуальной платы. */
   private cancelShutdown(): void {
     if (this.shutdownTimer) clearTimeout(this.shutdownTimer);
     this.shutdownTimer = undefined;
   }
 
+  /** Приводит выходы модели к ограничениям текущего состояния платы. */
   private normalizeOutputs(args: unknown[], count: number): number[] {
     const input = Array.isArray(args[0]) ? args[0] : args;
     return Array.from({ length: count }, (_, index) =>

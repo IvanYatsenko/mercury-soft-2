@@ -8,6 +8,25 @@ import { isMountedUsb, decodeMountPath } from '../dist/usbStorage.js';
 
 const insert =
   "INSERT INTO runs VALUES(?,?,?,'2026-10-19',NULL,'running',NULL,1)";
+
+test('clearing history removes runs, samples and events persistently and fails without USB', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'mercury-clear-history-'));
+  try {
+    const db = new HistoryStorage(root, () => true);
+    db.prepare(insert).run('a', 'Profile', '{}');
+    db.prepare('INSERT INTO samples VALUES(?,?,?)').run('a', 1, '{}');
+    db.prepare('INSERT INTO events(run_id,at,message) VALUES(?,?,?)').run('a','now','event');
+    assert.equal(db.clearRuns(), true);
+    for (const table of ['runs','samples','events']) assert.equal(db.prepare('SELECT * FROM '+table).all().length,0);
+    db.close();
+    const restarted = new HistoryStorage(root, () => true);
+    assert.equal(restarted.prepare('SELECT * FROM runs').all().length,0);
+    restarted.close();
+    const missing = new HistoryStorage(root, () => false);
+    assert.equal(missing.clearRuns(),false);
+    missing.close();
+  } finally { await rm(root,{recursive:true,force:true}); }
+});
 test('missing USB discards history and never creates a fallback directory', async () => {
   const root = await mkdtemp(join(tmpdir(), 'mercury-usb-'));
   try {

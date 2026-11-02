@@ -22,7 +22,7 @@ def command(*args):
 
 
 def api(path):
-    with urllib.request.urlopen('http://127.0.0.1:3001/api/' + path, timeout=8) as response:
+    with urllib.request.urlopen('http://127.0.0.1:8075/api/' + path, timeout=8) as response:
         return json.load(response)
 
 

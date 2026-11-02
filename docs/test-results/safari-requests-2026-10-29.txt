@@ -1,0 +1,24 @@
+✔ local preferences store configuration only and ignore unsupported events (2.1132ms)
+✔ active messages include event, profile and completion result as plain text (0.3769ms)
+✔ board faults become a critical error, including combined and wrapped states (1.3856ms)
+✔ normal states, shutdown, connection and temperature errors keep their own meaning (0.2982ms)
+✔ desktop and mobile browsers share the responsive web workspace (1.1106ms)
+✔ Electron never opts into PC layout, even in a large development window (0.2016ms)
+✔ fan warning thresholds use the fraction remaining, without rounding across boundaries (1.1981ms)
+✔ disabled warnings and an intentionally stopped fan do not alert (0.2216ms)
+✔ missing frequency is shown as unknown rather than a measured speed below 20 percent (0.1978ms)
+✔ JSON exchange round trip preserves profile data and source but strips database IDs (2.4186ms)
+✔ JSON import rejects unsupported, oversized, fractional and invalid profile files (1.5048ms)
+✔ profile input rejects out-of-range, fractional and unfinished numbers (1.202ms)
+✔ shared validation used by saving and imports enforces integers and at most 20 cycles (0.8758ms)
+✔ push worker shows a notification and click opens only the oven root without API fetch or command replay (3.2196ms)
+✔ requests work without AbortSignal.any and AbortSignal.timeout, as in older Safari (19.6705ms)
+✔ navigation aborts immediately and timeout detaches its parent listener (30.9888ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 16
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 639.802

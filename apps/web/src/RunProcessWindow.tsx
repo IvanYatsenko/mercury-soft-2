@@ -1,3 +1,6 @@
+/**
+ * Окно активного процесса, пауза и завершение. Закрытие интерфейса не должно неявно запускать новый профиль.
+ */
 import type { TemperatureRate } from '@mercury/shared';
 import { Alert, Box, Button, Dialog, Stack, Typography } from '@mui/material';
 import { useEffect, useState, type ReactNode } from 'react';
@@ -11,6 +14,7 @@ import { RunProcessChart } from './RunProcessChart';
 import { userError } from './boardError';
 import { usePcLayout } from './usePcLayout';
 
+/** Форматирует длительность в компактные часы, минуты и секунды без изменения исходного времени. */
 function time(seconds: number) {
   const total = Math.max(0, Math.round(seconds));
   return (
@@ -26,6 +30,9 @@ function time(seconds: number) {
   );
 }
 
+/**
+ * Отрисовывает RunProcessWindow: Окно активного процесса, пауза и завершение. Закрытие интерфейса не должно неявно запускать новый профиль.
+ */
 export function RunProcessWindow({
   open,
   status,
@@ -68,6 +75,9 @@ export function RunProcessWindow({
     const id = status.id;
     const controller = new AbortController();
     let timer: number | undefined;
+    /**
+     * Читает актуальный серверный снимок для этого экрана; обработку результата выполняет владелец состояния.
+     */
     async function read() {
       try {
         const response = await fetch('/api/history/' + encodeURIComponent(id), {

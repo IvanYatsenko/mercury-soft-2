@@ -1,3 +1,6 @@
+/**
+ * Обслуживание отдельных браузерной и локальной сборок; API не должен подменяться HTML fallback.
+ */
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { Router, static as serveStatic } from 'express';
@@ -8,6 +11,11 @@ export function createWebClientsRouter(
   pcDirectory: string,
 ) {
   const router = Router();
+  router.get('/push-sw.js', (_request, response) => {
+    response
+      .set({ 'Cache-Control': 'no-store', 'Service-Worker-Allowed': '/' })
+      .sendFile(join(pcDirectory, 'push-sw.js'));
+  });
   router.get('/', (request, response, next) => {
     const index = join(pcDirectory, 'index.html');
     if (

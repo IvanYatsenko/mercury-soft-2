@@ -1,9 +1,29 @@
+/**
+ * Адаптивный браузерный интерфейс ПК и телефона; не меняет компоновку локальной панели.
+ */
+import { workspaceTheme } from './workspaceTheme';
+import {
+  ActiveNotificationPanel,
+  useActiveNotifications,
+} from './ActiveNotifications';
+import {
+  StartReviewDialog,
+  ProfileLibraryBar,
+  ProfileRowTools,
+} from './PcProfileTools';
+import { FleetPage } from './FleetPage';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import {
   Alert,
+  Snackbar,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  useMediaQuery,
   Box,
   Button,
   Chip,
+  IconButton,
   Divider,
   LinearProgress,
   Paper,
@@ -17,11 +37,11 @@ import {
   TableRow,
   ThemeProvider,
   Typography,
-  createTheme,
 } from '@mui/material';
 import {
   buildRunPlan,
   type Profile,
+  type ProfileSource,
   type ProfilePlan,
   type RunSample,
   type RunStatus,
@@ -34,8 +54,15 @@ export type PcSection = 'profiles' | 'settings' | 'editor' | 'wifi' | 'history';
 type Props = {
   mode: 'light' | 'dark';
   onToggleMode: () => void;
+  serverReachable: boolean;
+  lastServerContact: number | null;
+  source: ProfileSource;
+  onDuplicate: (profile: Profile) => void;
+  onImported: () => void;
+  onResetDraft: () => void;
+  draftDirty: boolean;
   section: PcSection;
-  onSection: (section: PcSection) => void;
+  onSection: (section: PcSection, onApproved?: () => void) => void;
   name: string;
   connectionLabel: string;
   connected: boolean;
@@ -65,7 +92,7 @@ type Props = {
   onSettings: () => void;
   onAdvancedAccess: () => void;
   onLock: () => void;
-  onStart: () => void;
+  onStart: (reviewKey: string, accepted: boolean, pin: string) => void;
   onPause: () => void;
   onResume: () => void;
   onStop: () => void;
@@ -87,6 +114,7 @@ const stateNames: Record<string, string> = {
   stopped: 'Профиль остановлен',
   failed: 'Ошибка',
 };
+/** Показывает компактную длительность без нулевых единиц времени. */
 function duration(value: number) {
   const n = Math.max(0, Math.round(value));
   return (
@@ -99,9 +127,11 @@ function duration(value: number) {
       .join(' ') || '0 с'
   );
 }
+/** Форматирует целое температурное показание, сохраняя признак отсутствия данных. */
 function degrees(value: number | null | undefined) {
   return value == null ? '—' : Math.round(value) + '°';
 }
+/** Рассчитывает длительность выбранного профиля для обзорного экрана. */
 function profileTime(
   profile: Profile,
   heating: TemperatureRate,
@@ -113,6 +143,9 @@ function profileTime(
     return 'Не задано';
   }
 }
+/**
+ * Отрисовывает ProcessGraph: представление данных и действий родительского экрана.
+ */
 function ProcessGraph({
   run,
   heating,
@@ -134,6 +167,9 @@ function ProcessGraph({
     const controller = new AbortController();
     let timer: ReturnType<typeof setTimeout>;
     const id = run.id;
+    /**
+     * Читает актуальный серверный снимок для этого экрана; обработку результата выполняет владелец состояния.
+     */
     const read = async () => {
       try {
         const response = await fetch('/api/history/' + encodeURIComponent(id), {
@@ -169,7 +205,14 @@ function ProcessGraph({
     };
   }, [run.id, run.state]);
   return (
-    <Stack sx={{ flex: 1, minHeight: 260 }}>
+    <Stack
+      sx={{
+        flex: { xs: '0 0 auto', md: 1 },
+        height: { xs: 180, md: 'auto' },
+        minHeight: { xs: 0, md: 160 },
+        minWidth: 0,
+      }}
+    >
       {error && <Alert severity="warning">{error}</Alert>}
       {details?.id === run.id && details ? (
         <RunProcessChart
@@ -190,6 +233,9 @@ function ProcessGraph({
     </Stack>
   );
 }
+/**
+ * Отрисовывает Stat: представление данных и действий родительского экрана.
+ */
 function Stat({
   label,
   value,
@@ -202,18 +248,33 @@ function Stat({
   return (
     <Paper
       variant="outlined"
-      sx={{ p: 2, borderRadius: 3, flex: 1, minWidth: 0 }}
+      sx={{
+        p: { xs: 1.25, md: 2 },
+        borderRadius: '12px',
+        flex: 1,
+        minWidth: 0,
+      }}
     >
-      <Typography variant="caption" color="text.secondary">
+      <Typography
+        variant="caption"
+        color="text.secondary"
+        sx={{
+          display: 'block',
+          minHeight: { xs: 32, md: 0 },
+          lineHeight: 1.4,
+          overflowWrap: 'anywhere',
+        }}
+      >
         {label}
       </Typography>
       <Typography
         sx={{
-          fontSize: 26,
+          fontSize: { xs: accent ? 16 : 26, md: 26 },
           fontWeight: 650,
           mt: 0.5,
           color: accent ? 'primary.main' : 'text.primary',
           fontVariantNumeric: 'tabular-nums',
+          overflowWrap: 'anywhere',
         }}
       >
         {value}
@@ -221,38 +282,56 @@ function Stat({
     </Paper>
   );
 }
-export function PcWorkspace(p: Props) {
-  const [page, setPage] = useState<'overview' | 'profiles'>('overview');
-  const theme = useMemo(
-    () =>
-      createTheme({
-        palette: {
-          mode: p.mode,
-          primary: { main: p.mode === 'dark' ? '#66dfc1' : '#087f6c' },
-          background: {
-            default: p.mode === 'dark' ? '#0a1220' : '#edf2f7',
-            paper: p.mode === 'dark' ? '#111d2e' : '#ffffff',
-          },
-          text: {
-            primary: p.mode === 'dark' ? '#e7eef8' : '#1a2940',
-            secondary: p.mode === 'dark' ? '#90a2bb' : '#62738b',
-          },
-          divider: p.mode === 'dark' ? '#26354a' : '#dce4ee',
-        },
-        shape: { borderRadius: 12 },
-        typography: {
-          fontFamily: 'Inter, Segoe UI, sans-serif',
-          button: { textTransform: 'none', fontWeight: 600 },
-        },
-        components: {
-          MuiButton: { styleOverrides: { root: { boxShadow: 'none' } } },
-          MuiPaper: { styleOverrides: { root: { backgroundImage: 'none' } } },
-        },
-      }),
-    [p.mode],
+/**
+ * Отрисовывает MobileNavIcon: представление данных и действий родительского экрана.
+ */
+function MobileNavIcon({
+  name,
+}: {
+  name: 'oven' | 'profiles' | 'history' | 'settings' | 'more';
+}) {
+  const paths = {
+    oven: 'M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Zm0 2v3h14V5H5Zm0 5v9h14v-9H5Zm2 2h10v5H7v-5ZM7 6h2v1H7V6Zm8 0h2v1h-2V6Z',
+    profiles: 'M4 3h16v18H4V3Zm2 2v14h12V5H6Zm2 10 3-5 3 3 2-4v8H8v-2Z',
+    history:
+      'M13 3a9 9 0 1 1-8.5 12H7a6.5 6.5 0 1 0 1-7H11v2H3V2h2v4a9 9 0 0 1 8-3Zm-1 4h2v5l3 2-1 1.7-4-2.7V7Z',
+    settings:
+      'M19.4 13a7.6 7.6 0 0 0 0-2l2-1.5-2-3.4-2.3 1a7 7 0 0 0-1.7-1L15 3h-4l-.4 3.1a7 7 0 0 0-1.7 1l-2.3-1-2 3.4 2 1.5a7.6 7.6 0 0 0 0 2l-2 1.5 2 3.4 2.3-1a7 7 0 0 0 1.7 1L11 21h4l.4-3.1a7 7 0 0 0 1.7-1l2.3 1 2-3.4-2-1.5ZM13 15a3 3 0 1 1 0-6 3 3 0 0 1 0 6Z',
+    more: 'M5 10a2 2 0 1 1 0 4 2 2 0 0 1 0-4Zm7 0a2 2 0 1 1 0 4 2 2 0 0 1 0-4Zm7 0a2 2 0 1 1 0 4 2 2 0 0 1 0-4Z',
+  };
+  return (
+    <SvgIcon sx={{ fontSize: 28 }} aria-hidden="true">
+      <path d={paths[name]} />
+    </SvgIcon>
   );
+}
+
+/**
+ * Отрисовывает PcWorkspace: Адаптивный браузерный интерфейс ПК и телефона; не меняет компоновку локальной панели.
+ */
+export function PcWorkspace(props: Props) {
+  const mobile = useMediaQuery('(max-width: 899px)');
+  const activeNotifications = useActiveNotifications();
+  const [moreOpen, setMoreOpen] = useState(false);
+  const p = {
+    ...props,
+    connected: props.connected && props.serverReachable,
+    ready: props.ready && props.serverReachable,
+    canEdit: props.canEdit && props.serverReachable,
+    busy: props.busy || !props.serverReachable,
+    keepHeatBusy: props.keepHeatBusy || !props.serverReachable,
+  };
+  const [startReview, setStartReview] = useState(false);
+  const [page, setPage] = useState<'overview' | 'profiles' | 'fleet'>(
+    'overview',
+  );
+  const displayName = p.name;
+  const theme = useMemo(() => workspaceTheme(p.mode), [p.mode]);
   const isOverview = p.section === 'profiles' && page === 'overview';
-  const showProcess = !!p.run?.id && (p.runActive || p.windowOpen);
+  const showProcess =
+    p.run?.purpose !== 'calibration' &&
+    !!p.run?.id &&
+    (p.runActive || p.windowOpen);
   const title =
     p.section === 'settings'
       ? 'Настройки'
@@ -264,12 +343,15 @@ export function PcWorkspace(p: Props) {
             ? 'Сеть и подключение'
             : page === 'profiles'
               ? 'Температурные профили'
-              : 'Обзор печи';
+              : page === 'fleet'
+                ? 'Печи в сети'
+                : 'Обзор печи';
   const percent =
     p.run && p.run.elapsedSeconds + p.run.remainingSeconds > 0
       ? (100 * p.run.elapsedSeconds) /
         (p.run.elapsedSeconds + p.run.remainingSeconds)
       : 0;
+  /** Переключает страницу браузерной панели и закрывает временные меню. */
   const nav = (
     label: string,
     selected: boolean,
@@ -296,18 +378,40 @@ export function PcWorkspace(p: Props) {
       )}
     </Button>
   );
-  const choose = (page: 'overview' | 'profiles') => {
-    setPage(page);
-    p.onSection('profiles');
+  /** Передаёт выбор профиля родительскому состоянию и возвращает к обзору. */
+  const choose = (page: 'overview' | 'profiles' | 'fleet') => {
+    p.onSection('profiles', () => setPage(page));
   };
   return (
     <ThemeProvider theme={theme}>
+      <Snackbar
+        open={Boolean(activeNotifications.toast)}
+        autoHideDuration={activeNotifications.toast?.error ? null : 10000}
+        onClose={activeNotifications.closeToast}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        sx={{ mt: 'env(safe-area-inset-top)', maxWidth: 'calc(100% - 24px)' }}
+      >
+        <Alert
+          severity={activeNotifications.toast?.error ? 'error' : 'success'}
+          onClose={activeNotifications.closeToast}
+          variant="filled"
+        >
+          {activeNotifications.toast?.text}
+        </Alert>
+      </Snackbar>
+      <StartReviewDialog
+        open={startReview}
+        onClose={() => setStartReview(false)}
+        profile={p.selected}
+        onStart={p.onStart}
+        disabled={p.busy || !p.ready}
+      />
       <Box
         sx={{
           height: '100%',
-          minHeight: 600,
+          minHeight: mobile ? 0 : 600,
           display: 'grid',
-          gridTemplateColumns: '210px minmax(0,1fr)',
+          gridTemplateColumns: mobile ? 'minmax(0,1fr)' : '210px minmax(0,1fr)',
           bgcolor: 'background.default',
           color: 'text.primary',
         }}
@@ -316,10 +420,11 @@ export function PcWorkspace(p: Props) {
           component="nav"
           aria-label="Навигация ПК"
           sx={{
+            display: mobile ? 'none' : 'flex',
             borderRight: 1,
             borderColor: 'divider',
             bgcolor: 'background.paper',
-            p: 2.5,
+            p: 2,
           }}
         >
           <Stack
@@ -351,13 +456,6 @@ export function PcWorkspace(p: Props) {
               </Typography>
             </Box>
           </Stack>
-          <Typography
-            variant="overline"
-            color="text.secondary"
-            sx={{ px: 2, mb: 1 }}
-          >
-            Панель печи
-          </Typography>
           <Stack spacing={0.75}>
             {nav('Обзор печи', isOverview, () => choose('overview'))}
             {nav(
@@ -365,12 +463,8 @@ export function PcWorkspace(p: Props) {
               p.section === 'profiles' && page === 'profiles',
               () => choose('profiles'),
             )}
-            {nav(
-              'История запусков',
-              p.section === 'history',
-              () =>
-                p.advanced ? p.onSection('history') : p.onAdvancedAccess(),
-              !p.advanced,
+            {nav('История запусков', p.section === 'history', () =>
+              p.onSection('history'),
             )}
             {nav(
               'Настройки',
@@ -378,7 +472,11 @@ export function PcWorkspace(p: Props) {
               p.onSettings,
               !p.unlocked,
             )}
-            {nav('Сеть', p.section === 'wifi', () => p.onSection('wifi'))}
+            {nav(
+              'Печи в сети',
+              p.section === 'profiles' && page === 'fleet',
+              () => choose('fleet'),
+            )}
           </Stack>
           <Box sx={{ flex: 1 }} />
           <Paper variant="outlined" sx={{ p: 1.5, mb: 2 }}>
@@ -403,13 +501,6 @@ export function PcWorkspace(p: Props) {
               {window.location.host}
             </Typography>
           </Paper>
-          <Button
-            color="inherit"
-            onClick={p.onToggleMode}
-            sx={{ justifyContent: 'flex-start', color: 'text.secondary' }}
-          >
-            {p.mode === 'dark' ? 'Светлая тема' : 'Тёмная тема'}
-          </Button>
           <Typography
             variant="caption"
             color="text.secondary"
@@ -424,62 +515,162 @@ export function PcWorkspace(p: Props) {
             direction="row"
             alignItems="center"
             justifyContent="space-between"
-            sx={{ px: 3.5, py: 2, borderBottom: 1, borderColor: 'divider' }}
+            sx={{
+              px: mobile ? 2 : 3.5,
+              pt: mobile ? 'max(12px, env(safe-area-inset-top))' : 2,
+              pb: mobile ? 1.5 : 2,
+              borderBottom: 1,
+              borderColor: 'divider',
+            }}
           >
-            <Box>
-              <Typography variant="caption" color="text.secondary">
-                {p.name} / Панель печи
-              </Typography>
-              <Typography sx={{ fontSize: 24, fontWeight: 650, mt: 0.4 }}>
-                {title}
+            <Box sx={{ minWidth: 0, flex: 1, pr: 2 }}>
+              {!mobile && (
+                <Typography variant="caption" color="text.secondary">
+                  {displayName}
+                </Typography>
+              )}
+              <Typography
+                sx={{
+                  fontSize: mobile ? 20 : 24,
+                  fontWeight: 650,
+                  mt: mobile ? 0 : 0.4,
+                  overflowWrap: 'anywhere',
+                }}
+              >
+                {mobile && isOverview ? displayName : title}
               </Typography>
             </Box>
             <Stack direction="row" spacing={1} alignItems="center">
-              <Chip
-                size="small"
-                label={p.critical ? 'Критическая ошибка' : p.connectionLabel}
-                color={p.critical ? 'error' : p.ready ? 'success' : 'default'}
-                variant="outlined"
-              />
-              {p.unlocked && (
+              {mobile && p.unlocked && (
+                <IconButton
+                  aria-label="Заблокировать настройки"
+                  title="Заблокировать настройки"
+                  onClick={p.onLock}
+                  sx={{ width: 44, height: 44, color: 'primary.main' }}
+                >
+                  <SvgIcon>
+                    <path d="M7 14a5 5 0 1 1 4.9-6H22v4h-3v3h-3v-3h-4.1A5 5 0 0 1 7 14Zm0-3a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z" />
+                  </SvgIcon>
+                </IconButton>
+              )}
+              {
+                <Box
+                  role="img"
+                  aria-label={
+                    !props.serverReachable
+                      ? 'Нет связи с Raspberry'
+                      : p.critical
+                        ? 'Критическая ошибка'
+                        : !p.connected
+                          ? 'Нет связи с платой'
+                          : p.ready
+                            ? 'Плата готова к работе'
+                            : 'Плата ожидает или инициализируется'
+                  }
+                  title={p.connectionLabel}
+                  sx={{
+                    width: 14,
+                    height: 14,
+                    borderRadius: '50%',
+                    flexShrink: 0,
+                    bgcolor:
+                      !props.serverReachable || !p.connected || p.critical
+                        ? 'error.main'
+                        : p.ready
+                          ? 'success.main'
+                          : 'warning.main',
+                    boxShadow: '0 0 0 4px rgba(255,255,255,.04)',
+                  }}
+                />
+              }
+              {p.unlocked && !mobile && (
                 <Button size="small" onClick={p.onLock}>
                   Закрыть доступ
                 </Button>
               )}
+              <IconButton
+                onClick={p.onToggleMode}
+                aria-label={p.mode === 'dark' ? 'Светлая тема' : 'Тёмная тема'}
+                title={p.mode === 'dark' ? 'Светлая тема' : 'Тёмная тема'}
+                sx={{ width: 44, height: 44, flexShrink: 0 }}
+              >
+                <SvgIcon>
+                  <path
+                    d={
+                      p.mode === 'dark'
+                        ? 'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Zm-1-6h2v4h-2Zm0 16h2v4h-2ZM2 11h4v2H2Zm16 0h4v2h-4ZM4.22 5.64l1.42-1.42 2.83 2.83-1.42 1.42Zm11.31 11.31 1.42-1.42 2.83 2.83-1.42 1.42ZM4.22 18.36l2.83-2.83 1.42 1.42-2.83 2.83ZM15.53 7.05l2.83-2.83 1.42 1.42-2.83 2.83Z'
+                        : 'M9.37 5.51a7 7 0 0 0 9.12 9.12A7 7 0 1 1 9.37 5.51Z'
+                    }
+                  />
+                </SvgIcon>
+              </IconButton>
             </Stack>
           </Stack>
           <Box
             component="main"
-            sx={{ flex: 1, minHeight: 0, overflowY: 'auto', p: 3.5 }}
+            sx={{
+              flex: 1,
+              minHeight: 0,
+              overflowY: 'auto',
+              p: mobile ? 1.5 : isOverview ? 2 : 3.5,
+              pb: mobile
+                ? 'calc(80px + env(safe-area-inset-bottom))'
+                : undefined,
+            }}
           >
             {p.critical && (
               <Alert severity="error" sx={{ mb: 2 }}>
                 Критическая ошибка
               </Alert>
             )}
-            {p.warning && (
+            {!props.serverReachable && (
+              <Alert severity="error" sx={{ mb: 2 }}>
+                Нет связи с Raspberry. Показания устарели, команды
+                заблокированы.{' '}
+                {props.lastServerContact
+                  ? 'Последнее обновление: ' +
+                    new Date(props.lastServerContact).toLocaleTimeString(
+                      'ru-RU',
+                    )
+                  : ''}
+              </Alert>
+            )}
+            {props.serverReachable && !p.connected && (
+              <Alert severity="warning" sx={{ mb: 2 }}>
+                Связь с Raspberry есть, но нет связи с платой управления.
+              </Alert>
+            )}
+            {p.warning && p.connected && (
               <Alert severity="warning" sx={{ mb: 2 }}>
                 {p.warning}
               </Alert>
             )}
-            {isOverview ? (
+            {p.section === 'profiles' && page === 'fleet' ? (
+              <FleetPage unlocked={p.unlocked} onUnlock={p.onSettings} />
+            ) : isOverview ? (
               <Box
                 sx={{
                   display: 'grid',
-                  gridTemplateColumns: 'minmax(0,1fr) 270px',
-                  gap: 2.5,
-                  minHeight: '100%',
+                  gridTemplateColumns: mobile
+                    ? 'minmax(0,1fr)'
+                    : 'minmax(0,1fr) 270px',
+                  gap: 1.5,
+                  minHeight: 0,
                 }}
               >
-                <Stack spacing={2.5} sx={{ minWidth: 0 }}>
+                <Stack spacing={1.5} sx={{ minWidth: 0 }}>
                   <Stack direction="row" spacing={1.5}>
                     <Stat
                       label="Камера"
-                      value={degrees(p.connected ? p.chamber : null)}
+                      value={degrees(
+                        props.serverReachable && p.connected ? p.chamber : null,
+                      )}
                     />
                     <Stat
                       label="Датчик на плате"
-                      value={degrees(p.connected ? p.board : null)}
+                      value={degrees(
+                        props.serverReachable && p.connected ? p.board : null,
+                      )}
                     />
                     <Stat
                       label={showProcess ? 'Осталось' : 'Длительность профиля'}
@@ -500,9 +691,14 @@ export function PcWorkspace(p: Props) {
                   <Paper
                     variant="outlined"
                     sx={{
-                      p: 2.5,
-                      flex: 1,
-                      minHeight: 360,
+                      p: 2,
+                      flex: '0 0 auto',
+                      height: mobile
+                        ? showProcess
+                          ? 'auto'
+                          : 270
+                        : 'clamp(210px, calc(100dvh - 320px), 360px)',
+                      minHeight: 0,
                       display: 'flex',
                       flexDirection: 'column',
                     }}
@@ -537,7 +733,16 @@ export function PcWorkspace(p: Props) {
                         />
                       )}
                     </Stack>
-                    <Stack direction="row" spacing={2} sx={{ mt: 2, mb: 1 }}>
+                    <Stack
+                      direction="row"
+                      sx={{
+                        mt: 2,
+                        mb: 1,
+                        gap: 1,
+                        flexWrap: 'wrap',
+                        flexShrink: 0,
+                      }}
+                    >
                       <Typography variant="caption" color="#66bb6a">
                         ━ Заданный профиль
                       </Typography>
@@ -599,6 +804,70 @@ export function PcWorkspace(p: Props) {
                       </>
                     )}
                   </Paper>
+                  {mobile && isOverview && (
+                    <Box
+                      sx={{
+                        p: 1.5,
+                        bgcolor: 'background.paper',
+                        borderTop: 1,
+                        borderColor: 'divider',
+                      }}
+                    >
+                      <Stack direction="row" spacing={1}>
+                        {p.runActive ? (
+                          p.run?.paused ? (
+                            <>
+                              <Button
+                                fullWidth
+                                variant="contained"
+                                disabled={p.busy}
+                                onClick={p.onResume}
+                              >
+                                Продолжить
+                              </Button>
+                              <Button
+                                fullWidth
+                                color="error"
+                                variant="contained"
+                                disabled={p.busy}
+                                onClick={p.onStop}
+                              >
+                                Стоп
+                              </Button>
+                            </>
+                          ) : (
+                            <Button
+                              fullWidth
+                              variant="contained"
+                              disabled={p.busy}
+                              onClick={p.onPause}
+                            >
+                              Пауза
+                            </Button>
+                          )
+                        ) : p.windowOpen ? (
+                          <Button
+                            fullWidth
+                            color="success"
+                            variant="contained"
+                            disabled={p.busy}
+                            onClick={p.onReady}
+                          >
+                            Готово
+                          </Button>
+                        ) : (
+                          <Button
+                            fullWidth
+                            variant="contained"
+                            disabled={p.busy || !p.ready || !p.selected}
+                            onClick={() => setStartReview(true)}
+                          >
+                            Запустить профиль
+                          </Button>
+                        )}
+                      </Stack>
+                    </Box>
+                  )}
                   <Stack
                     direction="row"
                     justifyContent="space-between"
@@ -611,27 +880,50 @@ export function PcWorkspace(p: Props) {
                     </Typography>
                     <Button
                       onClick={() => choose('profiles')}
-                      disabled={p.runActive}
+                      disabled={p.runActive || !props.serverReachable}
                     >
                       Выбрать другой профиль →
                     </Button>
                   </Stack>
                 </Stack>
                 <Stack spacing={2}>
-                  <Paper variant="outlined" sx={{ p: 2.5 }}>
+                  {mobile && (
+                    <Paper
+                      variant="outlined"
+                      sx={{
+                        p: 1.5,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                      }}
+                    >
+                      <Typography>Поддерживать 100 °C</Typography>
+                      <Switch
+                        checked={p.keepHeat}
+                        disabled={p.keepHeatBusy || p.runActive}
+                        onChange={(_, v) => p.onKeepHeat(v)}
+                      />
+                    </Paper>
+                  )}
+                  <Paper
+                    variant="outlined"
+                    sx={{ p: 2, display: mobile ? 'none' : undefined }}
+                  >
                     <Typography variant="overline" color="text.secondary">
                       Управление
                     </Typography>
                     <Typography sx={{ fontSize: 19, fontWeight: 650, mt: 1 }}>
-                      {p.run?.paused
-                        ? 'На паузе'
-                        : p.runActive
-                          ? stateNames[p.run?.state ?? 'running']
-                          : p.windowOpen
-                            ? stateNames[p.run?.state ?? 'idle']
-                            : p.keepHeat
-                              ? 'Поддержание 100 °C'
-                              : 'Готова к запуску'}
+                      {!p.connected
+                        ? 'Команды недоступны'
+                        : p.run?.paused
+                          ? 'На паузе'
+                          : p.runActive
+                            ? stateNames[p.run?.state ?? 'running']
+                            : p.windowOpen
+                              ? stateNames[p.run?.state ?? 'idle']
+                              : p.keepHeat
+                                ? 'Поддержание 100 °C'
+                                : 'Готова к запуску'}
                     </Typography>
                     <Typography
                       sx={{
@@ -643,9 +935,11 @@ export function PcWorkspace(p: Props) {
                       }}
                     >
                       {degrees(
-                        p.runActive
-                          ? p.run?.measuredTemperatureC
-                          : p.temperature,
+                        !p.connected
+                          ? null
+                          : p.runActive
+                            ? p.run?.measuredTemperatureC
+                            : p.temperature,
                       )}
                       <Typography
                         component="span"
@@ -699,7 +993,7 @@ export function PcWorkspace(p: Props) {
                         variant="contained"
                         sx={{ py: 1.3 }}
                         disabled={p.busy || !p.selected || !p.ready}
-                        onClick={p.onStart}
+                        onClick={() => setStartReview(true)}
                       >
                         Запустить профиль
                       </Button>
@@ -727,11 +1021,11 @@ export function PcWorkspace(p: Props) {
                       />
                     </Stack>
                   </Paper>
-                  <Paper variant="outlined" sx={{ p: 2.5 }}>
+                  <Paper variant="outlined" sx={{ p: 2 }}>
                     <Typography variant="overline" color="text.secondary">
                       Оборудование
                     </Typography>
-                    <Stack spacing={1.8} sx={{ mt: 2 }}>
+                    <Stack spacing={1.2} sx={{ mt: 1.5 }}>
                       {[
                         [
                           'Дверь',
@@ -778,7 +1072,7 @@ export function PcWorkspace(p: Props) {
                     </Stack>
                   </Paper>
                   {p.advanced && showProcess && (
-                    <Paper variant="outlined" sx={{ p: 2.5 }}>
+                    <Paper variant="outlined" sx={{ p: 2 }}>
                       <Typography variant="caption" color="text.secondary">
                         Максимальное отклонение
                       </Typography>
@@ -804,92 +1098,192 @@ export function PcWorkspace(p: Props) {
                   {p.canEdit && (
                     <Button
                       variant="contained"
-                      disabled={p.runActive}
+                      disabled={p.runActive || !props.serverReachable}
                       onClick={p.onCreate}
                     >
                       + Создать профиль
                     </Button>
                   )}
                 </Stack>
-                <Paper variant="outlined" sx={{ overflow: 'hidden' }}>
-                  <Table aria-label="Температурные профили">
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>Название</TableCell>
-                        <TableCell>Режим</TableCell>
-                        <TableCell>Датчик</TableCell>
-                        <TableCell>Время</TableCell>
-                        <TableCell>Действия</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {p.profiles.map((profile, index) => (
-                        <TableRow
-                          key={profile.id ?? index}
-                          selected={p.selected?.id === profile.id}
-                          sx={{ '& td': { py: 2.2 } }}
+                <ProfileLibraryBar
+                  profiles={p.profiles}
+                  source={p.source}
+                  canEdit={p.canEdit}
+                  disabled={p.runActive || !props.serverReachable}
+                  onImported={p.onImported}
+                />
+                {mobile ? (
+                  <Stack spacing={1.5}>
+                    {p.profiles.map((profile, index) => (
+                      <Paper
+                        key={profile.id ?? index}
+                        variant="outlined"
+                        sx={{
+                          p: 2,
+                          borderColor:
+                            p.selected?.id === profile.id
+                              ? 'primary.main'
+                              : 'divider',
+                        }}
+                      >
+                        <Typography fontWeight={700}>{profile.name}</Typography>
+                        <Typography
+                          variant="body2"
+                          color="text.secondary"
+                          sx={{ my: 1 }}
                         >
-                          <TableCell>
-                            <Typography fontWeight={600}>
-                              {profile.name}
-                            </Typography>
-                            {p.selected?.id === profile.id && (
-                              <Typography variant="caption" color="primary">
-                                Выбран
-                              </Typography>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            {profile.mode === 'manual' ? 'Ручной' : 'Простой'}
-                          </TableCell>
-                          <TableCell>
-                            {profile.board ? 'На плате' : 'Камера'}
-                          </TableCell>
-                          <TableCell>
-                            {profileTime(profile, p.heatingRate, p.coolingRate)}
-                          </TableCell>
-                          <TableCell>
-                            <Stack direction="row" spacing={1}>
-                              <Button
-                                disabled={p.runActive}
-                                onClick={() => {
-                                  p.onSelect(profile);
-                                  choose('overview');
-                                }}
-                              >
-                                Выбрать
-                              </Button>
-                              {p.canEdit && (
-                                <Button
-                                  disabled={p.runActive}
-                                  onClick={() => p.onEdit(profile, index)}
-                                >
-                                  Изменить
-                                </Button>
-                              )}
-                            </Stack>
-                          </TableCell>
+                          {profile.board ? 'Датчик на плате' : 'Камера'} ·{' '}
+                          {profileTime(profile, p.heatingRate, p.coolingRate)} ·{' '}
+                          {profile.repeat ?? 1} цикл.
+                        </Typography>
+                        <Stack direction="row" spacing={1}>
+                          <Button
+                            disabled={p.runActive || !props.serverReachable}
+                            onClick={() => {
+                              p.onSelect(profile);
+                              choose('overview');
+                            }}
+                          >
+                            {p.selected?.id === profile.id
+                              ? 'Выбран'
+                              : 'Выбрать'}
+                          </Button>
+                          {p.canEdit && (
+                            <Button
+                              disabled={p.runActive || !props.serverReachable}
+                              onClick={() => p.onEdit(profile, index)}
+                            >
+                              Изменить
+                            </Button>
+                          )}
+                          <ProfileRowTools
+                            profile={profile}
+                            source={p.source}
+                            canEdit={p.canEdit}
+                            disabled={p.runActive || !props.serverReachable}
+                            onDuplicate={() => p.onDuplicate(profile)}
+                            onImported={p.onImported}
+                          />
+                        </Stack>
+                      </Paper>
+                    ))}
+                  </Stack>
+                ) : (
+                  <Paper variant="outlined" sx={{ overflowX: 'auto' }}>
+                    <Table aria-label="Температурные профили">
+                      <TableHead>
+                        <TableRow>
+                          <TableCell>Название</TableCell>
+                          <TableCell>Режим</TableCell>
+                          <TableCell>Датчик</TableCell>
+                          <TableCell>Время</TableCell>
+                          <TableCell>Действия</TableCell>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </Paper>
+                      </TableHead>
+                      <TableBody>
+                        {p.profiles.map((profile, index) => (
+                          <TableRow
+                            key={profile.id ?? index}
+                            selected={p.selected?.id === profile.id}
+                            sx={{ '& td': { py: 2.2 } }}
+                          >
+                            <TableCell>
+                              <Typography fontWeight={600}>
+                                {profile.name}
+                              </Typography>
+                              {p.selected?.id === profile.id && (
+                                <Typography variant="caption" color="primary">
+                                  Выбран
+                                </Typography>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {profile.mode === 'manual' ? 'Ручной' : 'Простой'}
+                            </TableCell>
+                            <TableCell>
+                              {profile.board ? 'На плате' : 'Камера'}
+                            </TableCell>
+                            <TableCell>
+                              {profileTime(
+                                profile,
+                                p.heatingRate,
+                                p.coolingRate,
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              <Stack direction="row" spacing={1}>
+                                <Button
+                                  disabled={
+                                    p.runActive || !props.serverReachable
+                                  }
+                                  onClick={() => {
+                                    p.onSelect(profile);
+                                    choose('overview');
+                                  }}
+                                >
+                                  Выбрать
+                                </Button>
+                                {p.canEdit && (
+                                  <Button
+                                    disabled={
+                                      p.runActive || !props.serverReachable
+                                    }
+                                    onClick={() => p.onEdit(profile, index)}
+                                  >
+                                    Изменить
+                                  </Button>
+                                )}
+                                <ProfileRowTools
+                                  profile={profile}
+                                  source={p.source}
+                                  canEdit={p.canEdit}
+                                  disabled={
+                                    p.runActive || !props.serverReachable
+                                  }
+                                  onDuplicate={() => p.onDuplicate(profile)}
+                                  onImported={p.onImported}
+                                />
+                              </Stack>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </Paper>
+                )}
               </Stack>
             ) : p.section === 'editor' ? (
               <Box
                 sx={{
                   display: 'grid',
-                  gridTemplateColumns: 'minmax(0,1.3fr) minmax(260px,1fr)',
+                  gridTemplateColumns: mobile
+                    ? 'minmax(0,1fr)'
+                    : 'minmax(0,1.3fr) minmax(260px,1fr)',
                   gap: 3,
                 }}
               >
-                <Box>{p.content}</Box>
+                <Box
+                  component="fieldset"
+                  disabled={!props.serverReachable}
+                  sx={{ border: 0, p: 0, m: 0, minWidth: 0 }}
+                >
+                  {p.draftDirty && (
+                    <Button
+                      color="warning"
+                      onClick={p.onResetDraft}
+                      sx={{ mb: 2 }}
+                    >
+                      Отменить изменения
+                    </Button>
+                  )}
+                  {p.content}
+                </Box>
                 <Paper
                   variant="outlined"
                   sx={{
-                    p: 2.5,
-                    height: 430,
-                    position: 'sticky',
+                    p: 2,
+                    height: mobile ? 260 : 430,
+                    position: mobile ? 'static' : 'sticky',
                     top: 0,
                     display: 'flex',
                     flexDirection: 'column',
@@ -908,11 +1302,129 @@ export function PcWorkspace(p: Props) {
                 </Paper>
               </Box>
             ) : (
-              <Box sx={{ maxWidth: 1100, mx: 'auto' }}>{p.content}</Box>
+              <Box
+                component="fieldset"
+                disabled={!props.serverReachable}
+                sx={{
+                  maxWidth: 1100,
+                  mx: 'auto',
+                  border: 0,
+                  p: 0,
+                  m: 0,
+                  minWidth: 0,
+                }}
+              >
+                {p.content}
+              </Box>
             )}
           </Box>
         </Stack>
       </Box>
+      {mobile && (
+        <>
+          <Box
+            component="nav"
+            aria-label="Мобильная навигация"
+            sx={{
+              position: 'fixed',
+              bottom: 0,
+              left: 0,
+              right: 0,
+              display: 'grid',
+              gridTemplateColumns: 'repeat(5,minmax(0,1fr))',
+              '& button': { minWidth: 0, minHeight: 64, p: 1 },
+              minHeight: 64,
+              pb: 'env(safe-area-inset-bottom)',
+              bgcolor: 'background.paper',
+              borderTop: 1,
+              borderColor: 'divider',
+              zIndex: 1102,
+            }}
+          >
+            <Button
+              aria-label="Печь"
+              title="Печь"
+              onClick={() => choose('overview')}
+              aria-current={isOverview ? 'page' : undefined}
+              sx={{ color: isOverview ? 'primary.main' : 'text.secondary' }}
+            >
+              <MobileNavIcon name="oven" />
+            </Button>
+            <Button
+              aria-label="Профили"
+              title="Профили"
+              onClick={() => choose('profiles')}
+              aria-current={
+                p.section === 'profiles' && page === 'profiles'
+                  ? 'page'
+                  : undefined
+              }
+              sx={{
+                color:
+                  p.section === 'profiles' && page === 'profiles'
+                    ? 'primary.main'
+                    : 'text.secondary',
+              }}
+            >
+              <MobileNavIcon name="profiles" />
+            </Button>
+            <Button
+              aria-label="История"
+              title="История"
+              onClick={() => p.onSection('history')}
+              aria-current={p.section === 'history' ? 'page' : undefined}
+              sx={{
+                color:
+                  p.section === 'history' ? 'primary.main' : 'text.secondary',
+              }}
+            >
+              <MobileNavIcon name="history" />
+            </Button>
+            <Button
+              aria-label="Настройки"
+              title="Настройки"
+              onClick={p.onSettings}
+              aria-current={p.section === 'settings' ? 'page' : undefined}
+              sx={{
+                color:
+                  p.section === 'settings' ? 'primary.main' : 'text.secondary',
+              }}
+            >
+              <MobileNavIcon name="settings" />
+            </Button>
+            <Button
+              aria-label="Ещё"
+              title="Ещё"
+              onClick={() => setMoreOpen(true)}
+              sx={{ color: 'text.secondary' }}
+            >
+              <MobileNavIcon name="more" />
+            </Button>
+          </Box>
+          <Dialog
+            open={moreOpen}
+            onClose={() => setMoreOpen(false)}
+            fullWidth
+            maxWidth="xs"
+          >
+            <DialogTitle>Меркурий</DialogTitle>
+            <DialogContent>
+              <Stack spacing={1}>
+                <Button
+                  onClick={() => {
+                    setMoreOpen(false);
+                    choose('fleet');
+                  }}
+                >
+                  Печи в сети
+                </Button>
+                <ActiveNotificationPanel value={activeNotifications} compact />
+                <Button onClick={() => setMoreOpen(false)}>Закрыть</Button>
+              </Stack>
+            </DialogContent>
+          </Dialog>
+        </>
+      )}
     </ThemeProvider>
   );
 }

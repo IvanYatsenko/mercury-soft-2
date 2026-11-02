@@ -1,3 +1,8 @@
+/**
+ * Модели печей и атомарные пользовательские настройки; отдельные записи объединяются с актуальным config.json.
+ */
+import './config.js';
+import { detectedBoardType } from './controller/boardIdentity.js';
 import { randomUUID } from 'node:crypto';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { rename, rm, writeFile } from 'node:fs/promises';
@@ -12,6 +17,8 @@ import type {
 import {
   defaultThermalSettings,
   validateThermalSettings,
+  ovenModelName,
+  supportsConnection,
 } from '@mercury/shared';
 
 const ovensDirectory = fileURLToPath(
@@ -24,6 +31,9 @@ const configPath = resolve(
   process.env.MERCURY_CONFIG_PATH ?? defaultConfigPath,
 );
 
+/**
+ * Проверяет полную перестановку восьми аппаратных выходов; дубликаты индексов не допускаются.
+ */
 function isOutputMap(value: unknown): boolean {
   if (typeof value !== 'object' || value === null || Array.isArray(value))
     return false;
@@ -38,6 +48,9 @@ function isOutputMap(value: unknown): boolean {
   );
 }
 
+/**
+ * Загружает JSON-модели и проверяет схемы выходов при старте, чтобы ошибочная модель не дошла до управления платой.
+ */
 function readOvenModels(): Map<OvenModel, OvenConfiguration> {
   const models = new Map<OvenModel, OvenConfiguration>();
   for (const name of readdirSync(ovensDirectory).filter((file) =>
@@ -70,6 +83,9 @@ function readOvenModels(): Map<OvenModel, OvenConfiguration> {
 
 const ovenModels = readOvenModels();
 
+/**
+ * Возвращает доступные модели и действующие скорости для выбора конфигурации и планирования профилей.
+ */
 export function listOvenModels(): {
   model: OvenModel;
   name: string;
@@ -78,11 +94,14 @@ export function listOvenModels(): {
 }[] {
   return Array.from(ovenModels.values(), (model) => ({
     model: model.model,
-    name: model.name,
+    name: ovenModelName(model.model, detectedBoardType()),
     ...getProfileRates(model),
   }));
 }
 
+/**
+ * Выбирает измеренные характеристики именно модели и подключения; при отсутствии измерений использует паспортные границы модели.
+ */
 export function getProfileRates(model: OvenConfiguration): {
   heatingRate: TemperatureRate;
   coolingRate: TemperatureRate;
@@ -104,17 +123,28 @@ export function getProfileRates(model: OvenConfiguration): {
   };
 }
 
+/**
+ * Находит измеренную характеристику для текущего варианта подключения без переноса её на другую электрическую конфигурацию.
+ */
 export function getMeasuredResponse(model: OvenConfiguration) {
+  // Все уже измеренные четыре характеристики относятся к новым платам (М301/М401).
+  if (detectedBoardType() === '220V') return undefined;
   const voltage = readOvenSelection()?.connectionVoltage;
   if (!voltage) return undefined;
   const response = model.measuredResponses?.[voltage] ?? model.measuredResponse;
   return response?.connectionVoltage === voltage ? response : undefined;
 }
 
+/**
+ * Возвращает загруженную конфигурацию модели; неизвестный номер не заменяет автоматически другой моделью.
+ */
 export function getOvenModel(model: OvenModel): OvenConfiguration | undefined {
   return ovenModels.get(model);
 }
 
+/**
+ * Проверяет существование модели и допустимость выбранного варианта подключения.
+ */
 export function isOvenSelection(value: unknown): value is OvenSelection {
   return (
     typeof value === 'object' &&
@@ -127,6 +157,9 @@ export function isOvenSelection(value: unknown): value is OvenSelection {
   );
 }
 
+/**
+ * Преобразует совместимые старые обозначения конфигурации в текущий формат без записи на диск.
+ */
 function normalizeOvenSelection(value: unknown): OvenSelection | null {
   if (isOvenSelection(value))
     return {
@@ -153,6 +186,9 @@ function normalizeOvenSelection(value: unknown): OvenSelection | null {
     : null;
 }
 
+/**
+ * Читает выбранную конфигурацию из config.json; неизвестная сохранённая модель требует исправления вместо молчаливой подмены.
+ */
 export function readOvenSelection(): OvenSelection | null {
   if (!existsSync(configPath)) return null;
   const parsed: unknown = JSON.parse(readFileSync(configPath, 'utf8'));
@@ -165,12 +201,17 @@ export function readOvenSelection(): OvenSelection | null {
   return selection;
 }
 
+/**
+ * Атомарно сохраняет модель и подключение; начальные параметры создаёт только при первом конфигурировании.
+ */
 export async function saveOvenSelection(
   value: unknown,
 ): Promise<OvenSelection> {
   if (!isOvenSelection(value)) {
-    throw new Error('Выбери модель печи и подключение 230 или 380 В.');
+    throw new Error('Выбери серию печи и подключение 220 или 380 В.');
   }
+  if (!supportsConnection(detectedBoardType(), value.connectionVoltage))
+    throw new Error('Старая плата поддерживает только 220 В.');
   const selected = {
     ovenModel: value.ovenModel,
     connectionVoltage: value.connectionVoltage,
@@ -190,9 +231,15 @@ export async function saveOvenSelection(
 }
 
 let pendingConfigWrite: Promise<void> = Promise.resolve();
+/**
+ * Дожидается уже поставленных в очередь атомарных записей перед выключением приложения.
+ */
 export async function flushConfigWrites() {
   await pendingConfigWrite;
 }
+/**
+ * Объединяет настройки регулятора с мощностями выбранной модели; параметры другой модели не применяются к текущей печи.
+ */
 export function readThermalSettings() {
   const parsed = existsSync(configPath)
     ? JSON.parse(readFileSync(configPath, 'utf8'))
@@ -210,6 +257,9 @@ export function readThermalSettings() {
     },
   });
 }
+/**
+ * Проверяет параметры регулирования и связывает их с текущей моделью, сохраняя остальные поля конфигурации.
+ */
 export async function saveThermalSettings(value: unknown) {
   const settings = validateThermalSettings(value);
   await updateConfig({
@@ -220,17 +270,26 @@ export async function saveThermalSettings(value: unknown) {
   return settings;
 }
 
+/**
+ * Читает разрешение поддержания 100 °C; отсутствие настройки означает выключенный режим.
+ */
 export function readKeepHeatEnabled(): boolean {
   if (!existsSync(configPath)) return false;
   return JSON.parse(readFileSync(configPath, 'utf8')).keepHeatEnabled === true;
 }
+/**
+ * Принимает только boolean и сохраняет разрешение поддержания; сама запись не включает нагрев.
+ */
 export async function saveKeepHeatEnabled(enabled: unknown): Promise<boolean> {
   if (typeof enabled !== 'boolean')
     throw new Error('Ожидается включено/выключено.');
   await updateConfig({ keepHeatEnabled: enabled });
   return enabled;
 }
-function updateConfig(patch: Record<string, unknown>): Promise<void> {
+/**
+ * Сериализует изменения поверх свежего JSON и заменяет файл через rename, предотвращая потерю соседних настроек при одновременных запросах.
+ */
+export function updateConfig(patch: Record<string, unknown>): Promise<void> {
   const operation = pendingConfigWrite.then(async () => {
     const current = existsSync(configPath)
       ? JSON.parse(readFileSync(configPath, 'utf8'))
@@ -243,7 +302,7 @@ function updateConfig(patch: Record<string, unknown>): Promise<void> {
       await writeFile(
         temporaryPath,
         JSON.stringify({ ...current, ...patch }, null, 2) + '\n',
-        'utf8',
+        { encoding: 'utf8', mode: 0o600 },
       );
       await rename(temporaryPath, configPath);
     } finally {
@@ -253,7 +312,29 @@ function updateConfig(patch: Record<string, unknown>): Promise<void> {
   pendingConfigWrite = operation.catch(() => {});
   return operation;
 }
+/**
+ * Возвращает постоянный каталог настроек для вспомогательных файлов, которые должны переживать обновление программы.
+ */
+export function configurationDirectory() {
+  return dirname(configPath);
+}
+/**
+ * Возвращает только валидную структуру соли и хеша PIN; исходный PIN на диск не записывается.
+ */
+export function readOperatorPinHash(): { salt: string; hash: string } | null {
+  const value = existsSync(configPath)
+    ? JSON.parse(readFileSync(configPath, 'utf8')).operatorPin
+    : null;
+  return value &&
+    typeof value.salt === 'string' &&
+    typeof value.hash === 'string'
+    ? value
+    : null;
+}
 
+/**
+ * Читает эталон оборотов в герцах с совместимостью прежнего ключа; неверные данные заменяет штатным значением.
+ */
 export function readFanReferenceHz(): number {
   if (!existsSync(configPath)) return 50;
   const parsed = JSON.parse(readFileSync(configPath, 'utf8'));
@@ -266,6 +347,9 @@ export function readFanReferenceHz(): number {
     : 50;
 }
 
+/**
+ * Проверяет и атомарно сохраняет эталон конвекции, не меняя остальные настройки.
+ */
 export async function saveFanReferenceHz(value: unknown): Promise<number> {
   if (
     typeof value !== 'number' ||
@@ -279,6 +363,9 @@ export async function saveFanReferenceHz(value: unknown): Promise<number> {
   return value;
 }
 
+/**
+ * Читает разрешение предупреждений оборотов; это не переключатель аварийной остановки профиля.
+ */
 export function readFanWarningsEnabled(): boolean {
   if (!existsSync(configPath)) return true;
   const parsed = JSON.parse(readFileSync(configPath, 'utf8'));
@@ -286,6 +373,9 @@ export function readFanWarningsEnabled(): boolean {
   return typeof value === 'boolean' ? value : true;
 }
 
+/**
+ * Сохраняет только boolean для предупреждений; температурные и аппаратные защиты от него не зависят.
+ */
 export async function saveFanWarningsEnabled(value: unknown): Promise<boolean> {
   if (typeof value !== 'boolean')
     throw new Error('Параметр предупреждений должен быть логическим.');
@@ -293,12 +383,18 @@ export async function saveFanWarningsEnabled(value: unknown): Promise<boolean> {
   return value;
 }
 
+/**
+ * Определяет разрешение программных сигналов ошибок независимо от сигналов старта и результата профиля.
+ */
 export function readSoundOnErrors(): boolean {
   if (!existsSync(configPath)) return true;
   const value = JSON.parse(readFileSync(configPath, 'utf8')).soundOnErrors;
   return typeof value === 'boolean' ? value : true;
 }
 
+/**
+ * Сохраняет настройку звука ошибок, не отключая аппаратную пищалку самой платы.
+ */
 export async function saveSoundOnErrors(value: unknown): Promise<boolean> {
   if (typeof value !== 'boolean')
     throw new Error('Параметр звуковых сигналов должен быть логическим.');
@@ -306,18 +402,27 @@ export async function saveSoundOnErrors(value: unknown): Promise<boolean> {
   return value;
 }
 
+/**
+ * Читает выбор пары программных температурных порогов, сохраняя отдельную аппаратную защиту.
+ */
 export function readThermalProtection(): boolean {
   if (!existsSync(configPath)) return true;
   const value = JSON.parse(readFileSync(configPath, 'utf8')).thermalProtection;
   return typeof value === 'boolean' ? value : true;
 }
 
+/**
+ * Возвращает общий порог и порог поддержания для выбранного положения термозащиты; это не рабочая уставка профиля.
+ */
 export function readProtectionLimits() {
   return readThermalProtection()
     ? { maximumTemperatureC: 285, holdingTemperatureC: 130 }
     : { maximumTemperatureC: 300, holdingTemperatureC: 150 };
 }
 
+/**
+ * Проверяет boolean и сохраняет выбор программных порогов; действующая процедура не должна менять его во время нагрева.
+ */
 export async function saveThermalProtection(value: unknown): Promise<boolean> {
   if (typeof value !== 'boolean')
     throw new Error('Параметр термозащиты должен быть логическим.');
@@ -325,6 +430,9 @@ export async function saveThermalProtection(value: unknown): Promise<boolean> {
   return value;
 }
 
+/**
+ * Определяет доступ оператора к редактированию профилей; по умолчанию роли объединены.
+ */
 export function readCombinedRoles(): boolean {
   if (!existsSync(configPath)) return true;
   const value = JSON.parse(
@@ -333,9 +441,79 @@ export function readCombinedRoles(): boolean {
   return typeof value === 'boolean' ? value : true;
 }
 
+/**
+ * Сохраняет разделение ролей независимо от текущей клиентской сессии PIN.
+ */
 export async function saveCombinedRoles(value: unknown): Promise<boolean> {
   if (typeof value !== 'boolean')
     throw new Error('Параметр объединения ролей должен быть логическим.');
   await updateConfig({ combineOperatorEngineerRoles: value });
   return value;
+}
+
+/**
+ * Возвращает имя и описание для экрана, сети и mDNS; не раскрывает настройки доступа.
+ */
+export function readOvenIdentity(): { name: string; description: string } {
+  const value = existsSync(configPath)
+    ? JSON.parse(readFileSync(configPath, 'utf8'))
+    : {};
+  return {
+    name: typeof value.ovenName === 'string' ? value.ovenName : '',
+    description:
+      typeof value.ovenDescription === 'string' ? value.ovenDescription : '',
+  };
+}
+/**
+ * Проверяет метаданные печи и сохраняет их без изменения модели, подключения и регулирования.
+ */
+export async function saveOvenIdentity(value: unknown) {
+  if (!value || typeof value !== 'object')
+    throw new Error('Укажи название и описание печи.');
+  const { name, description } = value as Record<string, unknown>;
+  if (
+    typeof name !== 'string' ||
+    typeof description !== 'string' ||
+    name.trim().length > 64 ||
+    description.trim().length > 240 ||
+    /[\u0000-\u0008\u000b\u000c\u000e-\u001f]/.test(name + description)
+  )
+    throw new Error('Название — до 64 символов, описание — до 240.');
+  await updateConfig({
+    ovenName: name.trim(),
+    ovenDescription: description.trim(),
+  });
+  return readOvenIdentity();
+}
+/**
+ * Читает ручные адреса соседних печей из постоянной конфигурации.
+ */
+export function readFleetAddresses(): string[] {
+  const value = existsSync(configPath)
+    ? JSON.parse(readFileSync(configPath, 'utf8')).knownOvenAddresses
+    : [];
+  return Array.isArray(value)
+    ? value.filter((v): v is string => typeof v === 'string').slice(0, 32)
+    : [];
+}
+/**
+ * Сохраняет список ручного обнаружения; сетевые ограничения проверяются на уровне каталога печей.
+ */
+export async function saveFleetAddresses(addresses: string[]) {
+  await updateConfig({
+    knownOvenAddresses: [...new Set(addresses)].slice(0, 32),
+  });
+}
+
+/** Push subscriptions and VAPID credentials are appliance configuration, not run history. */
+export function readWebPushConfiguration(): unknown {
+  return existsSync(configPath)
+    ? (JSON.parse(readFileSync(configPath, 'utf8')).webPush ?? null)
+    : null;
+}
+/**
+ * Сохраняет проверенную конфигурацию подписок вместе с актуальными настройками, не перезаписывая соседние поля.
+ */
+export async function saveWebPushConfiguration(value: unknown) {
+  await updateConfig({ webPush: value });
 }

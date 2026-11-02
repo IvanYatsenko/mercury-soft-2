@@ -11,7 +11,7 @@ from pathlib import Path
 
 root = Path('/home/pi/mercury-v3')
 usb = Path('/media/flash')
-base = 'http://127.0.0.1:3001/api/'
+base = 'http://127.0.0.1:8075/api/'
 
 def api(path):
     with urllib.request.urlopen(base + path, timeout=8) as response:

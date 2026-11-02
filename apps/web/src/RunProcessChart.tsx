@@ -1,3 +1,6 @@
+/**
+ * График процесса: заданная траектория и сглаженное представление измерений; исходные данные не изменяются.
+ */
 import type { TemperatureRate } from '@mercury/shared';
 import type { ProfilePlan } from '@mercury/shared';
 import { Box, Stack } from '@mui/material';
@@ -8,6 +11,7 @@ import {
   type RunSample,
 } from '@mercury/shared';
 
+/** Форматирует временную подпись графика процесса без растянутого текста SVG. */
 function formatTime(seconds: number) {
   const total = Math.max(0, Math.round(seconds));
   return (
@@ -23,6 +27,9 @@ function formatTime(seconds: number) {
   );
 }
 
+/**
+ * Отрисовывает RunProcessChart: График процесса: заданная траектория и сглаженное представление измерений; исходные данные не изменяются.
+ */
 export function RunProcessChart({
   profile,
   samples,
@@ -62,7 +69,13 @@ export function RunProcessChart({
   const left = pcLayout ? 64 : 42;
   const right = pcLayout ? 960 : 430;
   const bottom = pcLayout ? 400 : 132;
+  /**
+   * Переводит время точки в горизонтальную координату области графика.
+   */
   const x = (second: number) => left + (second / duration) * (right - left);
+  /**
+   * Переводит температуру в вертикальную координату с учётом инверсии оси экрана.
+   */
   const y = (temperature: number) =>
     bottom - (temperature / maximum) * (pcLayout ? 350 : 108);
   const planned = plan.points

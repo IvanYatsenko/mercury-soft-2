@@ -1,3 +1,6 @@
+/**
+ * Проверка, загрузка и установка универсального обновления с контрольной суммой; пользовательские данные вне пакета.
+ */
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { mkdir, readFile, writeFile, open } from 'node:fs/promises';
@@ -21,6 +24,9 @@ let state: {
 } = { phase: 'idle', currentVersion };
 let release: { version: string; archive: string; sha256: string } | undefined;
 let downloaded: string | undefined;
+/**
+ * Возвращает этап обновления для опроса интерфейсом; установка запускается отдельной командой.
+ */
 export function updateStatus() {
   if (state.phase === 'idle' || state.phase === 'installing') {
     try {
@@ -38,9 +44,27 @@ export function updateStatus() {
   }
   return state;
 }
+/**
+ * Проверяет, выполняется ли уже операция обновления, чтобы исключить параллельную установку.
+ */
 export function updateBusy() {
-  return ['downloading', 'ready', 'installing'].includes(state.phase);
+  return ['downloading', 'installing'].includes(state.phase);
 }
+/** Блокирует изменения со всех клиентов, оставляя чтение статуса и команды установщика доступными. */
+export function updateBlocksRequest(
+  method: string,
+  path: string,
+  phase = state.phase,
+) {
+  return (
+    ['downloading', 'installing'].includes(phase) &&
+    !['GET', 'HEAD', 'OPTIONS'].includes(method) &&
+    !/^\/api\/software-update(?:\/|$)/i.test(path)
+  );
+}
+/**
+ * Сравнивает числовые части версии, а не лексикографический порядок строк.
+ */
 export function newerVersion(next: string, current: string) {
   const a = next.split('.').map(Number),
     b = current.split('.').map(Number);
@@ -49,6 +73,9 @@ export function newerVersion(next: string, current: string) {
   }
   return false;
 }
+/**
+ * Проверяет версию, имя архива и формат SHA-256; размер загрузки ограничивается отдельно.
+ */
 export function validateRelease(
   value: unknown,
 ): asserts value is { version: string; archive: string; sha256: string } {
@@ -63,8 +90,11 @@ export function validateRelease(
   )
     throw new Error('Неверный манифест обновления.');
 }
+/**
+ * Запрашивает описание выпуска с сервера обновлений; не устанавливает пакет.
+ */
 export async function checkSoftwareUpdate() {
-  if (updateBusy() || state.phase === 'checking')
+  if (updateBusy() || state.phase === 'checking' || state.phase === 'ready')
     throw new Error('Обновление уже выполняется.');
   state = { phase: 'checking', currentVersion };
   try {
@@ -73,8 +103,7 @@ export async function checkSoftwareUpdate() {
       throw new Error('Сервер обновлений должен использовать HTTPS.');
     const response = await fetch(url, { signal: AbortSignal.timeout(15000) });
     if (!response.ok) throw new Error(`Сервер обновлений: ${response.status}`);
-    const text = await response.text();
-    if (text.length > 16384) throw new Error('Слишком большой манифест.');
+    const text = await readManifest(response);
     const value: unknown = JSON.parse(text);
     validateRelease(value);
     release = value;
@@ -90,9 +119,42 @@ export async function checkSoftwareUpdate() {
   }
   return state;
 }
-export async function downloadSoftwareUpdate() {
+/** Ограничивает манифест 16 КиБ до накопления тела в памяти, включая chunked-ответы. */
+async function readManifest(response: Response) {
+  if (!response.body) throw new Error('Пустой манифест обновления.');
+  const reader = response.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let bytes = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      bytes += value.byteLength;
+      if (bytes > 16384) {
+        await reader.cancel();
+        throw new Error('Слишком большой манифест.');
+      }
+      chunks.push(value);
+    }
+    return Buffer.concat(chunks).toString('utf8');
+  } finally {
+    reader.releaseLock();
+  }
+}
+/**
+ * Потоково загружает архив с проверкой размера и SHA-256 перед допуском к установке.
+ */
+export async function downloadSoftwareUpdate(confirmation?: {
+  confirmed?: unknown;
+  version?: unknown;
+}) {
   if (state.phase !== 'available' || !release)
     throw new Error('Сначала проверь обновления.');
+  if (
+    confirmation?.confirmed !== true ||
+    confirmation.version !== release.version
+  )
+    throw new Error('Подтвердите загрузку выбранной версии обновления.');
   if (process.platform !== 'linux' || process.arch !== 'arm64')
     throw new Error('Установка предназначена для Raspberry ARM64.');
   state = { phase: 'downloading', currentVersion, version: release.version };
@@ -132,6 +194,9 @@ export async function downloadSoftwareUpdate() {
   })();
   return state;
 }
+/**
+ * Передаёт проверенный пакет установщику только при допустимом состоянии печи.
+ */
 export async function installSoftwareUpdate() {
   if (state.phase !== 'ready' || !downloaded)
     throw new Error('Пакет ещё не готов.');

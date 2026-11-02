@@ -1,3 +1,6 @@
+/**
+ * Последовательное завершение приложения перед командой питания плате; ОС Raspberry отдельно не выключается.
+ */
 import { readFile } from 'node:fs/promises';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
@@ -7,13 +10,20 @@ import { flushConfigWrites } from './ovenSettings.js';
 import { profileRunner } from './profileRunner.js';
 import { checkpointDatabase } from './database.js';
 import { powerOffController } from './controller/checkControllerConnection.js';
+import { pinRecovery } from './pinRecovery.js';
 
 const execute = promisify(execFile);
 let shuttingDown = false;
+/**
+ * Возвращает признак начатого штатного завершения, используемый блокировкой новых команд.
+ */
 export function isShuttingDown() {
   return shuttingDown;
 }
 
+/**
+ * Завершает процессы и запись разрешённых данных перед окончательной командой питания плате.
+ */
 export async function handleRaspberryShutdown(state: number | undefined) {
   if (
     shuttingDown ||
@@ -30,8 +40,22 @@ export async function handleRaspberryShutdown(state: number | undefined) {
   shuttingDown = true;
   try {
     console.log('Raspberry shutdown: controller requested shutdown');
+    const recovery = pinRecovery.beginShutdown();
+    if (recovery) {
+      const held = await powerOffController(config.serialPort, 30);
+      if (!held.success) {
+        pinRecovery.complete();
+        throw new Error(
+          held.error ?? 'Не удалось подготовить восстановление PIN.',
+        );
+      }
+    }
     await flushConfigWrites();
     if (profileRunner.active()) await profileRunner.stop();
+    if (recovery) {
+      await recovery;
+      await flushConfigWrites();
+    }
     await checkpointDatabase();
     const result = await powerOffController(config.serialPort, 30);
     if (!result.success)

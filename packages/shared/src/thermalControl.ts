@@ -1,3 +1,6 @@
+/**
+ * Общие типы и границы параметров регулирования; данные проверяются до применения на сервере.
+ */
 export const heatOutputs = [
   'topHeater',
   'bottomHeater',
@@ -33,6 +36,9 @@ export const defaultThermalSettings: ThermalSettings = {
   },
 };
 
+/**
+ * Проверяет конечность и диапазоны параметров перед использованием регулятором.
+ */
 export function validateThermalSettings(value: unknown): ThermalSettings {
   if (!value || typeof value !== 'object')
     throw new Error('Неверные настройки регулирования.');

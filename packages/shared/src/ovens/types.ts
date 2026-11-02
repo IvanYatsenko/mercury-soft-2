@@ -1,3 +1,4 @@
+/** Контракты аппаратных возможностей моделей и вариантов подключения. */
 /** New models can be added as JSON files without changing this type. */
 export type OvenModel = `${number}`;
 export type ConnectionVoltage = '230' | '380';

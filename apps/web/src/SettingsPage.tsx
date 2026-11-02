@@ -1,3 +1,6 @@
+/**
+ * Компоновка настроек с разделением обычного и внутреннего доступа.
+ */
 import {
   Card,
   Alert,
@@ -7,11 +10,18 @@ import {
   Stack,
   Switch,
   Typography,
+  useMediaQuery,
 } from '@mui/material';
 import { KeyboardTextField } from './OnScreenKeyboard';
 import { OvenSelectionForm, type SelectionDraft } from './OvenSelectionForm';
 import { ElementTestPanel } from './ElementTestPanel';
 import { SoftwareUpdatePanel } from './SoftwareUpdatePanel';
+import { OvenIdentityPanel } from './FleetPage';
+import type { OvenIdentity } from './useOvenIdentity';
+import { AuxiliaryCoolingPanel } from './AuxiliaryCoolingPanel';
+import { ElementRuntimePanel } from './ElementRuntimePanel';
+import { ChangePinPanel } from './ChangePinPanel';
+import { CalibrationPanel } from './CalibrationPanel';
 import type { OvenModel, OvenSelection } from '@mercury/shared';
 
 export interface OvenSettings {
@@ -23,6 +33,8 @@ export interface OvenSettings {
 }
 
 type SettingsPageProps = {
+  identity: OvenIdentity;
+  onIdentitySaved: (identity: OvenIdentity) => void;
   advancedAccess: boolean;
   combinedRoles: boolean;
   combinedRolesChanging: boolean;
@@ -57,7 +69,12 @@ type SettingsPageProps = {
   runActive: boolean;
 };
 
+/**
+ * Отрисовывает SettingsPage: Компоновка настроек с разделением обычного и внутреннего доступа.
+ */
 export function SettingsPage({
+  identity,
+  onIdentitySaved,
   advancedAccess,
   combinedRoles,
   combinedRolesChanging,
@@ -91,6 +108,10 @@ export function SettingsPage({
   onHistory,
   runActive,
 }: SettingsPageProps) {
+  const desktop =
+    useMediaQuery('(min-width: 900px)') &&
+    !/Electron\//i.test(navigator.userAgent);
+  const localPanel = /Electron\//i.test(navigator.userAgent);
   return (
     <Stack spacing={1.25}>
       <Stack direction="row" alignItems="center" spacing={1}>
@@ -104,12 +125,21 @@ export function SettingsPage({
         <Typography variant="h6">Настройки печи</Typography>
       </Stack>
 
-      {advancedAccess && (
+      {!desktop && (
         <Button variant="outlined" onClick={onHistory} sx={{ minHeight: 44 }}>
           История запусков
         </Button>
       )}
       <SoftwareUpdatePanel disabled={runActive} />
+      <OvenIdentityPanel
+        value={identity}
+        onSaved={onIdentitySaved}
+        advanced={advancedAccess}
+      />
+      <AuxiliaryCoolingPanel
+        disabled={runActive}
+        connected={controllerConnected}
+      />
       <Card variant="outlined">
         <CardContent>
           <Stack spacing={0.5}>
@@ -186,45 +216,43 @@ export function SettingsPage({
             <Typography variant="body2">
               Текущая частота: {fanHz == null ? '—' : fanHz + ' Гц'}
             </Typography>
-            {advancedAccess && (
-              <>
-                <KeyboardTextField
-                  label="Эталонная частота, Гц"
-                  type="number"
-                  value={String(settings.fanReferenceHz)}
-                  onChange={(value) =>
-                    onChange({ ...settings, fanReferenceHz: Number(value) })
-                  }
-                />
-                <Button
-                  variant="outlined"
-                  onClick={() =>
-                    fanHz != null &&
-                    onChange({ ...settings, fanReferenceHz: fanHz })
-                  }
-                  disabled={
-                    !settings.convectionEnabled ||
-                    fanHz == null ||
-                    fanHz < 1 ||
-                    savingFanReference
-                  }
-                >
-                  Использовать текущую частоту
-                </Button>
-                <Button
-                  variant="contained"
-                  onClick={onConfirmFanReference}
-                  disabled={
-                    savingFanReference ||
-                    !Number.isFinite(settings.fanReferenceHz) ||
-                    settings.fanReferenceHz < 1 ||
-                    settings.fanReferenceHz > 1000
-                  }
-                >
-                  Подтвердить эталон
-                </Button>
-              </>
-            )}
+            <>
+              <KeyboardTextField
+                label="Эталонная частота, Гц"
+                type="number"
+                value={String(settings.fanReferenceHz)}
+                onChange={(value) =>
+                  onChange({ ...settings, fanReferenceHz: Number(value) })
+                }
+              />
+              <Button
+                variant="outlined"
+                onClick={() =>
+                  fanHz != null &&
+                  onChange({ ...settings, fanReferenceHz: fanHz })
+                }
+                disabled={
+                  !settings.convectionEnabled ||
+                  fanHz == null ||
+                  fanHz < 1 ||
+                  savingFanReference
+                }
+              >
+                Использовать текущую частоту
+              </Button>
+              <Button
+                variant="contained"
+                onClick={onConfirmFanReference}
+                disabled={
+                  savingFanReference ||
+                  !Number.isFinite(settings.fanReferenceHz) ||
+                  settings.fanReferenceHz < 1 ||
+                  settings.fanReferenceHz > 1000
+                }
+              >
+                Подтвердить эталон
+              </Button>
+            </>
             <FormControlLabel
               control={
                 <Switch
@@ -285,6 +313,9 @@ export function SettingsPage({
           </Stack>
         </CardContent>
       </Card>
+      {localPanel && <CalibrationPanel disabled={runActive} />}
+      <ChangePinPanel />
+      <ElementRuntimePanel advanced={advancedAccess} disabled={runActive} />
     </Stack>
   );
 }

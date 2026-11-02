@@ -1,3 +1,6 @@
+/**
+ * Редактор целочисленных точек и полок; окончательная валидация профиля выполняется также сервером.
+ */
 import type { TemperatureRate } from '@mercury/shared';
 import {
   Box,
@@ -41,6 +44,9 @@ type ProfileEditorPageProps = {
   coolingRate?: TemperatureRate;
 };
 
+/**
+ * Отрисовывает ProfileEditorPage: Редактор целочисленных точек и полок; окончательная валидация профиля выполняется также сервером.
+ */
 export function ProfileEditorPage({
   profile,
   onChange,
@@ -62,6 +68,7 @@ export function ProfileEditorPage({
       error instanceof Error ? error.message : 'Исправьте значения профиля.';
   }
 
+  /** Обновляет отдельную ручную точку в копии редактируемого профиля. */
   const updatePoint = (
     index: number,
     field: keyof TemperatureValue,
@@ -73,6 +80,7 @@ export function ProfileEditorPage({
     onChange({ ...profile, points });
   };
 
+  /** Обновляет отдельную полку в копии редактируемого профиля. */
   const updateShelf = (
     index: number,
     field: keyof TemperatureValue,
@@ -92,6 +100,7 @@ export function ProfileEditorPage({
     onChange({ ...profile, shelves });
   };
 
+  /** Включает повторы с допустимым целым значением либо возвращает единичный цикл. */
   const toggleRepeat = (enabled: boolean) => {
     const updatedProfile = { ...profile };
     if (enabled) updatedProfile.repeat = profile.repeat ?? 1;

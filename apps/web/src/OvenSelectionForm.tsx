@@ -1,5 +1,9 @@
+/**
+ * Выбор модели, платы и подключения; не является проверкой реальной проводки.
+ */
 import { Box, Button, Stack, Typography } from '@mui/material';
 import type { ConnectionVoltage, OvenModel } from '@mercury/shared';
+import { ovenModelName, supportsConnection } from '@mercury/shared';
 
 export type SelectionDraft = {
   ovenModel: OvenModel | null;
@@ -15,6 +19,9 @@ type OvenSelectionFormProps = {
   detectedBoardType?: '220V' | '230V' | '380V' | 'unknown' | undefined;
 };
 
+/**
+ * Отрисовывает OvenSelectionForm: Выбор модели, платы и подключения; не является проверкой реальной проводки.
+ */
 export function OvenSelectionForm({
   models,
   value,
@@ -26,7 +33,7 @@ export function OvenSelectionForm({
   return (
     <Stack spacing={1.25}>
       <Typography variant="subtitle2" fontWeight={700}>
-        Модель печи
+        Серия печи — модель определяется по плате
       </Typography>
       <Box
         sx={{
@@ -42,7 +49,9 @@ export function OvenSelectionForm({
             onClick={() => onChange({ ...value, ovenModel: model })}
             sx={{ minHeight: 44 }}
           >
-            {name}
+            {detectedBoardType && detectedBoardType !== 'unknown'
+              ? ovenModelName(model, detectedBoardType)
+              : name}
           </Button>
         ))}
       </Box>
@@ -61,10 +70,11 @@ export function OvenSelectionForm({
           onClick={() => onChange({ ...value, connectionVoltage: '230' })}
           sx={{ minHeight: 44 }}
         >
-          230 В
+          220 В
         </Button>
         <Button
           variant={value.connectionVoltage === '380' ? 'contained' : 'outlined'}
+          disabled={detectedBoardType === '220V'}
           onClick={() => onChange({ ...value, connectionVoltage: '380' })}
           sx={{ minHeight: 44 }}
         >
@@ -73,13 +83,27 @@ export function OvenSelectionForm({
       </Box>
       {detectedBoardType === '220V' && (
         <Typography variant="body2" color="text.secondary">
-          Старая плата 220 В определена автоматически.
+          Старая плата: М300/М400, только 220 В.
+        </Typography>
+      )}
+      {(detectedBoardType === '230V' || detectedBoardType === '380V') && (
+        <Typography variant="body2" color="text.secondary">
+          Новая плата: М301/М401. Выберите фактическое подключение 220 или 380
+          В.
         </Typography>
       )}
       <Button
         fullWidth
         variant="contained"
-        disabled={!value.ovenModel || !value.connectionVoltage || saving}
+        disabled={
+          !value.ovenModel ||
+          !value.connectionVoltage ||
+          !supportsConnection(
+            detectedBoardType,
+            value.connectionVoltage ?? '',
+          ) ||
+          saving
+        }
         onClick={onSave}
         sx={{ minHeight: 44 }}
       >

@@ -1,5 +1,10 @@
+/**
+ * Единственная очередь команд платы, телеметрия, инициализация и звуковые сигналы. Не обращаться к порту в обход очереди.
+ */
 import { createRequire } from 'node:module';
 import { config } from '../config.js';
+import { rememberBoardType } from './boardIdentity.js';
+import { correctTemperature } from '../temperatureCalibration.js';
 import {
   getOvenModel,
   readOvenSelection,
@@ -9,6 +14,57 @@ import {
 import { heatOutputs } from '@mercury/shared';
 import { virtualBoard } from './virtualBoard.js';
 import { LampOutputProtection } from './lampOutputProtection.js';
+import { observeElementRuntime } from '../elementRuntime.js';
+import { raspberryCoolingStatus } from '../raspberryCooling.js';
+import {
+  coolingDemand,
+  controllerTemperature,
+  controllerFanValues,
+} from '../coolingDemand.js';
+
+let controllerFanTestUntil = 0;
+let controllerFanAutomatic: boolean | undefined;
+let controllerCooling = {
+  temperatureC: null as number | null,
+  enabled: null as boolean | null,
+  error: '',
+};
+/**
+ * Возвращает состояние охлаждения электроники контрольной платы.
+ */
+export function controllerCoolingStatus() {
+  return { ...controllerCooling };
+}
+/**
+ * Применяет гистерезис охлаждения по внутренней температуре контрольной платы.
+ */
+async function updateControllerCooling(
+  readData: unknown,
+  protocol: number,
+  call: (values: number[]) => unknown | Promise<unknown>,
+) {
+  const temperatureC = controllerTemperature(readData, protocol);
+  controllerFanAutomatic = coolingDemand(
+    temperatureC,
+    controllerFanAutomatic,
+    50,
+    40,
+  );
+  const wanted = controllerFanAutomatic || Date.now() < controllerFanTestUntil;
+  try {
+    const original = await call([]);
+    const next = controllerFanValues(original, wanted);
+    if (Number((original as number[])[5]) !== next[5]) await call(next);
+    controllerCooling = { temperatureC, enabled: wanted, error: '' };
+  } catch (error) {
+    controllerCooling = {
+      temperatureC,
+      enabled: null,
+      error: getErrorMessage(error),
+    };
+    // An auxiliary output error must not hide the actual board state or disable cooling elsewhere.
+  }
+}
 
 const lampProtection = new LampOutputProtection();
 
@@ -46,6 +102,8 @@ export type ControllerConnectionCheck = {
 };
 
 type OvenTelemetry = {
+  rawChamberTemperatureC: number | null;
+  rawBoardTemperatureC: number | null;
   chamberTemperatureC: number | null;
   boardTemperatureC: number | null;
   convectionFanHz: number | null;
@@ -55,6 +113,9 @@ type OvenTelemetry = {
   convection: boolean | null;
 };
 
+/**
+ * Декодирует регистры в именованные показания; исходные термопары сохраняются отдельно от калиброванных значений.
+ */
 function decodeTelemetry(
   readData: unknown,
   hv: unknown,
@@ -69,6 +130,7 @@ function decodeTelemetry(
       : model?.outputs.singlePhase;
   const data = Array.isArray(readData) ? readData : [];
   const heaters = Array.isArray(hv) ? hv : [];
+  /** Переводит регистр термопары в градусы с учётом формата конкретной платы. */
   const temperature = (index: number): number | null => {
     const value = data[index];
     if (!Number.isFinite(value)) return null;
@@ -78,6 +140,7 @@ function decodeTelemetry(
           24.5809 * (((data[0] / 32) * 0.039986) ** 1.01 + value / 128),
         );
   };
+  /** Определяет активность выходов из битового представления регистров. */
   const active = (names: string[]): boolean | null => {
     if (!outputs || !Array.isArray(hv)) return null;
     return names.some((name) => {
@@ -86,10 +149,20 @@ function decodeTelemetry(
     });
   };
   return {
-    chamberTemperatureC: temperature(
+    rawChamberTemperatureC: temperature(
       model?.sensors.chamberTemperature.index ?? 2,
     ),
-    boardTemperatureC: temperature(model?.sensors.boardTemperature.index ?? 1),
+    rawBoardTemperatureC: temperature(
+      model?.sensors.boardTemperature.index ?? 1,
+    ),
+    chamberTemperatureC: correctTemperature(
+      temperature(model?.sensors.chamberTemperature.index ?? 2),
+      'chamber',
+    ),
+    boardTemperatureC: correctTemperature(
+      temperature(model?.sensors.boardTemperature.index ?? 1),
+      'board',
+    ),
     convectionFanHz: Number.isFinite(data[3]) ? data[3] : null,
     lamps: active(['infrared', 'infrared2', 'infrared3']),
     heaters: active(['topHeater', 'bottomHeater']),
@@ -117,10 +190,13 @@ const testElementLabels = {
   infrared: 'Инфракрасная лампа 1',
   infrared2: 'Инфракрасная лампа 2',
   infrared3: 'Инфракрасная лампа 3',
-  f1: 'Вентилятор охлаждения 1',
+  f1: 'Вентиляторы охлаждения',
   f2: 'Вентилятор охлаждения 2',
 } as const;
 
+/**
+ * Строит список проверок по возможностям выбранной модели и версии платы.
+ */
 export function listTestElements() {
   const selection = readOvenSelection();
   const model = selection && getOvenModel(selection.ovenModel);
@@ -137,6 +213,9 @@ export function listTestElements() {
     }));
 }
 
+/**
+ * Определяет конфигурацию с общим выходом вентиляторов, чтобы не предлагать неработающую вторую проверку.
+ */
 function hasParallelCoolingFans(
   model: string,
   boardType: ControllerConnectionCheck['boardType'],
@@ -147,14 +226,58 @@ function hasParallelCoolingFans(
   );
 }
 
+/**
+ * Отправляет короткий сигнал готовности после инициализации платы.
+ */
 export async function playBoardStartupSound() {
   return playBoardSignal([[40, 0]]);
 }
+/**
+ * Отправляет подтверждение восстановления через тот же сериализованный транспорт платы.
+ */
+export async function playBoardRecoverySound() {
+  return runExclusive(async () => {
+    const simulated = isSimulationMode();
+    const active = simulated
+      ? undefined
+      : getOrCreateSession(config.serialPort);
+    /** Выполняет команду пищалки через текущий сериализованный транспорт. */
+    const call = (name: string, args: number[] = []) =>
+      simulated
+        ? Promise.resolve(virtualBoard.call(name, args))
+        : active!.client.call(name, args, undefined, 1200);
+    const state = readState(await call('stat'));
+    if (!(state & 32) || state & (4 | 8 | 64 | 128))
+      throw Error('Нет штатного выключения для сигнала восстановления.');
+    /** Записывает значение выхода пищалки при подтверждении восстановления. */
+    const write = async (on: boolean) => {
+      const values = await call('setLV');
+      if (!Array.isArray(values) || ![6, 8].includes(values.length))
+        throw Error('Неверный ответ setLV.');
+      const next = values.map(Number);
+      next[3] = Number(on);
+      await call('setLV', next);
+    };
+    try {
+      await write(true);
+      await new Promise((resolve) => setTimeout(resolve, 700));
+    } finally {
+      const after = readState(await call('stat'));
+      if (!(after & (4 | 8 | 64 | 128))) await write(false);
+    }
+  });
+}
+/**
+ * Формирует итоговую последовательность сигналов; ожидание её завершения отделяет следующий нагрев от предыдущего цикла.
+ */
 export async function playBoardCompletionSound(matchesProfile: boolean) {
   return playBoardSignal(
     Array.from({ length: matchesProfile ? 2 : 3 }, () => [700, 250]),
   );
 }
+/**
+ * Подаёт сигнал ошибки с учётом настройки звуковых оповещений.
+ */
 export async function playBoardErrorSound() {
   return playBoardSignal(
     [
@@ -169,12 +292,18 @@ export async function playBoardErrorSound() {
 let doorWarning = false;
 let doorWarningGeneration = 0;
 let doorWarningTimer: ReturnType<typeof setTimeout> | undefined;
+/**
+ * Управляет повторяющимся звуковым предупреждением открытой двери; повторный вызов не создаёт второй таймер.
+ */
 export function setDoorWarning(open: boolean) {
   if (open === doorWarning) return;
   doorWarning = open;
   const generation = ++doorWarningGeneration;
   clearTimeout(doorWarningTimer);
   if (!open) return;
+  /**
+   * Подаёт очередной импульс предупреждения, пока условие остаётся активным.
+   */
   const pulse = async () => {
     try {
       await playBoardSignal(
@@ -194,6 +323,9 @@ export function setDoorWarning(open: boolean) {
   };
   void pulse();
 }
+/**
+ * Выполняет последовательность включений пищалки с проверкой доступности платы.
+ */
 async function playBoardSignal(
   rhythm: number[][],
   shouldPlay = () => true,
@@ -205,10 +337,12 @@ async function playBoardSignal(
     const activeSession = simulated
       ? undefined
       : getOrCreateSession(config.serialPort);
+    /** Отправляет очередную команду сигнала через общую очередь платы. */
     const call = async (name: string, args: number[] = []) =>
       simulated
         ? virtualBoard.call(name, args)
         : activeSession!.client.call(name, args, undefined, 1200);
+    /** Проверяет возможность продолжать сигнал при изменении связи или состояния платы. */
     const healthy = async () => {
       const state = readState(await call('stat'));
       return (
@@ -224,6 +358,7 @@ async function playBoardSignal(
     if (!Array.isArray(original) || original.length !== 6)
       throw new Error('Неверный ответ setLV.');
     if (Number(original[3]) !== 0) return;
+    /** Переключает выход пищалки для очередного импульса последовательности. */
     const setBuzzer = async (enabled: boolean) => {
       const values = await call('setLV');
       if (!Array.isArray(values) || values.length !== 6)
@@ -253,10 +388,16 @@ let activeCheck: Promise<ControllerConnectionCheck> | undefined;
 let activeOperation: Promise<unknown> | undefined;
 let convectionEnabled = true;
 let profileControl = false;
+/**
+ * Переключает принадлежность выходов исполнителю профиля, исключая конфликт ручных проверок.
+ */
 export function setProfileControl(active: boolean) {
   profileControl = active;
   if (active) convectionEnabled = true;
 }
+/**
+ * Обновляет тепловое состояние виртуальной платы вне активного профиля.
+ */
 export function advanceIdleSimulation(seconds: number) {
   if (!isSimulationMode()) return;
   const selection = readOvenSelection();
@@ -271,6 +412,9 @@ export function advanceIdleSimulation(seconds: number) {
   virtualBoard.advance(seconds, false, cooling);
 }
 
+/**
+ * Читает телеметрию для регулирования через общую очередь команд.
+ */
 export async function readProfileController() {
   return runExclusive(async () => {
     const simulated = isSimulationMode();
@@ -301,6 +445,9 @@ export async function readProfileController() {
   });
 }
 
+/**
+ * Применяет рассчитанные выходы через общий транспорт и защиту ламп; вызывающий код отвечает за проверку режима процесса.
+ */
 export async function applyProfileOutputs(
   heating: boolean,
   cooling: boolean,
@@ -315,6 +462,14 @@ export async function applyProfileOutputs(
       ? undefined
       : getOrCreateSession(config.serialPort);
     if (!simulated && !activeSession) throw new Error('Нет связи с платой.');
+    if (
+      (heating || Object.values(heatChannels ?? {}).some(Boolean)) &&
+      activeSession?.boardType === '220V' &&
+      selection?.connectionVoltage === '380'
+    )
+      throw new Error(
+        'Старая плата поддерживает только 220 В. Исправьте подключение в настройках.',
+      );
     const outputs =
       activeSession?.boardType === '380V'
         ? model.outputs.threePhase
@@ -403,6 +558,9 @@ export async function applyProfileOutputs(
   });
 }
 
+/**
+ * Применяет разрешённое состояние конвекционного вентилятора с учётом текущего режима.
+ */
 async function applyConvection(
   hv: unknown,
   boardType: ControllerConnectionCheck['boardType'],
@@ -426,6 +584,9 @@ async function applyConvection(
   return values;
 }
 
+/**
+ * Сохраняет выбор конвекции и применяет его к доступной плате.
+ */
 export async function setConvectionEnabled(
   enabled: boolean,
 ): Promise<ControllerConnectionCheck> {
@@ -500,6 +661,9 @@ export async function initializeControllerConnection(
   });
 }
 
+/**
+ * Возвращает или инициирует актуальную проверку связи без создания конкурирующего обмена.
+ */
 export async function checkControllerConnection(
   port = config.serialPort,
 ): Promise<ControllerConnectionCheck> {
@@ -508,6 +672,9 @@ export async function checkControllerConnection(
   return runConnectionCheck(() => performConnectionCheck(port));
 }
 
+/**
+ * Выполняет одну последовательную проверку состояния платы и обновляет снимок связи.
+ */
 async function runConnectionCheck(
   check: () => Promise<ControllerConnectionCheck>,
 ): Promise<ControllerConnectionCheck> {
@@ -521,6 +688,9 @@ async function runConnectionCheck(
   }
 }
 
+/**
+ * Сериализует обмен с платой: одновременные запросы не должны перемешивать ответы протокола.
+ */
 async function runExclusive<T>(operation: () => Promise<T>): Promise<T> {
   const previous = activeOperation?.catch(() => undefined) ?? Promise.resolve();
   const current = previous.then(operation);
@@ -539,6 +709,7 @@ export async function testOvenElement(name: unknown): Promise<{
   simulated: boolean;
   error?: string;
 }> {
+  if (name === 'controllerCooling') return testControllerCooling();
   if (profileControl)
     return {
       success: false,
@@ -590,6 +761,7 @@ export async function testOvenElement(name: unknown): Promise<{
       const index = outputs[name];
       if (index === undefined || index === 0)
         throw new Error('Выход элемента не найден.');
+      /** Отправляет команду ограниченной проверки через общий транспорт вместо отдельного соединения. */
       const call = (values: number[]) =>
         simulated
           ? virtualBoard.call('setHV', values)
@@ -650,6 +822,47 @@ export async function testOvenElement(name: unknown): Promise<{
   });
 }
 
+/**
+ * Проверяет выход охлаждения контрольной платы с последующим восстановлением штатного управления.
+ */
+async function testControllerCooling() {
+  return runExclusive(async () => {
+    const simulated = isSimulationMode();
+    const activeSession = simulated
+      ? undefined
+      : getOrCreateSession(config.serialPort);
+    /**
+     * Читает актуальный серверный снимок для этого экрана; обработку результата выполняет владелец состояния.
+     */
+    const read = async () =>
+      simulated
+        ? simulatedCheck()
+        : activeSession
+          ? readController(activeSession)
+          : null;
+    try {
+      if (profileControl)
+        throw new Error('Останови профиль перед проверкой вентиляторов.');
+      const status = await read();
+      if (!status?.connected || !status.ready)
+        throw new Error('Плата не готова к проверке.');
+      controllerFanTestUntil = Date.now() + ELEMENT_TEST_DURATION_MS;
+      do {
+        const current = await read();
+        if (!current?.ready || controllerCooling.error)
+          throw new Error(controllerCooling.error || 'Плата не готова.');
+        await new Promise((resolve) => setTimeout(resolve, 400));
+      } while (Date.now() < controllerFanTestUntil);
+      return { success: true, simulated };
+    } catch (error) {
+      return { success: false, simulated, error: getErrorMessage(error) };
+    } finally {
+      controllerFanTestUntil = 0;
+      await read();
+    }
+  });
+}
+
 /** Sends the controller-board poweroff command without shutting down the Raspberry Pi. */
 export async function powerOffController(
   port = config.serialPort,
@@ -696,6 +909,9 @@ export async function powerOffController(
   });
 }
 
+/**
+ * Читает состояние и телеметрию; при необходимости проходит разрешённую инициализацию STARTING.
+ */
 async function performConnectionCheck(
   port: string,
 ): Promise<ControllerConnectionCheck> {
@@ -718,6 +934,9 @@ async function performConnectionCheck(
   return readController(activeSession);
 }
 
+/**
+ * Создаёт транспорт один раз и повторно использует его до закрытия или сбоя.
+ */
 function getOrCreateSession(port: string): ControllerSession | undefined {
   if (session && session.port !== port) {
     throw new Error(
@@ -729,20 +948,98 @@ function getOrCreateSession(port: string): ControllerSession | undefined {
     const url = `itmp.serial://${port}?baudRate=115200&dataBits=8&stopBits=1&parity=none~2`;
     const client = itmp.connect(url);
     if (!client) return undefined;
+    const call = client.call.bind(client);
+    client.call = async (name, args, options, timeout) => {
+      try {
+        const result = await call(name, args, options, timeout);
+        if (name === 'setHV') {
+          const values = args.length === 8 ? args : result;
+          const selection = readOvenSelection();
+          const model = selection && getOvenModel(selection.ovenModel);
+          const board = session?.boardType;
+          const outputs =
+            board === '380V'
+              ? model?.outputs.threePhase
+              : model?.outputs.singlePhase;
+          if (
+            selection &&
+            model &&
+            board &&
+            board !== 'unknown' &&
+            outputs &&
+            Array.isArray(values) &&
+            values.length === 8
+          ) {
+            const state: Record<string, boolean> = {};
+            for (const element of Object.keys(testElementLabels)) {
+              const index =
+                element === 'f2' && hasParallelCoolingFans(model.model, board)
+                  ? outputs.f1
+                  : outputs[element];
+              if (index !== undefined)
+                state[element] = Number(values[index]) !== 0;
+            }
+            observeElementRuntime(
+              `M${selection.ovenModel}-${selection.connectionVoltage}V-${board}`,
+              {
+                ...state,
+                ...(controllerCooling.enabled !== null
+                  ? { controllerCooling: controllerCooling.enabled }
+                  : {}),
+                ...(raspberryCoolingStatus().supported &&
+                raspberryCoolingStatus().enabled !== null
+                  ? { raspberryCooling: raspberryCoolingStatus().enabled! }
+                  : {}),
+              },
+            );
+          }
+        } else if (
+          name === 'stat' &&
+          Array.isArray(result) &&
+          (!(Number(result[0]) & WORKING) ||
+            Number(result[0]) & (STARTING | 2 | 4 | 8 | 32 | 64 | 128))
+        )
+          observeElementRuntime('', null);
+        return result;
+      } catch (error) {
+        observeElementRuntime('', null);
+        throw error;
+      }
+    };
     session = { port, client };
   }
 
   return session;
 }
 
+/**
+ * Определяет режим виртуальной платы из конфигурации запуска.
+ */
 function isSimulationMode(): boolean {
   return config.controllerMode === 'simulation';
 }
 
+/**
+ * Формирует результат проверки без обращения к физическому порту.
+ */
 function simulatedCheck(): ControllerConnectionCheck {
   const snapshot = virtualBoard.snapshot();
   try {
     const readData = virtualBoard.call('get');
+    const temperatureC = controllerTemperature(readData, 2);
+    controllerFanAutomatic = coolingDemand(
+      temperatureC,
+      controllerFanAutomatic,
+      50,
+      40,
+    );
+    const enabled =
+      controllerFanAutomatic || Date.now() < controllerFanTestUntil;
+    virtualBoard.call(
+      'setLV',
+      controllerFanValues(virtualBoard.call('setLV'), enabled),
+    );
+    controllerCooling = { temperatureC, enabled, error: '' };
     return {
       connected: true,
       port: 'SIMULATOR',
@@ -774,10 +1071,16 @@ function simulatedCheck(): ControllerConnectionCheck {
   }
 }
 
+/**
+ * Возвращает диагностический снимок виртуальной платы только для режима симуляции.
+ */
 export function getVirtualBoardSnapshot() {
   return virtualBoard.snapshot();
 }
 
+/**
+ * Запрашивает регистры платы через выбранный транспорт.
+ */
 async function readController(
   activeSession: ControllerSession,
   initialize = false,
@@ -844,6 +1147,10 @@ async function readController(
 
     const protocolVersion = activeSession.protocolVersion ?? 0;
     const boardType = activeSession.boardType ?? 'unknown';
+    rememberBoardType(boardType);
+    await updateControllerCooling(readData, protocolVersion, (values) =>
+      client.call('setLV', values, undefined, 1200),
+    );
 
     let hv: unknown;
     try {
@@ -900,12 +1207,18 @@ async function readController(
   }
 }
 
+/**
+ * Декодирует режим платы для решения о готовности и допустимых переходах.
+ */
 function readState(value: unknown): number {
   if (!Array.isArray(value) || !Number.isInteger(value[0])) {
     throw new Error('Команда stat вернула неверный ответ.');
   }
   return value[0] as number;
 }
+/**
+ * Читает вход двери независимо от представления значка в интерфейсе.
+ */
 function readDoorState(value: unknown, protocolVersion: number): boolean {
   const index = protocolVersion >= 2 ? 1 : 6;
   if (!Array.isArray(value) || ![0, 1].includes(Number(value[index])))
@@ -913,7 +1226,11 @@ function readDoorState(value: unknown, protocolVersion: number): boolean {
   return Boolean(Number(value[index]));
 }
 
+/**
+ * Закрывает транспорт и отменяет фоновые операции связи при завершении приложения.
+ */
 export function closeControllerConnection(): void {
+  observeElementRuntime('', null);
   setDoorWarning(false);
   session?.client.close();
   session = undefined;
@@ -921,6 +1238,9 @@ export function closeControllerConnection(): void {
 
 process.once('exit', closeControllerConnection);
 
+/**
+ * Преобразует неизвестное исключение в строку для состояния связи.
+ */
 function getErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : 'Контроллер не ответил.';
 }

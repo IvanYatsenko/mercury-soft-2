@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 import urllib.request
 
-base = 'http://10.10.1.167:3001/api/'
+base = 'http://10.10.1.167:8075/api/'
 def api(path, data=None, method=None):
     req = urllib.request.Request(base + path,
         data=None if data is None else json.dumps(data).encode(),

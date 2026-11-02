@@ -1,0 +1,18 @@
+✔ only local Electron is the embedded panel; remote User-Agent spoofing cannot bypass the start PIN (1.2446ms)
+✔ settings start locked, reject wrong PIN, unlock with 3457 and relock from another client (318.3399ms)
+✔ a fresh server locks access and changes boot ID (18.6702ms)
+✔ locked settings protect changes and tests without blocking operator start, stop or 100 C switch (0.3709ms)
+✔ separate roles block profile writes but permit operator selection and execution; PIN grants engineering access (247.5203ms)
+✔ advanced PIN alone grants model and fan reference access; locking and regular PIN revoke it (296.02ms)
+✔ Electron operator can read current chart while locked and all history after ordinary PIN (122.1507ms)
+✔ every web start requires its own exact PIN, regardless of settings unlock; Electron start remains available (84.9646ms)
+✔ network settings are appliance-only even after web PIN unlock; Electron history uses ordinary PIN (152.8777ms)
+✔ browser gets PC bundle, Electron keeps frozen bundle; missing PC build falls back (184.3723ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1649.8244

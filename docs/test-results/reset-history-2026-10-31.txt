@@ -1,0 +1,14 @@
+✔ stalled USB worker cannot stall control timers and has no RAM history fallback (2010.1447ms)
+✔ real USB worker without a mounted device never writes a fallback directory (66.8374ms)
+✔ clearing history removes runs, samples and events persistently and fails without USB (46.1233ms)
+✔ missing USB discards history and never creates a fallback directory (2.4331ms)
+✔ USB history persists; removal discards new records without a RAM fallback (26.6086ms)
+✔ corrupted USB database does not prevent operation or overwrite damaged history (5.1599ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2193.7201

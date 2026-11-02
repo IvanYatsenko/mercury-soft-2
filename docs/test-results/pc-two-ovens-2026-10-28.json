@@ -1,0 +1,26 @@
+{
+  "10.10.1.88": {
+    "preview": {
+      "model": "300",
+      "connectionVoltage": "380"
+    },
+    "profilesBefore": 3
+  },
+  "10.10.1.13": {
+    "preview": {
+      "model": "400",
+      "connectionVoltage": "230"
+    },
+    "profilesBefore": 5
+  },
+  "transfer": {
+    "status": "PASS",
+    "source": "10.10.1.88",
+    "target": "10.10.1.13",
+    "targetModel": {
+      "model": "400",
+      "connectionVoltage": "230"
+    },
+    "warningCount": 2
+  }
+}

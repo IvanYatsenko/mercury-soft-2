@@ -4,6 +4,7 @@ import json
 import os
 from pathlib import Path, PurePosixPath
 import pwd
+import shutil
 import subprocess
 import sys
 import tarfile
@@ -16,6 +17,7 @@ account = pwd.getpwnam('pi')
 assert os.getuid() == 0
 assert archive.parent == Path('/home/pi/.cache/mercury-update')
 def record_result(phase, error=None):
+    """Atomically publish installation status for the next application instance."""
     fd, temporary = tempfile.mkstemp(prefix='install-result-', dir=archive.parent)
     os.fchown(fd, account.pw_uid, account.pw_gid)
     with os.fdopen(fd, 'w') as stream:
@@ -33,7 +35,14 @@ with archive.open('rb') as stream:
 assert h.hexdigest() == expected
 
 def api(path):
-    with urllib.request.urlopen('http://127.0.0.1:3001/api/' + path, timeout=5) as r:
+    """Read the running local API using the installed device's configured port."""
+    env_file = Path('/opt/mercury-v2/program/.env')
+    port = 8075
+    for line in env_file.read_text().splitlines():
+        if line.strip().startswith('MERCURY_API_PORT='):
+            port = int(line.split('=', 1)[1].strip().strip('\"\''))
+    assert 1 <= port <= 65535
+    with urllib.request.urlopen(f'http://127.0.0.1:{port}/api/' + path, timeout=5) as r:
         return json.load(r)
 
 run = api('run')
@@ -60,6 +69,8 @@ with tarfile.open(archive) as tar:
     # All paths and links were checked before extraction.
     tar.extractall(stage, members=members)
 assert (stage / 'mercury-v2/mercury-soft-2').is_file()
+# Keep device-specific transport and limits when replacing the program package.
+shutil.copy2('/opt/mercury-v2/program/.env', stage / 'mercury-v2/program/.env')
 command = ['runuser', '-u', 'pi', '--', 'env', 'XDG_RUNTIME_DIR=/run/user/' + str(account.pw_uid), 'systemctl', '--user']
 subprocess.run(command + ['stop', 'mercury-v2'], check=True)
 backup = Path('/opt/mercury-v2-before-' + str(int(time.time())))

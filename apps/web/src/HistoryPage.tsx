@@ -1,3 +1,8 @@
+/**
+ * Чтение истории с USB; отсутствие накопителя не создаёт локальную копию истории.
+ */
+import { usePcLayout } from './usePcLayout';
+import { useMediaQuery } from '@mui/material';
 import { userError } from './boardError';
 import { useEffect, useState } from 'react';
 import { Alert, Box, Button, Stack, Typography } from '@mui/material';
@@ -12,7 +17,12 @@ const stateNames = {
   stopped: 'Остановлен',
   failed: 'Ошибка',
 };
+/**
+ * Отрисовывает HistoryPage: Чтение истории с USB; отсутствие накопителя не создаёт локальную копию истории.
+ */
 export function HistoryPage({ onBack }: { onBack: () => void }) {
+  const pcLayout = usePcLayout();
+  const mobile = useMediaQuery('(max-width:899px)') && pcLayout;
   const [runs, setRuns] = useState<RunRecord[]>([]);
   const [selected, setSelected] = useState<RunRecord | null>(null);
   const [details, setDetails] = useState<{
@@ -59,6 +69,7 @@ export function HistoryPage({ onBack }: { onBack: () => void }) {
       s.boardTemperatureC,
     ]),
   );
+  /** Преобразует выборку истории в координату температурной линии подробного просмотра. */
   const line = (
     field: 'targetTemperatureC' | 'chamberTemperatureC' | 'boardTemperatureC',
   ) =>
@@ -71,12 +82,14 @@ export function HistoryPage({ onBack }: { onBack: () => void }) {
   return (
     <Stack spacing={0.75}>
       <Stack direction="row" alignItems="center">
-        <Button
-          onClick={() => (selected ? setSelected(null) : onBack())}
-          sx={{ minHeight: 44 }}
-        >
-          ← Назад
-        </Button>
+        {(!mobile || selected) && (
+          <Button
+            onClick={() => (selected ? setSelected(null) : onBack())}
+            sx={{ minHeight: 44 }}
+          >
+            ← Назад
+          </Button>
+        )}
         <Typography fontWeight={700}>История запусков</Typography>
       </Stack>
       {error && <Alert severity="error">{error}</Alert>}

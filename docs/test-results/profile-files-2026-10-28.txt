@@ -1,0 +1,10 @@
+✔ JSON exchange round trip preserves profile data and source but strips database IDs (2.1358ms)
+✔ JSON import rejects unsupported, oversized, fractional and invalid profile files (0.6735ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 186.9017

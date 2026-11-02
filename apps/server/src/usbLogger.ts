@@ -1,5 +1,11 @@
+/**
+ * Технический журнал через отдельный worker; отсутствие USB отключает запись без переноса на системный накопитель.
+ */
 import { Worker } from 'node:worker_threads';
 import { format } from 'node:util';
+/**
+ * Подключает технический журнал к проверенному USB; возвращает функцию завершения записи.
+ */
 export function startUsbLogger() {
   if (process.platform !== 'linux' || !process.env.MERCURY_LOG_USB_MOUNT)
     return;
@@ -7,6 +13,9 @@ export function startUsbLogger() {
   const pending = new Map<number, ReturnType<typeof setTimeout>>();
   let disabled = false;
   let sequence = 0;
+  /**
+   * Отключает запись после ошибки накопителя; данные не перенаправляются на системный диск.
+   */
   const disable = () => {
     if (disabled) return;
     disabled = true;

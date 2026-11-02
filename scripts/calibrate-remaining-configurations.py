@@ -15,7 +15,7 @@ STATE = Path('.test-tmp/remaining-calibration.json')
 
 def api(label, path, data=None):
     host = OVENS[label][0]
-    request = urllib.request.Request('http://' + host + ':3001/api/' + path,
+    request = urllib.request.Request('http://' + host + ':8075/api/' + path,
         data=None if data is None else json.dumps(data).encode(),
         headers={'Content-Type': 'application/json'})
     with urllib.request.urlopen(request, timeout=10) as response:
@@ -102,7 +102,7 @@ def start(target, working=False, repeats=False, adjusted=False, reserve=False):
         raise
     if repeats:
         for label in ids:
-            request = urllib.request.Request('http://' + OVENS[label][0] + ':3001/api/settings/keep-heat',
+            request = urllib.request.Request('http://' + OVENS[label][0] + ':8075/api/settings/keep-heat',
                 data=json.dumps({'enabled': True}).encode(),
                 headers={'Content-Type': 'application/json'}, method='PUT')
             with urllib.request.urlopen(request, timeout=10) as response:

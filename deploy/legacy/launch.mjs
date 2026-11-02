@@ -20,6 +20,7 @@ try {
 }
 const children = [];
 let stopping = false;
+/** Stop both children once; allow graceful shutdown before the eight-second deadline. */
 function stop(code = 0) {
   if (stopping) return;
   stopping = true;
@@ -41,6 +42,7 @@ function stop(code = 0) {
     process.exit(code);
   });
 }
+/** Start a child without a shell and stop the entire application if either child exits. */
 function start(file, args, cwd) {
   const child = spawn(file, args, { cwd, env: process.env, stdio: 'ignore' });
   children.push(child);
@@ -56,7 +58,7 @@ start(process.execPath, ['apps/server/dist/index.js'], root);
 let ready = false;
 for (let i = 0; i < 120 && !stopping; i++) {
   try {
-    const response = await fetch('http://127.0.0.1:3001/api/health', {
+    const response = await fetch(`http://127.0.0.1:${process.env.MERCURY_API_PORT ?? 8075}/api/health`, {
       signal: AbortSignal.timeout(1000),
     });
     if (response.ok) {

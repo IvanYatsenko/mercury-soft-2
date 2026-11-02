@@ -51,6 +51,7 @@ test('real USB worker without a mounted device never writes a fallback directory
     const rows = await history.storedQuery('SELECT id FROM runs');
     assert.deepEqual(rows, []);
     assert.deepEqual(await readdir(root), []);
+    await assert.rejects(history.clearRuns(), /очистить историю/);
   } finally {
     history.close();
     await rm(root, { recursive: true, force: true });

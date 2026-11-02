@@ -1,3 +1,6 @@
+/**
+ * Управление NetworkManager для локальной панели Raspberry; ошибки nmcli переводятся в ответ API.
+ */
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 
@@ -19,6 +22,9 @@ export type WifiNetwork = {
   connected: boolean;
 };
 
+/**
+ * Разбирает экранированный ответ nmcli без разбиения значений SSID по обычному двоеточию.
+ */
 function fields(line: string): string[] {
   const result: string[] = [];
   let field = '';
@@ -40,6 +46,9 @@ function fields(line: string): string[] {
   return result;
 }
 
+/**
+ * Выполняет NetworkManager-команду с ограничением времени и преобразует системные ошибки.
+ */
 async function nmcli(
   args: string[],
   timeout = 10_000,
@@ -69,6 +78,9 @@ async function nmcli(
   }
 }
 
+/**
+ * Читает состояние адаптера и активного Wi-Fi-соединения Raspberry.
+ */
 export async function getWifiStatus(): Promise<WifiStatus> {
   if (process.platform !== 'linux') {
     return {
@@ -117,6 +129,9 @@ export async function getWifiStatus(): Promise<WifiStatus> {
   };
 }
 
+/**
+ * Возвращает обнаруженные сети для локальной панели; не меняет подключение.
+ */
 export async function listWifiNetworks(): Promise<WifiNetwork[]> {
   const status = await getWifiStatus();
   if (!status.available || !status.device)
@@ -158,6 +173,9 @@ export async function listWifiNetworks(): Promise<WifiNetwork[]> {
   );
 }
 
+/**
+ * Запрашивает подключение к выбранной сети; пароль передаётся системному сетевому менеджеру.
+ */
 export async function connectWifi(
   ssid: string,
   password?: string,
@@ -173,6 +191,9 @@ export async function connectWifi(
   return getWifiStatus();
 }
 
+/**
+ * Отключает текущую Wi-Fi-сеть Raspberry по явной команде пользователя.
+ */
 export async function disconnectWifi(): Promise<WifiStatus> {
   const status = await getWifiStatus();
   if (!status.available || !status.device)
@@ -185,6 +206,9 @@ export async function disconnectWifi(): Promise<WifiStatus> {
   return getWifiStatus();
 }
 
+/**
+ * Включает или выключает Wi-Fi-радио Raspberry через NetworkManager.
+ */
 export async function setWifiEnabled(enabled: boolean): Promise<WifiStatus> {
   const status = await getWifiStatus();
   if (!status.available)

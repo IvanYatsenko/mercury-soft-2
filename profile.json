@@ -1,0 +1,17 @@
+{
+  "name": "Проверка 100 градусов",
+  "mode": "manual",
+  "board": false,
+  "repeat": 1,
+  "points": [
+    { "second": 0, "temperature": 50 },
+    { "second": 120, "temperature": 100 },
+    { "second": 60, "temperature": 100 },
+    { "second": 300, "temperature": 50 }
+  ],
+  "shelves": [
+    { "second": 60, "temperature": 100 },
+    { "second": 60, "temperature": 100 },
+    { "second": 300, "temperature": 50 }
+  ]
+}

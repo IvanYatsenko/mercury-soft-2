@@ -3,7 +3,7 @@ import urllib.request
 
 hosts = {'M300': '10.10.1.167', 'M400': '10.10.1.88'}
 def api(model, path, data=None):
-    req=urllib.request.Request('http://'+hosts[model]+':3001/api/'+path,
+    req=urllib.request.Request('http://'+hosts[model]+':8075/api/'+path,
         data=None if data is None else json.dumps(data).encode(),headers={'Content-Type':'application/json'})
     with urllib.request.urlopen(req,timeout=15) as r:return json.load(r)
 

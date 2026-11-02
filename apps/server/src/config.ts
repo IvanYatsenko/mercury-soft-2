@@ -1,3 +1,6 @@
+/**
+ * Параметры запуска из корневого .env; выбор модели и пользовательские настройки хранятся отдельно.
+ */
 import { existsSync } from 'node:fs';
 import { loadEnvFile } from 'node:process';
 import { isIP } from 'node:net';
@@ -5,6 +8,9 @@ import { isIP } from 'node:net';
 const envFile = new URL('../../../.env', import.meta.url);
 if (existsSync(envFile)) loadEnvFile(envFile);
 
+/**
+ * Проверяет целочисленный TCP-порт из окружения; ошибочная конфигурация останавливает запуск вместо молчаливого выбора другого адреса.
+ */
 function readPort(name: string, fallback: number): number {
   const raw = process.env[name];
   const port = raw === undefined ? fallback : Number(raw);
@@ -44,5 +50,7 @@ export const config = {
         ? 'COM4'
         : '/dev/ttyUSB0'
       : process.env.MERCURY_SERIAL_PORT,
-  apiPort: readPort('MERCURY_API_PORT', 3001),
+  apiPort: readPort('MERCURY_API_PORT', 8075),
+  monitoringPort: readPort('MERCURY_MONITORING_PORT', 3457),
+  monitoringEnabled: process.env.MERCURY_MONITORING_ENABLED !== 'false',
 } as const;

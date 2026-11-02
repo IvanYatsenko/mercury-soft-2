@@ -1,3 +1,6 @@
+/**
+ * Electron оболочка локального сенсорного экрана: запуск окна и загрузка интерфейса после готовности сервера.
+ */
 import { app, BrowserWindow, session } from 'electron';
 import { existsSync } from 'node:fs';
 import { loadEnvFile } from 'node:process';
@@ -12,8 +15,9 @@ if (process.env.MERCURY_PANEL_SOFTWARE_RENDERING === 'true') {
 
 const appUrl = process.argv.includes('--dev')
   ? `http://127.0.0.1:${process.env.MERCURY_WEB_PORT ?? 5173}`
-  : `http://127.0.0.1:${process.env.MERCURY_API_PORT ?? 3001}`;
+  : `http://127.0.0.1:${process.env.MERCURY_API_PORT ?? 8075}`;
 
+/** Создаёт локальное Electron-окно с параметрами сенсорной панели и обработчиками жизненного цикла. */
 async function createWindow() {
   const window = new BrowserWindow({
     title: 'Mercury — экран печи',
@@ -43,6 +47,7 @@ async function createWindow() {
   await window.loadURL(appUrl);
 }
 
+/** Загружает адрес готового локального интерфейса в Electron после проверки запуска сервера. */
 function openWindow() {
   void createWindow().catch((error: unknown) => {
     console.error('Failed to open Mercury:', error);

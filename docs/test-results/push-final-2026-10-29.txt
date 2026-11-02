@@ -1,0 +1,19 @@
+✔ HTTPS is opt-in and invalid or partial configuration is rejected (1.9951ms)
+✔ HTTPS listener serves the application with TLS and an explicitly trusted test certificate (101.0059ms)
+✔ disabled configuration does not generate keys or write configuration; HTTPS and contact are required (1.3441ms)
+✔ only known HTTPS browser push services and valid subscription keys are accepted (2.3375ms)
+✔ keys persist once, phones are separate, preferences and unsubscribe affect only the matching subscription (3.3498ms)
+✔ messages are encrypted with VAPID details and notifications do not retry or duplicate events (15.8112ms)
+✔ expired subscriptions are removed while transient transport errors preserve the phone (12.4322ms)
+✔ routes require the configured secure origin and PIN, never expose private credentials (147.6648ms)
+✔ observers receive lifecycle events without propagating errors to oven control (0.7853ms)
+✔ optional notification failure and a queued unsubscribe cannot hold or change oven control (6.5238ms)
+✔ push worker shows a notification and click opens only the oven root without API fetch or command replay (3.4571ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 711.8412

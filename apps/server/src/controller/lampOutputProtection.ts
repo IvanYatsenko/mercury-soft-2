@@ -1,15 +1,22 @@
+/**
+ * Ограничение и чередование ламп перед отправкой фактических выходов на плату.
+ */
 // Mirror the old IRProtector: remove outputs before adding them, with a
 // break longer than 5 ms and at least 500 ms between lamp enable commands.
 export class LampOutputProtection {
   private lastEnabledAt = -Infinity;
   private lastDisabledAt = -Infinity;
 
+  /**
+   * Создаёт экземпляр с явно переданными зависимостями и начальным состоянием.
+   */
   constructor(
     private now = () => performance.now(),
     private sleep = (ms: number) =>
       new Promise<void>((resolve) => setTimeout(resolve, ms)),
   ) {}
 
+  /** Ограничивает и чередует фактические ламповые выходы с учётом выбранного подключения и времени переключения. */
   async apply(
     previous: number[],
     next: number[],

@@ -31,6 +31,7 @@ db.setTestHistoryStorage({
   close: () => testHistory.close(),
 });
 const { ProfileRunner } = await import('../dist/profileRunner.js');
+const { onOvenEvent } = await import('../dist/ovenEvents.js');
 const { VirtualBoard, virtualBoard } =
   await import('../dist/controller/virtualBoard.js');
 const {
@@ -684,7 +685,9 @@ test('settings writes preserve calibration and model under simultaneous updates'
   assert.equal(saved.connectionVoltage, '380');
   await settings.saveFanReferenceHz(50);
 });
-test('complete two cycles, cool down, record actual/target history and events', async () => {
+test('complete two cycles, cool down, record actual/target history and events', async (t) => {
+  const notifications = [];
+  t.after(onOvenEvent((event) => notifications.push(event)));
   virtualBoard.reset();
   let now = 0;
   const runner = new ProfileRunner(() => now, true);
@@ -704,6 +707,10 @@ test('complete two cycles, cool down, record actual/target history and events', 
   assert.ok(details.samples.length > 10);
   assert.ok(details.samples.some((s) => s.heating));
   assert.equal(runner.snapshot().elapsedSeconds, 52);
+  assert.deepEqual(
+    notifications.filter((e) => e.runId === initial.id).map((e) => e.kind),
+    ['started', 'cycleCompleted', 'completed'],
+  );
   assert.ok(details.events.some((e) => e.message === 'Цикл 2'));
   assert.equal(virtualBoard.snapshot().highVoltageOutputs[4], 0);
 });
@@ -741,7 +748,9 @@ test('full solder profile completes in simulation with board sensor outside', as
   assert.equal(virtualBoard.snapshot().highVoltageOutputs[4], 0);
 });
 
-test('stop, restart and settings status reads preserve an active run', async () => {
+test('stop, restart and settings status reads preserve an active run', async (t) => {
+  const notifications = [];
+  t.after(onOvenEvent((event) => notifications.push(event)));
   virtualBoard.reset();
   let now = 0;
   const runner = new ProfileRunner(() => now, true);
@@ -759,6 +768,10 @@ test('stop, restart and settings status reads preserve an active run', async () 
     assert.equal(runner.snapshot().id, restarted.id);
   }
   await runner.stop();
+  assert.deepEqual(
+    notifications.map((e) => e.kind),
+    ['started', 'stopped', 'started', 'stopped'],
+  );
   assert.equal(virtualBoard.snapshot().highVoltageOutputs[4], 0);
 });
 
@@ -2558,5 +2571,148 @@ test('combined roles default on, persist off and on, reject invalid input and pr
       await assert.rejects(settings.saveCombinedRoles(invalid));
   } finally {
     await writeFile(process.env.MERCURY_CONFIG_PATH, JSON.stringify(before));
+  }
+});
+
+test('calibration uses the selected sensor, retains raw feedback and never starts 100 C holding', async () => {
+  const advance = virtualBoard.advance;
+  virtualBoard.advance = () => {};
+  await settings.saveKeepHeatEnabled(true);
+  virtualBoard.reset();
+  virtualBoard.setTemperatures(50, 50);
+  let now = 0;
+  const runner = new ProfileRunner(() => now, true);
+  const profile = {
+    name: 'Calibration fixture',
+    mode: 'manual',
+    board: true,
+    repeat: 1,
+    points: [
+      { second: 0, temperature: 50 },
+      { second: 2, temperature: 60 },
+      { second: 2, temperature: 60 },
+    ],
+    shelves: [
+      { second: 2, temperature: 60 },
+      { second: 2, temperature: 60 },
+      { second: 0, temperature: 60 },
+    ],
+  };
+  try {
+    await runner.start(profile, false, true, true);
+    assert.equal(runner.snapshot().purpose, 'calibration');
+    virtualBoard.setTemperatures(60, 70);
+    for (let i = 0; i < 8 && runner.active(); i++) {
+      now += 1000;
+      await runner.step();
+    }
+    assert.equal(runner.snapshot().state, 'completed');
+    assert.equal(runner.snapshot().rawMeasuredTemperatureC, 60);
+    assert.equal(runner.snapshot().measuredTemperatureC, 60);
+    assert.equal(runner.snapshot().holdingTemperatureC, null);
+    assert.equal(runner.snapshot().pendingReady, false);
+    assert.equal((await checkControllerConnection()).telemetry.heaters, false);
+    assert.equal((await checkControllerConnection()).telemetry.lamps, false);
+  } finally {
+    await runner.stop();
+    virtualBoard.advance = advance;
+    virtualBoard.reset();
+    await settings.saveKeepHeatEnabled(false);
+  }
+});
+
+test('calibration pause resets continuous stability even without a paused tick', async () => {
+  const advance = virtualBoard.advance;
+  virtualBoard.advance = () => {};
+  virtualBoard.reset();
+  virtualBoard.setTemperatures(60, 60);
+  let now = 0;
+  const runner = new ProfileRunner(() => now, true);
+  try {
+    await runner.start(
+      {
+        name: 'Pause calibration fixture',
+        mode: 'manual',
+        board: false,
+        repeat: 1,
+        points: [
+          { second: 0, temperature: 50 },
+          { second: 2, temperature: 60 },
+          { second: 60, temperature: 60 },
+        ],
+        shelves: [
+          { second: 2, temperature: 60 },
+          { second: 60, temperature: 60 },
+          { second: 0, temperature: 60 },
+        ],
+      },
+      false,
+      true,
+      true,
+    );
+    for (let i = 0; i < 25; i++) {
+      now += 1000;
+      await runner.step();
+    }
+    assert.ok(runner.snapshot().calibrationStableSeconds >= 20);
+    await runner.pause();
+    assert.equal(runner.snapshot().calibrationStableSeconds, 0);
+    await runner.resume();
+    now += 1000;
+    await runner.step();
+    assert.ok(runner.snapshot().calibrationStableSeconds <= 1);
+  } finally {
+    await runner.stop();
+    virtualBoard.advance = advance;
+    virtualBoard.reset();
+  }
+});
+
+test('negative calibration cannot hide raw thermocouple overheating', async () => {
+  const { saveCalibration, resetCalibration } =
+    await import('../dist/temperatureCalibration.js');
+  const advance = virtualBoard.advance;
+  virtualBoard.advance = () => {};
+  await settings.saveThermalProtection(true);
+  await saveCalibration('chamber', { target: 260, raw: 260, measured: 245 });
+  virtualBoard.reset();
+  virtualBoard.setTemperatures(25, 30);
+  let now = 0;
+  const runner = new ProfileRunner(() => now, true);
+  try {
+    await runner.start(
+      {
+        name: 'Raw protection fixture',
+        mode: 'manual',
+        board: false,
+        repeat: 1,
+        points: [
+          { second: 0, temperature: 25 },
+          { second: 200, temperature: 260 },
+        ],
+        shelves: [
+          { second: 0, temperature: 25 },
+          { second: 0, temperature: 260 },
+          { second: 0, temperature: 50 },
+        ],
+      },
+      false,
+      true,
+    );
+    virtualBoard.setTemperatures(25, 286);
+    const board = await checkControllerConnection();
+    assert.ok(board.telemetry.chamberTemperatureC < 285);
+    assert.equal(board.telemetry.rawChamberTemperatureC, 286);
+    now += 1000;
+    await runner.step();
+    assert.equal(runner.snapshot().state, 'failed');
+    assert.match(runner.snapshot().error, /исходным/);
+    assert.equal((await checkControllerConnection()).telemetry.heaters, false);
+    assert.equal((await checkControllerConnection()).telemetry.lamps, false);
+  } finally {
+    await runner.stop();
+    await resetCalibration('chamber');
+    virtualBoard.advance = advance;
+    virtualBoard.reset();
   }
 });

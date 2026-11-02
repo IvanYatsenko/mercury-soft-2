@@ -1,3 +1,6 @@
+/**
+ * Выбор короткого импульса нагрева по прогнозируемому дефициту температуры.
+ */
 export const predictionHorizonSeconds = 5;
 
 export interface HeatPulse {
@@ -8,6 +11,9 @@ export interface HeatPulse {
 
 // The combined response is measured. Individual source gains are provisional
 // power ratios; they are not a measured model of heater/lamp thermal inertia.
+/**
+ * Сравнивает инерцию и требуемый рост температуры на ближайшем горизонте; возвращает источник и долю импульса, а не аппаратную команду.
+ */
 export function planHeatPulse(
   measured: number,
   futureTarget: number,

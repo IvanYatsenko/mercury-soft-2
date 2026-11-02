@@ -12,7 +12,7 @@ root = Path(sys.argv[1]).resolve()
 service = sys.argv[2]
 assert (str(root),service) in (('/home/pi/mercury-v3','mercury-v3'),('/opt/mercury-v2/program','mercury-v2'))
 def api(path):
-    with urllib.request.urlopen('http://127.0.0.1:3001/api/'+path,timeout=8) as r:return json.load(r)
+    with urllib.request.urlopen('http://127.0.0.1:8075/api/'+path,timeout=8) as r:return json.load(r)
 run=api('run'); board=api('controller/check')
 assert run['state'] in ('idle','stopped','completed','failed') and run['holdingTemperatureC'] is None
 assert board['ready'] and not board['telemetry']['lamps'] and not board['telemetry']['heaters']

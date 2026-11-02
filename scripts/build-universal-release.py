@@ -14,9 +14,9 @@ version = json.loads((root / 'package.json').read_text(encoding='utf-8'))['versi
 archive = output / f'{version}_linux-arm64-unpacked.tar.gz'
 env = '''MERCURY_CONTROLLER_MODE=hardware
 MERCURY_SERIAL_PORT=/dev/serial0
-MERCURY_HARDWARE_MAX_TEMPERATURE_C=300
+MERCURY_HARDWARE_MAX_TEMPERATURE_C=280
 MERCURY_API_HOST=0.0.0.0
-MERCURY_API_PORT=3001
+MERCURY_API_PORT=8075
 MERCURY_WEB_PORT=5173
 MERCURY_PANEL_FULLSCREEN=true
 MERCURY_PANEL_SOFTWARE_RENDERING=true
@@ -27,6 +27,7 @@ MERCURY_DATABASE_PATH=/home/pi/.config/mercury-v3/profiles.sqlite
 '''
 
 def normalize(info):
+    """Give packaged files the target Raspberry account, independently of PC ownership."""
     info.uid = info.gid = 1000
     info.uname = info.gname = 'pi'
     return info
@@ -49,7 +50,7 @@ with tarfile.open(archive, 'w:gz', compresslevel=3) as tar:
                 assert info.linkname.startswith(('node_modules/', 'apps/server/node_modules/', 'apps/panel/node_modules/'))
                 info.linkname = 'mercury-v2/program/' + info.linkname
             tar.addfile(normalize(info), source.extractfile(info) if info.isfile() else None)
-    for name in ('apps/server/dist', 'apps/server/package.json', 'apps/web/dist', 'apps/panel/dist', 'apps/panel/package.json',
+    for name in ('apps/server/dist', 'apps/server/package.json', 'apps/web/dist', 'apps/web/pc-dist', 'apps/web/package.json', 'apps/panel/dist', 'apps/panel/package.json',
                  'packages/shared/dist', 'packages/shared/ovens', 'packages/shared/package.json', 'package.json'):
         tar.add(root / name, arcname='mercury-v2/program/' + name, filter=normalize)
     mapping = {

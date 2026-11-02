@@ -10,7 +10,7 @@ while time.monotonic() < deadline:
     states = {}
     for model, host in hosts.items():
         def api(path):
-            with urllib.request.urlopen('http://' + host + ':3001/api/' + path, timeout=6) as response:
+            with urllib.request.urlopen('http://' + host + ':8075/api/' + path, timeout=6) as response:
                 return json.load(response)
         run, board, keep_heat = api('run'), api('controller/check'), api('settings/keep-heat')
         telemetry = board['telemetry']

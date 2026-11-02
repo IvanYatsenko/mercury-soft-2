@@ -1,6 +1,16 @@
+/**
+ * Локальная сенсорная панель: библиотека профилей, доступ, команды и жизненный цикл экранов.
+ */
+import { requestSignal } from './requestSignal';
 import { SettingsPinDialog } from './SettingsPinDialog';
 import type { TemperatureRate } from '@mercury/shared';
-import { buildRunPlan } from '@mercury/shared';
+import {
+  buildRunPlan,
+  portableProfile,
+  uniqueProfileName,
+  ovenModelName,
+  ovenModelNumber,
+} from '@mercury/shared';
 import { useEffect, useRef, useState } from 'react';
 import {
   Alert,
@@ -36,7 +46,9 @@ import { ProfileChart } from './ProfileChart';
 import { HistoryPage } from './HistoryPage';
 import { RunProcessWindow } from './RunProcessWindow';
 import { usePcLayout } from './usePcLayout';
+import { useOvenIdentity } from './useOvenIdentity';
 import { PcWorkspace } from './PcWorkspace';
+import { StartReviewDialog } from './PcProfileTools';
 import { fanWarning } from './fanWarning';
 import {
   criticalBoardError,
@@ -51,10 +63,12 @@ type AppProps = {
   onToggleMode: () => void;
 };
 
+/** Показывает длительность без нулевых единиц; исходные значения остаются в секундах. */
 function formatDuration(seconds: number) {
   return `${Math.floor(seconds / 60)} мин`;
 }
 
+/** Выбирает цвет температурного диапазона для целочисленного показания на экране. */
 function temperatureColor(temperature: number | null | undefined) {
   if (temperature == null) return 'text.disabled';
   if (temperature < 50) return 'success.main';
@@ -88,6 +102,9 @@ type ControllerStatus = {
 
 type IndicatorKind = 'lamps' | 'heaters' | 'fans' | 'convection';
 
+/**
+ * Отрисовывает IndicatorSymbol: представление данных и действий родительского экрана.
+ */
 function IndicatorSymbol({ kind }: { kind: IndicatorKind }) {
   if (kind === 'lamps') {
     return (
@@ -127,6 +144,7 @@ function IndicatorSymbol({ kind }: { kind: IndicatorKind }) {
   );
 }
 
+/** Формирует значок фактической активности элемента, не переключая его выход. */
 function indicator(
   kind: IndicatorKind,
   label: string,
@@ -164,6 +182,7 @@ type OvenConfigurationResponse = {
   error?: string;
 };
 
+/** Преобразует готовность и связь платы в цвет индикатора верхней панели. */
 function boardIndicator(status: ControllerStatus | null) {
   if (!status)
     return { color: 'warning.main', label: 'Проверка связи с платой' };
@@ -179,8 +198,32 @@ function boardIndicator(status: ControllerStatus | null) {
   };
 }
 
+/**
+ * Отрисовывает App: Локальная сенсорная панель: библиотека профилей, доступ, команды и жизненный цикл экранов.
+ */
 export function App({ mode, onToggleMode }: AppProps) {
   const pcLayout = usePcLayout();
+  const [serverReachable, setServerReachable] = useState(false);
+  const [lastControllerContact, setLastControllerContact] = useState<
+    number | null
+  >(null);
+  const [lastServerContact, setLastServerContact] = useState<number | null>(
+    null,
+  );
+  /** Отправляет команду с идентификатором текущего клиента и ограничением ожидания ответа. */
+  const commandFetch = (input: RequestInfo | URL, init?: RequestInit) => {
+    if (
+      pcLayout &&
+      (!serverReachable ||
+        lastServerContact === null ||
+        Date.now() - lastServerContact > 7000)
+    )
+      throw new Error('Нет свежих данных от Raspberry. Команда не отправлена.');
+    return fetch(input, {
+      ...init,
+      ...(pcLayout ? { signal: requestSignal(5000) } : {}),
+    });
+  };
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [profileTemplates, setProfileTemplates] = useState<Profile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -190,6 +233,7 @@ export function App({ mode, onToggleMode }: AppProps) {
     'profiles' | 'settings' | 'editor' | 'wifi' | 'history'
   >('profiles');
   const [settingsUnlocked, setSettingsUnlocked] = useState(false);
+  const [ovenIdentity, setOvenIdentity] = useOvenIdentity();
   const [advancedSettingsUnlocked, setAdvancedSettingsUnlocked] =
     useState(false);
   const [combinedRoles, setCombinedRoles] = useState(false);
@@ -197,11 +241,15 @@ export function App({ mode, onToggleMode }: AppProps) {
   const canEditProfiles = combinedRoles || settingsUnlocked;
 
   const [pinOpen, setPinOpen] = useState(false);
+  const [compactStartReview, setCompactStartReview] = useState(false);
   const [lockingSettings, setLockingSettings] = useState(false);
   const accessEpoch = useRef(0);
   useEffect(() => {
     const controller = new AbortController();
     let timer: number | undefined;
+    /**
+     * Читает актуальный серверный снимок для этого экрана; обработку результата выполняет владелец состояния.
+     */
     const read = async () => {
       const epoch = accessEpoch.current;
       try {
@@ -236,18 +284,17 @@ export function App({ mode, onToggleMode }: AppProps) {
   useEffect(() => {
     if (!settingsUnlocked)
       setActiveSection((current) =>
-        current === 'settings' || current === 'history' ? 'profiles' : current,
+        current === 'settings' ||
+        (!pcLayout && current === 'history') ||
+        (pcLayout && current === 'wifi')
+          ? 'profiles'
+          : current,
       );
   }, [settingsUnlocked]);
-  useEffect(() => {
-    if (!advancedSettingsUnlocked)
-      setActiveSection((current) =>
-        current === 'history' ? 'settings' : current,
-      );
-  }, [advancedSettingsUnlocked]);
+  /** Открывает доступ только текущему клиенту после серверной проверки введённого кода. */
   const unlockSettings = async (pin: string) => {
     accessEpoch.current++;
-    const response = await fetch('/api/settings-access/unlock', {
+    const response = await commandFetch('/api/settings-access/unlock', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ pin }),
@@ -261,11 +308,12 @@ export function App({ mode, onToggleMode }: AppProps) {
     setPinOpen(false);
     setActiveSection('settings');
   };
+  /** Закрывает права текущего клиента и скрывает защищённые действия интерфейса. */
   const lockSettings = async () => {
     accessEpoch.current++;
     setLockingSettings(true);
     try {
-      const response = await fetch('/api/settings-access/lock', {
+      const response = await commandFetch('/api/settings-access/lock', {
         method: 'POST',
       });
       if (!response.ok) throw new Error('Не удалось заблокировать настройки');
@@ -278,11 +326,12 @@ export function App({ mode, onToggleMode }: AppProps) {
       setLockingSettings(false);
     }
   };
+  /** Сохраняет разрешение оператору редактировать профили и обновляет доступность кнопок. */
   const changeCombinedRoles = async (enabled: boolean) => {
     accessEpoch.current++;
     setCombinedRolesChanging(true);
     try {
-      const response = await fetch('/api/settings/combined-roles', {
+      const response = await commandFetch('/api/settings/combined-roles', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ enabled }),
@@ -309,6 +358,21 @@ export function App({ mode, onToggleMode }: AppProps) {
   }, [canEditProfiles]);
   const [draftProfile, setDraftProfile] = useState<Profile | null>(null);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [draftBaseline, setDraftBaseline] = useState<string | null>(null);
+  const [pendingLeave, setPendingLeave] = useState<(() => void) | null>(null);
+  const draftDirty =
+    !!draftProfile &&
+    (editingIndex === null || JSON.stringify(draftProfile) !== draftBaseline);
+  useEffect(() => {
+    if (!pcLayout || !draftDirty) return;
+    /** Отображает ошибку команды в интерфейсе без неявного повторения действия. */
+    const warn = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = '';
+    };
+    window.addEventListener('beforeunload', warn);
+    return () => window.removeEventListener('beforeunload', warn);
+  }, [pcLayout, draftDirty]);
   const [settings, setSettings] = useState<OvenSettings>({
     convectionEnabled: true,
     fanReferenceHz: 50,
@@ -319,10 +383,11 @@ export function App({ mode, onToggleMode }: AppProps) {
   const [fanWarningsChanging, setFanWarningsChanging] = useState(false);
   const [thermalProtectionChanging, setThermalProtectionChanging] =
     useState(false);
+  /** Сохраняет выбранный режим программных порогов защиты через сервер. */
   const changeThermalProtection = async (enabled: boolean) => {
     setThermalProtectionChanging(true);
     try {
-      const response = await fetch('/api/settings/thermal-protection', {
+      const response = await commandFetch('/api/settings/thermal-protection', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ enabled }),
@@ -347,10 +412,11 @@ export function App({ mode, onToggleMode }: AppProps) {
     }
   };
   const [soundOnErrorsChanging, setSoundOnErrorsChanging] = useState(false);
+  /** Сохраняет разрешение звуковых сигналов ошибок на пищалке печи. */
   const changeSoundOnErrors = async (enabled: boolean) => {
     setSoundOnErrorsChanging(true);
     try {
-      const response = await fetch('/api/settings/sound-on-errors', {
+      const response = await commandFetch('/api/settings/sound-on-errors', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ enabled }),
@@ -371,10 +437,11 @@ export function App({ mode, onToggleMode }: AppProps) {
       setSoundOnErrorsChanging(false);
     }
   };
+  /** Сохраняет включение предупреждений по частоте конвекционного вентилятора. */
   const changeFanWarnings = async (enabled: boolean) => {
     setFanWarningsChanging(true);
     try {
-      const response = await fetch('/api/settings/fan-warnings', {
+      const response = await commandFetch('/api/settings/fan-warnings', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ enabled }),
@@ -408,17 +475,30 @@ export function App({ mode, onToggleMode }: AppProps) {
     runStatus?.state === 'cooling';
   const holdingActive = runStatus?.holdingTemperatureC === 100;
   useEffect(() => {
-    if (runActive) setRunWindowOpen(true);
-  }, [runActive]);
+    if (runActive && runStatus?.purpose !== 'calibration')
+      setRunWindowOpen(true);
+  }, [runActive, runStatus?.purpose]);
   useEffect(() => {
     const controller = new AbortController();
     let timer: number | undefined;
+    /**
+     * Читает актуальный серверный снимок для этого экрана; обработку результата выполняет владелец состояния.
+     */
     const read = async () => {
       try {
-        const response = await fetch('/api/run', { signal: controller.signal });
-        if (response.ok && !controller.signal.aborted)
+        const response = await fetch('/api/run', {
+          signal: pcLayout
+            ? requestSignal(5000, controller.signal)
+            : controller.signal,
+        });
+        if (!response.ok) throw new Error('Сервер недоступен');
+        if (!controller.signal.aborted) {
           setRunStatus(await response.json());
+          setServerReachable(true);
+          setLastServerContact(Date.now());
+        }
       } catch {
+        if (!controller.signal.aborted) setServerReachable(false);
       } finally {
         if (!controller.signal.aborted)
           timer = window.setTimeout(() => void read(), 1000);
@@ -429,19 +509,36 @@ export function App({ mode, onToggleMode }: AppProps) {
       controller.abort();
       window.clearTimeout(timer);
     };
-  }, []);
-  const changeRun = async () => {
+  }, [pcLayout]);
+  /** Запрашивает запуск или остановку выбранного процесса и принимает подтверждённое состояние сервера. */
+  const changeRun = async (
+    reviewKey?: string,
+    acceptWarnings = false,
+    pin?: string,
+  ) => {
+    if (
+      !runActive &&
+      !/\bElectron\//i.test(navigator.userAgent) &&
+      pin === undefined
+    ) {
+      setCompactStartReview(true);
+      return;
+    }
     const selected = profiles.find(
       (profile) => profile.name === selectedProfile,
     );
     setRunBusy(true);
     try {
-      const response = await fetch(
+      const response = await commandFetch(
         runActive ? '/api/run/stop' : '/api/run/start',
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ profileId: selected?.id }),
+          body: JSON.stringify({
+            profileId: selected?.id,
+            ...(reviewKey ? { reviewKey, acceptWarnings } : {}),
+            ...(pin !== undefined ? { pin } : {}),
+          }),
         },
       );
       const result = await response.json();
@@ -455,10 +552,13 @@ export function App({ mode, onToggleMode }: AppProps) {
     }
   };
   const [notice, setNotice] = useState('');
+  /** Запрашивает паузу или продолжение; временем процесса управляет сервер, а не экран. */
   const changePause = async (action: 'pause' | 'resume') => {
     setRunBusy(true);
     try {
-      const response = await fetch('/api/run/' + action, { method: 'POST' });
+      const response = await commandFetch('/api/run/' + action, {
+        method: 'POST',
+      });
       const result = await response.json();
       if (!response.ok)
         throw new Error(result.error ?? 'Не удалось изменить паузу');
@@ -486,10 +586,11 @@ export function App({ mode, onToggleMode }: AppProps) {
       });
     return () => controller.abort();
   }, []);
+  /** Сохраняет переключатель поддержания 100 °C и обрабатывает результат команды сервера. */
   const changeKeepHeat = async (enabled: boolean) => {
     setKeepHeatChanging(true);
     try {
-      const response = await fetch('/api/settings/keep-heat', {
+      const response = await commandFetch('/api/settings/keep-heat', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ enabled }),
@@ -503,10 +604,11 @@ export function App({ mode, onToggleMode }: AppProps) {
       setKeepHeatChanging(false);
     }
   };
+  /** Подтверждает завершение окна процесса через сервер и обновляет главный экран. */
   const finishRunWindow = async () => {
     setRunBusy(true);
     try {
-      const response = await fetch('/api/run/ready', {
+      const response = await commandFetch('/api/run/ready', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ runId: runStatus?.id }),
@@ -566,10 +668,12 @@ export function App({ mode, onToggleMode }: AppProps) {
     activeSection === 'history';
   const contentRef = useRef<HTMLElement | null>(null);
 
+  /** Смещает прокручиваемый контейнер локальной панели по нажатию экранной стрелки. */
   const scrollContent = (direction: -1 | 1) => {
     contentRef.current?.scrollBy({ top: direction * 180, behavior: 'smooth' });
   };
 
+  /** Отправляет выбранную аппаратную конфигурацию и обновляет зависящие от неё возможности интерфейса. */
   const saveOvenSelection = async () => {
     if (!settingsUnlocked) {
       setPinOpen(true);
@@ -578,7 +682,7 @@ export function App({ mode, onToggleMode }: AppProps) {
     if (!selectionDraft.ovenModel || !selectionDraft.connectionVoltage) return;
     setSavingSelection(true);
     try {
-      const response = await fetch('/api/config', {
+      const response = await commandFetch('/api/config', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(selectionDraft),
@@ -614,6 +718,7 @@ export function App({ mode, onToggleMode }: AppProps) {
     }
   };
 
+  /** Открывает настройки или диалог доступа с учётом прав текущего клиента. */
   const openSettings = () => {
     if (!settingsUnlocked) {
       setPinOpen(true);
@@ -625,10 +730,11 @@ export function App({ mode, onToggleMode }: AppProps) {
     setActiveSection('settings');
   };
 
+  /** Передаёт выбор работы конвекции на сервер; индикатор обновляется по ответу. */
   const changeConvection = async (enabled: boolean) => {
     setConvectionChanging(true);
     try {
-      const response = await fetch('/api/controller/convection', {
+      const response = await commandFetch('/api/controller/convection', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ enabled }),
@@ -649,6 +755,7 @@ export function App({ mode, onToggleMode }: AppProps) {
     }
   };
 
+  /** Возвращает пользователя из настроек на главный экран. */
   const closeSettings = () => {
     if (ovenConfiguration?.selected)
       setSelectionDraft(ovenConfiguration.selected);
@@ -656,20 +763,24 @@ export function App({ mode, onToggleMode }: AppProps) {
     setActiveSection('profiles');
   };
 
+  /** Создаёт редактируемую копию профиля вместо прямой мутации записи библиотеки. */
   const beginEditing = (profile: Profile, index: number | null) => {
     if (!canEditProfiles) return;
     setDraftProfile(structuredClone(profile));
+    setDraftBaseline(JSON.stringify(profile));
     setEditingIndex(index);
     if (index !== null) setSelectedProfile(profile.name);
     setActiveSection('editor');
   };
 
+  /** Открывает создание нового профиля при разрешённом доступе редактора. */
   const createProfile = () => {
     if (!canEditProfiles) return;
     setSelectedTemplate(-1);
     setTemplatePickerOpen(true);
   };
 
+  /** Заполняет новый черновик выбранным шаблоном, не изменяя сам шаблон. */
   const continueWithTemplate = () => {
     if (!canEditProfiles) return;
     const blankProfile: Profile = {
@@ -697,12 +808,13 @@ export function App({ mode, onToggleMode }: AppProps) {
     beginEditing(copy, null);
   };
 
+  /** Проверяет и сохраняет черновик через API, затем обновляет библиотеку. */
   const saveDraft = async () => {
     if (!canEditProfiles) return;
     if (!draftProfile) return;
     try {
       const existing = editingIndex === null ? null : profiles[editingIndex];
-      const response = await fetch(
+      const response = await commandFetch(
         existing?.id ? '/api/profiles/' + existing.id : '/api/profiles',
         {
           method: existing?.id ? 'PUT' : 'POST',
@@ -731,11 +843,12 @@ export function App({ mode, onToggleMode }: AppProps) {
       );
     }
   };
+  /** Запрашивает удаление выбранной записи с обновлением библиотеки после успеха. */
   const deleteDraft = async () => {
     if (!canEditProfiles) return;
     if (!draftProfile?.id) return;
     try {
-      const response = await fetch('/api/profiles/' + draftProfile.id, {
+      const response = await commandFetch('/api/profiles/' + draftProfile.id, {
         method: 'DELETE',
       });
       if (!response.ok) throw new Error((await response.json()).error);
@@ -752,16 +865,51 @@ export function App({ mode, onToggleMode }: AppProps) {
     }
   };
 
-  const cancelEditing = () => {
+  /** Отбрасывает локальные несохранённые изменения текущего редактора. */
+  const discardDraft = () => {
     setDraftProfile(null);
+    setDraftBaseline(null);
     setEditingIndex(null);
     setActiveSection('profiles');
+  };
+  /** Перехватывает уход из редактора, если нужно подтвердить потерю изменений. */
+  const guardDraft = (action: () => void) => {
+    if (pcLayout && activeSection === 'editor' && draftDirty)
+      setPendingLeave(() => action);
+    else action();
+  };
+  /** Закрывает редактор через проверку несохранённых изменений. */
+  const cancelEditing = () => guardDraft(discardDraft);
+  /** Создаёт независимую копию выбранного профиля с новым именем. */
+  const duplicateProfile = (profile: Profile) => {
+    if (!canEditProfiles) return;
+    const copy = portableProfile(profile);
+    copy.name = uniqueProfileName(
+      profile.name + ' — копия',
+      profiles.map((p) => p.name),
+    );
+    beginEditing(copy, null);
+  };
+  /** Повторно загружает библиотеку после изменения или импорта профилей. */
+  const reloadProfiles = async () => {
+    try {
+      const r = await fetch('/api/profiles', {
+        signal: requestSignal(5000),
+      });
+      const value = await r.json();
+      if (!r.ok) throw new Error(value.error);
+      setProfiles(value.profiles);
+      setNotice('Операция с профилями завершена');
+    } catch (e) {
+      setNotice(String(e));
+    }
   };
 
   useEffect(() => {
     const controller = new AbortController();
     let retryTimer: number | undefined;
 
+    /** Загружает сохранённую конфигурацию и доступные варианты оборудования. */
     async function loadConfiguration() {
       try {
         const response = await fetch('/api/config', {
@@ -796,13 +944,20 @@ export function App({ mode, onToggleMode }: AppProps) {
     let active = true;
     let timer: number | undefined;
 
+    /** Читает состояние платы для индикаторов и проверки допустимых команд. */
     async function readStatus() {
       try {
         const response = await fetch('/api/controller/check', {
-          signal: controller.signal,
+          signal: pcLayout
+            ? requestSignal(5000, controller.signal)
+            : controller.signal,
         });
+        if (!response.ok) throw new Error('Нет актуальных данных платы');
         const result = (await response.json()) as ControllerStatus;
-        if (active) setControllerStatus(result);
+        if (active) {
+          setControllerStatus(result);
+          setLastControllerContact(Date.now());
+        }
       } catch (checkError) {
         if (!active || controller.signal.aborted) return;
         setControllerStatus({
@@ -828,6 +983,7 @@ export function App({ mode, onToggleMode }: AppProps) {
   useEffect(() => {
     const controller = new AbortController();
     let timer: number | undefined;
+    /** Обновляет состояние сети для локальной панели Raspberry. */
     async function readWifi() {
       try {
         const response = await fetch('/api/wifi/status', {
@@ -873,6 +1029,7 @@ export function App({ mode, onToggleMode }: AppProps) {
     const controller = new AbortController();
     let retryTimer: number | undefined;
 
+    /** Загружает библиотеку и восстанавливает текущий выбор профиля. */
     async function loadProfiles() {
       try {
         const response = await fetch('/api/profile-templates', {
@@ -1033,10 +1190,21 @@ export function App({ mode, onToggleMode }: AppProps) {
     );
   }
 
-  const selectedOvenName =
-    ovenConfiguration.models.find(
-      ({ model }) => model === ovenConfiguration.selected?.ovenModel,
-    )?.name ?? 'Меркурий';
+  const modelOvenName =
+    controllerStatus?.boardType && controllerStatus.boardType !== 'unknown'
+      ? ovenModelName(
+          ovenConfiguration.selected?.ovenModel ?? '',
+          controllerStatus.boardType,
+        )
+      : (ovenConfiguration.models.find(
+          ({ model }) => model === ovenConfiguration.selected?.ovenModel,
+        )?.name ?? 'Меркурий');
+  const selectedOvenName = [
+    ovenIdentity.name || modelOvenName,
+    ovenIdentity.description,
+  ]
+    .filter(Boolean)
+    .join(' — ');
   const activeProfile = profiles.find(
     (profile) => profile.name === selectedProfile,
   );
@@ -1070,10 +1238,11 @@ export function App({ mode, onToggleMode }: AppProps) {
           ),
         )
       : null;
+  /** Сохраняет подтверждённую эталонную частоту конвекционного вентилятора. */
   const confirmFanReference = async () => {
     setSavingFanReference(true);
     try {
-      const response = await fetch('/api/settings/fan-reference', {
+      const response = await commandFetch('/api/settings/fan-reference', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ fanReferenceHz: settings.fanReferenceHz }),
@@ -1094,6 +1263,7 @@ export function App({ mode, onToggleMode }: AppProps) {
       setSavingFanReference(false);
     }
   };
+  /** Выбирает показание термопары по настройке выбранного профиля. */
   const sensorTemperature = (
     label: string,
     shortLabel: string,
@@ -1228,6 +1398,8 @@ export function App({ mode, onToggleMode }: AppProps) {
           <Alert severity="error">{configurationError}</Alert>
         )}
         <SettingsPage
+          identity={ovenIdentity}
+          onIdentitySaved={setOvenIdentity}
           advancedAccess={advancedSettingsUnlocked}
           combinedRoles={combinedRoles}
           combinedRolesChanging={combinedRolesChanging}
@@ -1268,18 +1440,24 @@ export function App({ mode, onToggleMode }: AppProps) {
           convectionChanging={convectionChanging}
           onBack={closeSettings}
           onHistory={() => {
-            if (advancedSettingsUnlocked) setActiveSection('history');
+            if (settingsUnlocked) setActiveSection('history');
           }}
           runActive={runActive || holdingActive}
         />
       </>
     ) : activeSection === 'history' ? (
-      <HistoryPage onBack={() => setActiveSection('settings')} />
+      <HistoryPage
+        onBack={() =>
+          setActiveSection(
+            pcLayout && !settingsUnlocked ? 'profiles' : 'settings',
+          )
+        }
+      />
     ) : activeSection === 'wifi' ? (
       <WifiPage
         status={wifiStatus}
         onStatusChange={setWifiStatus}
-        onBack={() => setActiveSection('profiles')}
+        onBack={() => setActiveSection(pcLayout ? 'settings' : 'profiles')}
       />
     ) : draftProfile ? (
       <ProfileEditorPage
@@ -1332,6 +1510,40 @@ export function App({ mode, onToggleMode }: AppProps) {
       >
         <Alert severity="error">Критическая ошибка</Alert>
       </Snackbar>
+      <StartReviewDialog
+        open={compactStartReview}
+        onClose={() => setCompactStartReview(false)}
+        profile={activeProfile}
+        onStart={(key, accepted, pin) => void changeRun(key, accepted, pin)}
+        disabled={runBusy || controllerStatus?.ready !== true}
+      />
+      <Dialog
+        open={pendingLeave !== null}
+        onClose={() => setPendingLeave(null)}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>Несохранённые изменения</DialogTitle>
+        <DialogContent>
+          Изменения профиля ещё не сохранены. Выйти без сохранения?
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setPendingLeave(null)}>
+            Продолжить редактирование
+          </Button>
+          <Button
+            color="warning"
+            onClick={() => {
+              const action = pendingLeave;
+              setPendingLeave(null);
+              discardDraft();
+              action?.();
+            }}
+          >
+            Выйти без сохранения
+          </Button>
+        </DialogActions>
+      </Dialog>
       <SettingsPinDialog
         open={pinOpen}
         onClose={() => setPinOpen(false)}
@@ -1342,7 +1554,9 @@ export function App({ mode, onToggleMode }: AppProps) {
         criticalBoard={criticalBoard}
         fanWarning={currentFanWarning}
         indicators={ovenIndicators}
-        open={!pcLayout && runWindowOpen}
+        open={
+          !pcLayout && runWindowOpen && runStatus?.purpose !== 'calibration'
+        }
         status={runStatus}
         busy={runBusy}
         onStop={() => void changeRun()}
@@ -1365,11 +1579,46 @@ export function App({ mode, onToggleMode }: AppProps) {
           mode={mode}
           onToggleMode={onToggleMode}
           section={activeSection}
-          onSection={setActiveSection}
+          onSection={(section, onApproved) =>
+            guardDraft(() => {
+              if (activeSection === 'editor' && section !== 'editor')
+                discardDraft();
+              setActiveSection(section);
+              onApproved?.();
+            })
+          }
           name={selectedOvenName}
           connectionLabel={boardConnection.label}
-          connected={controllerStatus?.connected === true}
-          ready={controllerStatus?.ready === true}
+          connected={
+            controllerStatus?.connected === true &&
+            lastControllerContact !== null &&
+            Date.now() - lastControllerContact < 7000
+          }
+          ready={
+            controllerStatus?.ready === true &&
+            lastControllerContact !== null &&
+            Date.now() - lastControllerContact < 7000
+          }
+          serverReachable={
+            serverReachable &&
+            lastServerContact !== null &&
+            Date.now() - lastServerContact < 7000
+          }
+          lastServerContact={lastServerContact}
+          source={{
+            model: ovenModelNumber(
+              ovenConfiguration.selected?.ovenModel ?? '',
+              controllerStatus?.boardType,
+            ),
+            connectionVoltage:
+              ovenConfiguration.selected?.connectionVoltage ?? '',
+          }}
+          onDuplicate={duplicateProfile}
+          onImported={() => void reloadProfiles()}
+          onResetDraft={() => {
+            if (draftBaseline) setDraftProfile(JSON.parse(draftBaseline));
+          }}
+          draftDirty={draftDirty}
           profiles={profiles}
           selected={activeProfile}
           draft={draftProfile}
@@ -1392,10 +1641,10 @@ export function App({ mode, onToggleMode }: AppProps) {
           onSelect={(profile) => setSelectedProfile(profile.name)}
           onEdit={beginEditing}
           onCreate={createProfile}
-          onSettings={openSettings}
-          onAdvancedAccess={() => setPinOpen(true)}
-          onLock={() => void lockSettings()}
-          onStart={() => void changeRun()}
+          onSettings={() => guardDraft(openSettings)}
+          onAdvancedAccess={() => guardDraft(() => setPinOpen(true))}
+          onLock={() => guardDraft(() => void lockSettings())}
+          onStart={(key, accepted, pin) => void changeRun(key, accepted, pin)}
           onPause={() => void changePause('pause')}
           onResume={() => void changePause('resume')}
           onStop={() => void changeRun()}

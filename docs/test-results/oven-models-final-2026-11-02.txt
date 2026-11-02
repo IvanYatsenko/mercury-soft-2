@@ -1,0 +1,24 @@
+✔ two families and detected board produce exactly six supported model/voltage combinations (1.9841ms)
+✔ naming preserves measured new-board data, rejects legacy 380 and isolates legacy calibration (19.9062ms)
+✔ review reports sensor, peak, cycles and heating/cooling feasibility (1.9833ms)
+✔ portable copies strip identity and names remain unique within 80 characters (0.3961ms)
+✔ batch imports create independent copies and reject invalid batches atomically (5.6001ms)
+✔ preview/import/receive enforce review freshness and warnings without a destination PIN or unlocking settings (335.8101ms)
+✔ disabled configuration does not generate keys or write configuration; HTTPS and contact are required (1.356ms)
+✔ only known HTTPS browser push services and valid subscription keys are accepted (2.2437ms)
+✔ keys persist once, phones are separate, preferences and unsubscribe affect only the matching subscription (15.5154ms)
+✔ messages are encrypted with VAPID details and notifications do not retry or duplicate events (19.9524ms)
+✔ expired subscriptions are removed while transient transport errors preserve the phone (16.0653ms)
+✔ routes require the configured secure origin and PIN, never expose private credentials (218.8939ms)
+✔ observers receive lifecycle events without propagating errors to oven control (0.9441ms)
+✔ optional notification failure and a queued unsubscribe cannot hold or change oven control (5.8198ms)
+✔ JSON exchange round trip preserves profile data and source but strips database IDs (2.346ms)
+✔ JSON import rejects unsupported, oversized, fractional and invalid profile files (1.5697ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 16
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 947.4079

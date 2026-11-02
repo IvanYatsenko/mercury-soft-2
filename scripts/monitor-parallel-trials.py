@@ -11,7 +11,7 @@ if len(sys.argv)>1:
     ids={'M400':sys.argv[1]}
 last={};done=set();started=time.monotonic()
 def api(model,path):
-    with urllib.request.urlopen('http://'+hosts[model]+':3001/api/'+path,timeout=8) as r:return json.load(r)
+    with urllib.request.urlopen('http://'+hosts[model]+':8075/api/'+path,timeout=8) as r:return json.load(r)
 while len(done)<len(hosts) and time.monotonic()-started<1400:
     for model in hosts:
         if model in done:continue

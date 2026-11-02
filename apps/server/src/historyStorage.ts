@@ -1,3 +1,6 @@
+/**
+ * Синхронная работа с USB SQLite выполняется только внутри worker; отключённый накопитель не заменяется RAM или SD.
+ */
 import { DatabaseSync, type SQLInputValue } from 'node:sqlite';
 import { mkdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
@@ -14,6 +17,9 @@ export class HistoryStorage {
   private device: number | undefined;
   private maintenance = false;
   private pending: { sql: string; args: SQLInputValue[] }[] = [];
+  /**
+   * Открывает историю только на проверенном USB и запоминает его устройство; повреждённая база отключает запись без подмены файла.
+   */
   constructor(
     private root = process.env.MERCURY_LOG_USB_MOUNT ?? '/media/flash',
     private available = isMountedUsb,
@@ -32,6 +38,9 @@ export class HistoryStorage {
       this.disable();
     }
   }
+  /**
+   * Закрывает испорченный или исчезнувший USB без перенаправления записей во внутреннюю память.
+   */
   private disable() {
     try {
       this.disk?.close();
@@ -40,6 +49,9 @@ export class HistoryStorage {
     }
     this.disk = undefined;
   }
+  /**
+   * Повторно проверяет монтирование и идентичность устройства; флешка в том же каталоге не считается прежним накопителем.
+   */
   private checkedDisk() {
     if (this.disk) {
       try {
@@ -54,6 +66,9 @@ export class HistoryStorage {
     }
     return this.disk;
   }
+  /**
+   * Предоставляет ограниченный SQL-интерфейс worker. Ошибки журналирования поглощаются, чтобы не влиять на управление печью.
+   */
   prepare(sql: string) {
     return {
       get: (...args: SQLInputValue[]) => {
@@ -95,6 +110,9 @@ export class HistoryStorage {
       },
     };
   }
+  /**
+   * Закрывает базу на время фоновой очистки; только подтверждённая пауза допускает её повторное открытие.
+   */
   pauseDiskForMaintenance() {
     if (!this.checkedDisk()) return false;
     this.maintenance = true;
@@ -102,6 +120,25 @@ export class HistoryStorage {
     this.disable();
     return true;
   }
+  /**
+   * Транзакционно удаляет измерения и события перед запусками. Без исправной открытой базы возвращает false.
+   */
+  clearRuns() {
+    const disk = this.checkedDisk();
+    if (!disk || this.maintenance) return false;
+    disk.exec('BEGIN IMMEDIATE');
+    try {
+      disk.exec('DELETE FROM samples; DELETE FROM events; DELETE FROM runs;');
+      disk.exec('COMMIT');
+      return true;
+    } catch (error) {
+      disk.exec('ROLLBACK');
+      throw error;
+    }
+  }
+  /**
+   * Повторно открывает тот же USB и применяет отложенные операции одним пакетом; при ошибке отключает хранилище.
+   */
   resumeDiskAfterMaintenance() {
     this.maintenance = false;
     try {
@@ -125,6 +162,9 @@ export class HistoryStorage {
     }
     this.pending = [];
   }
+  /**
+   * Освобождает соединение SQLite; постоянную историю не удаляет.
+   */
   close() {
     this.disable();
   }

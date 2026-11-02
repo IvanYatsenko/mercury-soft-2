@@ -12,7 +12,7 @@ const appVersion = (
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, projectRoot, 'MERCURY_');
-  const apiPort = Number(env.MERCURY_API_PORT ?? 3001);
+  const apiPort = Number(env.MERCURY_API_PORT ?? 8075);
   const webPort = Number(env.MERCURY_WEB_PORT ?? 5173);
   for (const [name, port] of [
     ['MERCURY_API_PORT', apiPort],

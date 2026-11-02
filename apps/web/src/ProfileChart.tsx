@@ -1,3 +1,6 @@
+/**
+ * Предварительный график выбранного профиля без команд управления оборудованием.
+ */
 import type { TemperatureRate } from '@mercury/shared';
 import { Box, Typography, useMediaQuery } from '@mui/material';
 import { usePcLayout } from './usePcLayout';
@@ -7,6 +10,7 @@ import {
   type Profile,
 } from '@mercury/shared';
 
+/** Форматирует подпись временной оси профиля в понятные единицы вместо общего числа секунд. */
 function formatProfileTime(seconds: number) {
   const total = Math.round(seconds);
   const hours = Math.floor(total / 3600);
@@ -53,9 +57,15 @@ export function ProfileChart({
   const duration = Math.max(1, elapsed);
   const maximum = Math.max(0, ...points.map((point) => point.temperature));
   const ceiling = Math.max(1, maximum);
-  const left = pcLayout ? 54 : 29;
+  const left = pcLayout ? (desktop ? 54 : 80) : 29;
   const right = pcLayout ? 880 : 199;
+  /**
+   * Переводит время точки в горизонтальную координату области графика.
+   */
   const x = (time: number) => left + (time / duration) * (right - left);
+  /**
+   * Переводит температуру в вертикальную координату с учётом инверсии оси экрана.
+   */
   const y = (temperature: number) =>
     pcLayout
       ? 330 - (temperature / ceiling) * 290
@@ -108,7 +118,7 @@ export function ProfileChart({
                 y={y(temperature) + 3}
                 textAnchor="end"
                 fill="currentColor"
-                fontSize={pcLayout ? 18 : 12}
+                fontSize={pcLayout ? (desktop ? 18 : 28) : 12}
               >
                 {Math.round(temperature)}
               </text>
@@ -117,9 +127,9 @@ export function ProfileChart({
         )}
         <text
           x="3"
-          y={pcLayout ? 20 : 12}
+          y={pcLayout ? (desktop ? 20 : 30) : 12}
           fill="currentColor"
-          fontSize={pcLayout ? 18 : 12}
+          fontSize={pcLayout ? (desktop ? 18 : 28) : 12}
         >
           °C
         </text>

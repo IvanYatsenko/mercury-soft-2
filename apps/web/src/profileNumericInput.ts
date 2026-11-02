@@ -1,3 +1,6 @@
+/**
+ * Проверка завершённого числового ввода без дробей и выхода за разрешённые границы.
+ */
 export function profileNumericInput(
   text: string,
   min: number,

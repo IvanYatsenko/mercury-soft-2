@@ -9,7 +9,7 @@ model, action = sys.argv[1:3]
 host, voltage = {'M300': ('10.10.1.88', '380'), 'M400': ('10.10.1.167', '230')}[model]
 
 def api(path):
-    return json.load(urllib.request.urlopen('http://' + host + ':3001/api/' + path, timeout=8))
+    return json.load(urllib.request.urlopen('http://' + host + ':8075/api/' + path, timeout=8))
 
 selected = api('config')['selected']
 assert selected == {'ovenModel': model[1:], 'connectionVoltage': voltage}

@@ -1,3 +1,6 @@
+/**
+ * Регулятор с прогнозом и раздельным распределением мощности ламп, ТЭНов и охлаждения.
+ */
 import {
   heatOutputs,
   type HeatOutput,
@@ -20,6 +23,9 @@ export class ThermalRegulator {
   private lastCooling = false;
   private previousSlope: number | undefined;
   private recoveringShelf: number | undefined;
+  /**
+   * Сохраняет последнее выбранное распределение выходов для ограничения переключений на следующем такте.
+   */
   private remember(result: ThermalOutputs) {
     this.lastHeating = heatOutputs.some((name) => result[name]);
     this.lastCooling = result.cooling;
@@ -31,6 +37,9 @@ export class ThermalRegulator {
   private coolDebt = 0;
   private lastLamp: HeatOutput | undefined;
   private lampPulseSeconds = 0;
+  /**
+   * Распределяет импульсы между доступными парами ламп, чтобы одна пара не работала непрерывно вместо остальных.
+   */
   private rotateLampPulse(
     result: ThermalOutputs,
     lamps: HeatOutput[],
@@ -59,6 +68,9 @@ export class ThermalRegulator {
     this.lastLamp = chosen;
     return result;
   }
+  /**
+   * Фиксирует параметры, доступные нагрузки и измеренные диапазоны конкретной печи; бесконечный бюджет означает трёхфазный режим.
+   */
   constructor(
     private settings: ThermalSettings,
     private heatRate: number,
@@ -66,6 +78,9 @@ export class ThermalRegulator {
     private availableOutputs: readonly HeatOutput[] = heatOutputs,
     private measuredResponse?: readonly ResponseBand[],
   ) {}
+  /**
+   * Сбрасывает накопленные интегральные и прогнозные состояния после паузы или смены режима, не посылая команд плате.
+   */
   reset() {
     this.integral = 0;
     this.previous = undefined;
@@ -80,6 +95,9 @@ export class ThermalRegulator {
     for (const name of heatOutputs) this.debts[name] = 0;
   }
 
+  /**
+   * По точной температуре, текущей и будущей цели и dt в секундах вычисляет выходы, соблюдая бюджет мощности и режим охлаждения.
+   */
   step(
     measured: number,
     target: number,

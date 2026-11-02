@@ -1,0 +1,29 @@
+✔ only private IPv4 addresses on a local interface subnet can be queried (7.3021ms)
+✔ mDNS parser accepts only resolved Mercury IPv4 services on port 3001 (0.289ms)
+✔ identity is validated, persisted and preserves hardware and calibration (32.8856ms)
+✔ directory merges discovery/manual addresses, keeps stale last-seen and retries without commands (17.7178ms)
+✔ existing PIN levels protect identity and manual writes while fleet discovery is public (216.6277ms)
+✔ settings start locked, reject wrong PIN, unlock with 3457 and relock from another client (389.5017ms)
+✔ a fresh server locks access and changes boot ID (22.1494ms)
+✔ locked settings protect changes and tests without blocking operator start, stop or 100 C switch (0.4427ms)
+✔ separate roles block profile writes but permit operator selection and execution; PIN grants engineering access (277.7915ms)
+✔ advanced PIN alone grants model, history and fan reference access; locking and regular PIN revoke it (559.3706ms)
+✔ operator can read only the current run chart with both PIN levels locked (171.0683ms)
+✔ browser gets PC bundle, Electron keeps frozen bundle; missing PC build falls back (134.2236ms)
+✔ board faults become a critical error, including combined and wrapped states (1.6642ms)
+✔ normal states, shutdown, connection and temperature errors keep their own meaning (0.4537ms)
+✔ wide desktop browsers use PC layout; narrow screens keep compact layout (1.1596ms)
+✔ Electron never opts into PC layout, even in a large development window (0.2317ms)
+✔ fan warning thresholds use the fraction remaining, without rounding across boundaries (1.9817ms)
+✔ disabled warnings and an intentionally stopped fan do not alert (0.2589ms)
+✔ missing frequency is shown as unknown rather than a measured speed below 20 percent (0.4652ms)
+✔ profile input rejects out-of-range, fractional and unfinished numbers (1.4008ms)
+✔ shared validation used by saving and imports enforces integers and at most 20 cycles (0.9828ms)
+ℹ tests 21
+ℹ suites 0
+ℹ pass 21
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1820.4278

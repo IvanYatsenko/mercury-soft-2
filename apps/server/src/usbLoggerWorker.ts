@@ -1,9 +1,15 @@
+/**
+ * Файловый обработчик технического журнала: пишет только в проверенное USB-хранилище.
+ */
 import { appendFileSync, mkdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { format } from 'node:util';
 import { isMountedUsb } from './usbStorage.js';
 import { parentPort } from 'node:worker_threads';
 
+/**
+ * Подключает технический журнал к проверенному USB; возвращает функцию завершения записи.
+ */
 export function startUsbLogger() {
   if (process.platform !== 'linux' || !process.env.MERCURY_LOG_USB_MOUNT)
     return;

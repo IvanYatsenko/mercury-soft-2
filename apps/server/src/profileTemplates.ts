@@ -1,3 +1,4 @@
+/** Встроенные шаблоны для пользовательских копий; не являются автоматически проверенными производственными режимами. */
 import type { ManualProfile } from '@mercury/shared';
 
 /** Built-in profiles used as starting points when creating a new profile. */

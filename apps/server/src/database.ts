@@ -1,3 +1,6 @@
+/**
+ * SQLite-библиотека профилей и метаданных на Raspberry; история делегируется отдельному USB-worker без резервного накопления.
+ */
 import { DatabaseSync } from 'node:sqlite';
 import { randomUUID } from 'node:crypto';
 import { mkdirSync } from 'node:fs';
@@ -5,6 +8,8 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   validateProfile,
+  portableProfile,
+  uniqueProfileName,
   type Profile,
   type RunRecord,
   type RunSample,
@@ -25,6 +30,9 @@ CREATE TABLE IF NOT EXISTS profiles(id TEXT PRIMARY KEY,name TEXT NOT NULL UNIQU
 CREATE TABLE IF NOT EXISTS metadata(key TEXT PRIMARY KEY,value TEXT NOT NULL);
 PRAGMA user_version=1;`);
 
+/**
+ * Выполняет изменение библиотеки атомарно; при исключении откатывает все SQL-операции перед повторным выбросом ошибки.
+ */
 function transaction<T>(work: () => T): T {
   db.exec('BEGIN IMMEDIATE');
   try {
@@ -36,17 +44,26 @@ function transaction<T>(work: () => T): T {
     throw error;
   }
 }
+/**
+ * Возвращает сохранённые профили в порядке добавления; историю запусков эта база не содержит.
+ */
 export function listProfiles(): Profile[] {
   return db
     .prepare('SELECT body FROM profiles ORDER BY rowid')
     .all()
     .map((row) => JSON.parse(String(row.body)) as Profile);
 }
+/**
+ * Загружает профиль по идентификатору; отсутствие записи считается ошибкой, а не выбором профиля по умолчанию.
+ */
 export function findProfile(id: string): Profile {
   const row = db.prepare('SELECT body FROM profiles WHERE id=?').get(id);
   if (!row) throw new Error('Профиль не найден.');
   return JSON.parse(String(row.body));
 }
+/**
+ * Проверяет профиль и уникальность имени, затем сохраняет новую запись или заменяет существующую по id.
+ */
 export function saveProfile(value: unknown, id?: string): Profile {
   validateProfile(value);
   if (id) findProfile(id);
@@ -62,19 +79,31 @@ export function saveProfile(value: unknown, id?: string): Profile {
   }
   return profile;
 }
+/**
+ * Удаляет только запись библиотеки профилей; ранее записанные запуски и их снимки профиля не изменяются.
+ */
 export function deleteProfile(id: string) {
   findProfile(id);
   db.prepare('DELETE FROM profiles WHERE id=?').run(id);
 }
+/**
+ * Читает служебное значение библиотеки, например выбор профиля; отсутствие ключа возвращает undefined.
+ */
 export function getMetadata(key: string) {
   return db.prepare('SELECT value FROM metadata WHERE key=?').get(key)
     ?.value as string | undefined;
 }
+/**
+ * Создаёт или заменяет служебный ключ без изменения тел профилей.
+ */
 export function setMetadata(key: string, value: string) {
   db.prepare(
     'INSERT INTO metadata VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value',
   ).run(key, value);
 }
+/**
+ * Однократно переносит браузерную библиотеку в SQLite; валидация и запись выполняются для всего набора совместно.
+ */
 export function importProfiles(values: unknown): Profile[] {
   if (getMetadata('browser-imported')) return listProfiles();
   if (!Array.isArray(values) || values.length > 200)
@@ -98,6 +127,9 @@ if (!getMetadata('seeded'))
   });
 let historyDb = new IsolatedHistoryStorage();
 // Tests inject a disposable SQL backend; the production backend has no cache.
+/**
+ * Подменяет USB-хранилище только в симуляции NODE_ENV=test; производственное приложение не получает путь к тестовой истории.
+ */
 export function setTestHistoryStorage(storage: IsolatedHistoryStorage) {
   if (
     process.env.NODE_ENV !== 'test' ||
@@ -118,6 +150,9 @@ startUsbRetention({
   resumeDiskAfterMaintenance: () => historyDb.resumeWorkerAfterMaintenance(),
 });
 
+/**
+ * Создаёт идентификатор запуска и отправляет его снимок в USB-worker. Недоступный USB не блокирует управление и не создаёт историю в RAM.
+ */
 export function createRun(
   profile: Profile,
   simulated: boolean,
@@ -136,16 +171,25 @@ export function createRun(
   addRunEvent(id, 'Запуск профиля');
   return id;
 }
+/**
+ * Отправляет одну точную температурную выборку в USB-worker без ожидания файлового ввода-вывода на потоке управления.
+ */
 export function addRunSample(id: string, sample: RunSample) {
   historyDb
     .prepare('INSERT OR REPLACE INTO samples VALUES(?,?,?)')
     .run(id, sample.elapsedSeconds, JSON.stringify(sample));
 }
+/**
+ * Записывает текст события конкретного запуска; сбои USB не должны прерывать регулирование.
+ */
 export function addRunEvent(id: string, message: string) {
   historyDb
     .prepare('INSERT INTO events(run_id,at,message) VALUES(?,?,?)')
     .run(id, new Date().toISOString(), message);
 }
+/**
+ * Помечает результат запуска и время завершения; это не команда управления нагревом.
+ */
 export function finishRun(id: string, state: string, error: string | null) {
   historyDb
     .prepare('UPDATE runs SET finished_at=?,state=?,error=? WHERE id=?')
@@ -159,6 +203,9 @@ export function finishRun(id: string, state: string, error: string | null) {
       state,
   );
 }
+/**
+ * Асинхронно читает доступные USB-записи и преобразует SQL-поля в публичный формат истории.
+ */
 export async function listRuns(): Promise<RunRecord[]> {
   return (
     (await historyDb.storedQuery(
@@ -174,6 +221,9 @@ export async function listRuns(): Promise<RunRecord[]> {
     simulated: Boolean(row.simulated),
   }));
 }
+/**
+ * Читает запись запуска и связанные измерения; возвращает данные только доступного USB, без восстановления пропущенных выборок.
+ */
 export async function runDetails(id: string) {
   const row = (
     await historyDb.storedQuery('SELECT * FROM runs WHERE id=?', [id])
@@ -197,9 +247,21 @@ export async function runDetails(id: string) {
 }
 // Historical USB queries are asynchronous too: opening the history page must
 // never put a disk read onto the temperature-control thread.
+/**
+ * Публичная асинхронная точка чтения списка истории, чтобы HTTP-обработчик не работал с SQLite напрямую.
+ */
 export async function listStoredRuns(): Promise<RunRecord[]> {
   return listRuns();
 }
+/**
+ * Ожидает подтверждение удаления запусков, измерений и событий USB-worker; неуспех должен дойти до вызывающего кода.
+ */
+export async function clearStoredRuns() {
+  await historyDb.clearRuns();
+}
+/**
+ * Загружает историю выбранного запуска для графика; отсутствующая запись или USB приводят к явной ошибке.
+ */
 export async function storedRunDetails(id: string) {
   const rows = await historyDb.storedQuery('SELECT * FROM runs WHERE id=?', [
     id,
@@ -223,7 +285,23 @@ export async function storedRunDetails(id: string) {
     events,
   };
 }
+/**
+ * Сбрасывает WAL библиотеки и подтверждает предшествующие записи USB перед завершением приложения.
+ */
 export async function checkpointDatabase() {
   db.exec('PRAGMA wal_checkpoint(FULL)');
   await historyDb.flush();
+}
+
+/** Explicit UI/file import: always new copies, never legacy migration or overwrite. */
+export function importProfileCopies(values: Profile[]): Profile[] {
+  values.forEach((value) => validateProfile(value));
+  return transaction(() => {
+    const names = listProfiles().map((p) => p.name);
+    return values.map((value) => {
+      const name = uniqueProfileName(value.name, names);
+      names.push(name);
+      return saveProfile({ ...portableProfile(value), name });
+    });
+  });
 }

@@ -1,3 +1,6 @@
+/**
+ * Редактор параметров регулирования; включение в пользовательский экран определяется родителем.
+ */
 import { useEffect, useState } from 'react';
 import {
   Alert,
@@ -14,6 +17,9 @@ import {
 import { defaultThermalSettings, type ThermalSettings } from '@mercury/shared';
 import { KeyboardTextField } from './OnScreenKeyboard';
 
+/**
+ * Отрисовывает ThermalSettingsPanel: Редактор параметров регулирования; включение в пользовательский экран определяется родителем.
+ */
 export function ThermalSettingsPanel({
   disabled,
   voltage,
@@ -48,10 +54,14 @@ export function ThermalSettingsPanel({
     return () => controller.abort();
   }, []);
   const locked = disabled || busy || !ready;
+  /** Меняет поле локального черновика параметров без немедленной команды нагрева. */
   function change(key: keyof ThermalSettings, value: number) {
     setSettings((current) => ({ ...current, [key]: value }));
     setSaved(false);
   }
+  /**
+   * Отправляет подтверждённые изменения на сервер и обновляет состояние экрана по результату.
+   */
   async function save() {
     setBusy(true);
     setError('');

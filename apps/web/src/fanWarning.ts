@@ -1,3 +1,6 @@
+/**
+ * Пороговые предупреждения по частоте конвекции относительно сохранённого эталона.
+ */
 export function fanWarning(
   frequency: number | null | undefined,
   reference: number,

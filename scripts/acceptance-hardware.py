@@ -12,7 +12,7 @@ model, action = sys.argv[1:3]
 
 
 def api(path, data=None):
-    req = urllib.request.Request('http://' + HOSTS[model] + ':3001/api/' + path,
+    req = urllib.request.Request('http://' + HOSTS[model] + ':8075/api/' + path,
         data=None if data is None else json.dumps(data).encode(),
         headers={'Content-Type': 'application/json'})
     with urllib.request.urlopen(req, timeout=10) as response:

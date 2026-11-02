@@ -1,0 +1,16 @@
+{
+  "10.10.1.88": {
+    "publicHistory": true,
+    "lockedNetwork": true,
+    "missingOrWrongStartPinRejected": true,
+    "remoteElectronSpoofRejected": true,
+    "heatingStarted": false
+  },
+  "10.10.1.13": {
+    "publicHistory": true,
+    "lockedNetwork": true,
+    "missingOrWrongStartPinRejected": true,
+    "remoteElectronSpoofRejected": true,
+    "heatingStarted": false
+  }
+}

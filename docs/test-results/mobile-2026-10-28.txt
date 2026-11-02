@@ -1,0 +1,29 @@
+✔ only local Electron is the embedded panel; remote User-Agent spoofing cannot bypass the start PIN (1.902ms)
+✔ settings start locked, reject wrong PIN, unlock with 3457 and relock from another client (355.8507ms)
+✔ a fresh server locks access and changes boot ID (23.1565ms)
+✔ locked settings protect changes and tests without blocking operator start, stop or 100 C switch (0.7558ms)
+✔ separate roles block profile writes but permit operator selection and execution; PIN grants engineering access (325.227ms)
+✔ advanced PIN alone grants model and fan reference access; locking and regular PIN revoke it (343.6498ms)
+✔ Electron operator can read current chart while locked and all history after ordinary PIN (93.7911ms)
+✔ every web start requires its own exact PIN, regardless of settings unlock; Electron start remains available (140.5562ms)
+✔ web network access is inside ordinary PIN settings; Electron history is available with ordinary PIN (124.5109ms)
+✔ browser gets PC bundle, Electron keeps frozen bundle; missing PC build falls back (265.0954ms)
+✔ board faults become a critical error, including combined and wrapped states (1.3237ms)
+✔ normal states, shutdown, connection and temperature errors keep their own meaning (0.2712ms)
+✔ desktop and mobile browsers share the responsive web workspace (1.3381ms)
+✔ Electron never opts into PC layout, even in a large development window (0.222ms)
+✔ fan warning thresholds use the fraction remaining, without rounding across boundaries (1.1146ms)
+✔ disabled warnings and an intentionally stopped fan do not alert (0.2125ms)
+✔ missing frequency is shown as unknown rather than a measured speed below 20 percent (0.2122ms)
+✔ JSON exchange round trip preserves profile data and source but strips database IDs (2.3167ms)
+✔ JSON import rejects unsupported, oversized, fractional and invalid profile files (0.7037ms)
+✔ profile input rejects out-of-range, fractional and unfinished numbers (1.344ms)
+✔ shared validation used by saving and imports enforces integers and at most 20 cycles (0.9711ms)
+ℹ tests 21
+ℹ suites 0
+ℹ pass 21
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1839.9221

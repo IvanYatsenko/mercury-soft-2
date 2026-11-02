@@ -1,3 +1,6 @@
+/**
+ * Проверка реального смонтированного USB, чтобы каталог точки монтирования не стал записью на SD-карту.
+ */
 import { readFileSync, realpathSync, statSync } from 'node:fs';
 import { resolve } from 'node:path';
 
@@ -19,6 +22,9 @@ export function isMountedUsb(root: string): boolean {
   }
 }
 
+/**
+ * Декодирует экранирование пути из системной таблицы монтирования.
+ */
 export function decodeMountPath(path: string): string {
   return path.replace(/\\([0-7]{3})/g, (_, octal: string) =>
     String.fromCharCode(parseInt(octal, 8)),

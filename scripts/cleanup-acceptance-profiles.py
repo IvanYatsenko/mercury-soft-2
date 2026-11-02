@@ -9,7 +9,7 @@ model = sys.argv[1]
 host, voltage = {'M300': ('10.10.1.88', '380'), 'M400': ('10.10.1.167', '230')}[model]
 
 def api(path, method=None):
-    request = urllib.request.Request('http://' + host + ':3001/api/' + path, method=method)
+    request = urllib.request.Request('http://' + host + ':8075/api/' + path, method=method)
     with urllib.request.urlopen(request, timeout=8) as response:
         return None if response.status == 204 else json.load(response)
 
